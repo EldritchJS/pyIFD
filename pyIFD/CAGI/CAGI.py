@@ -4,13 +4,13 @@ import numpy as np
 import math
 import cv2
 import jpeg2dct as j2dct
-from inblockpatterns import inblockpatterns
-from predict0 import predict0
-from predict1 import predict1
-from MainTrain import MainTrain
-from characterizeblocks import characterizeblocks
-from RescaleToImageResult import RescaleToImageResult
-from scores_pick_variables import scores_pick_variables
+#from inblockpatterns import inblockpatterns
+#from predict0 import predict0
+#from predict1 import predict1
+#from MainTrain import MainTrain
+#from characterizeblocks import characterizeblocks
+#from RescaleToImageResult import RescaleToImageResult
+#from scores_pick_variables import scores_pick_variables
 
 def CAGI(filename='../demo.jpg'):
     # Read image in as double RGB

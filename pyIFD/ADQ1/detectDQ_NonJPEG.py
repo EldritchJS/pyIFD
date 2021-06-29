@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.signal import medfilt2d
-from ExtractYDCT import ExtractYDCT
+#from ExtractYDCT import ExtractYDCT
 def detectDQ_NonJPEG( im ):
     # How many DCT coeffs to take into account
     MaxCoeffs=15;

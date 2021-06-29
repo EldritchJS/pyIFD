@@ -156,7 +156,7 @@ def ceil2(x1):
     x2[idx]=x1[idx]+0.5
     return x2
 
-def getJmap(filename, ncomp=1,c1=1,c2=15):
+def ADQ2(filename, ncomp=1,c1=1,c2=15):
     image=jio.read(filename)
     ncomp-=1#indexing
     coeffArray=image.coef_arrays[ncomp]

@@ -1,9 +1,9 @@
 import numpy as np
 import cv2
 from scipy.signal import medfilt2d
-from KMeans import KMeans
-from PCANoiseLevelEstimator import PCANoiseLevelEstimator
-from dethighlightHZ import dethighlightHZ
+#from KMeans import KMeans
+#from PCANoiseLevelEstimator import PCANoiseLevelEstimator
+#from dethighlightHZ import dethighlightHZ
 
 def NOI5(impath):
     B = 64

@@ -1,5 +1,5 @@
 import numpy as np
-from cagiutils import mat2gray
+#from cagiutils import mat2gray
 
 def scores_pick_variables(BlockScoreALL,sgrid,blk_idx,blk_idy,PossiblePoints,kx,ky):
 
