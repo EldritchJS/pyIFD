@@ -1,11 +1,11 @@
 import numpy as np
 import math
 from scipy.signal import medfilt2d
-#from statistics import mean
 import matplotlib.pyplot as plt
 import scipy.io as spio
 from skimage.metrics import structural_similarity as comp
 import jpegio as jio
+from cv2 import COLOR_BGR2YCR_CB,cvtColor
 
 def bdctmtx(n):
     [c,r]=np.meshgrid(range(8),range(8))
@@ -131,7 +131,7 @@ def jpeg_rec(image):
         YCbCr=np.concatenate((Y,Cb,Cr),axis=1)
     else:
         I=np.tile(Y,[1,1,3])
-        YCbCr=cv2.cvtColor(I, cv2.COLOR_BGR2YCR_CB)
+        YCbCr=cvtColor(I, COLOR_BGR2YCR_CB)
         
     return [I,YCbCr]
 

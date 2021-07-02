@@ -1,13 +1,14 @@
 import numpy as np
-import cv2
+from cv2 import cvtColor
+from cv2 import imread
+from cv2 import COLOR_BGR2GRAY
+from cv2 import connectedComponentsWithStats
+from cv2 import connectedComponents
 from scipy.signal import medfilt2d
-#from KMeans import KMeans
-#from PCANoiseLevelEstimator import PCANoiseLevelEstimator
-#from dethighlightHZ import dethighlightHZ
 
 def NOI5(impath):
     B = 64
-    I = cv2.cvtColor(cv2.imread("../demo.tif"), cv2.COLOR_BGR2GRAY).astype("double")
+    I = cvtColor(imread("../demo.tif"), COLOR_BGR2GRAY).astype("double")
     [M,N] = np.shape(I)
     I = I[:int(np.floor(M/B)*B),:int(np.floor(N/B)*B)]
     [M, N] = np.shape(I)
@@ -61,13 +62,13 @@ def NOI5(impath):
     Noise_mix2[tuple(g)] = Noise_32[tuple(g)]
     [u,re]=KMeans(Noise_mix2.flatten(order='F'),2)
     result4=np.reshape(re[:,1],np.shape(Noise_mix2),order='F')
-    labels=cv2.connectedComponentsWithStats(np.uint8(result4-1))
+    labels=connectedComponentsWithStats(np.uint8(result4-1))
     bwpp=labels[1]
     area = labels[2][:,4]
     for num in range(1,len(area)):
         if (area[num] < 4):
             result4[bwpp==num]=1
-    bwpp = cv2.connectedComponents(np.uint8(result4-1)) 
+    bwpp = connectedComponents(np.uint8(result4-1)) 
     highlighted=dethighlightHZ(I,B,np.transpose(result4)).astype("uint8")
 
     return [Noise_mix2,highlighted]

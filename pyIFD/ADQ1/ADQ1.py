@@ -1,7 +1,7 @@
 import jpegio as jio
 import matplotlib.image as mpimg
-#from detectDQ_JPEG import detectDQ_JPEG
-#from detectDQ_NonJPEG import detectDQ_NonJPEG
+from pyIFD.ADQ1.detectDQ_JPEG import detectDQ_JPEG
+from pyIFD.ADQ1.detectDQ_NonJPEG import detectDQ_NonJPEG
 import numpy as np
 def ADQ1( impath ):
     if impath[-4:]==".jpg":

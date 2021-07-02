@@ -2,9 +2,10 @@ from scipy import signal
 from skimage.transform import resize
 import numpy as np
 import math
-import cv2
+from cv2 import imread,imwrite,cvtColor,COLOR_RGB2HSV
 import jpeg2dct as j2dct
-#from inblockpatterns import inblockpatterns
+#import inblockpatterns
+from pyIFD.CAGI import inblockpatterns
 #from predict0 import predict0
 #from predict1 import predict1
 #from MainTrain import MainTrain
@@ -12,13 +13,13 @@ import jpeg2dct as j2dct
 #from RescaleToImageResult import RescaleToImageResult
 #from scores_pick_variables import scores_pick_variables
 
-def CAGI(filename='../demo.jpg'):
+def CAGI(filename):
     # Read image in as double RGB
-    BGR=cv2.imread(filename)
+    BGR=imread(filename)
     RGB=np.double(BGR[...,::-1])
     
     (height,width,color) = RGB.shape
-    V_im=cv2.cvtColor(np.uint8(RGB), cv2.COLOR_RGB2HSV)[:,:,2]
+    V_im=cvtColor(np.uint8(RGB), COLOR_RGB2HSV)[:,:,2]
     
     # Store the pixels for Y of YCbCr
     pixels=16/255+ (0.25678823529411759496454692452971 * RGB[:,:,0] + 0.50412941176470582593793778869440 * RGB[:,:,1] + 0.09790588235294117591678286771639 * RGB[:,:,2])

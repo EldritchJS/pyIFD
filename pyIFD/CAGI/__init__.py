@@ -11,4 +11,4 @@ from pyIFD.CAGI import MainTrain
 from pyIFD.CAGI import inblockpatterns
 from pyIFD.CAGI import predict0
 from pyIFD.CAGI import predict1
-from pyIFD.CAGI import CAGI
+from pyIFD.CAGI.CAGI import CAGI

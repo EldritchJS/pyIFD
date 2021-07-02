@@ -3,13 +3,13 @@ from scipy.signal import fftconvolve
 from skimage.transform import resize
 import numpy as np
 import math
-import cv2
+from cv2 import imread,imwrite,IMWRITE_JPEG_QUALITY 
 import os
 
 # TODO: Check speedup using cv2 imencode decode
 
 def GHOST(filename, checkDisplacements=0):
-    imorig=np.double(cv2.imread(filename))
+    imorig=np.double(imread(filename))
     minQ=51
     maxQ=100
     stepQ=1
@@ -27,8 +27,8 @@ def GHOST(filename, checkDisplacements=0):
     Offset=int((smoothing_b-1)/2)
     
     for ii in range(minQ,maxQ+1,stepQ):
-        cv2.imwrite('tmpResave.jpg', imorig, [cv2.IMWRITE_JPEG_QUALITY, ii])
-        tmpResave=np.double(cv2.imread('tmpResave.jpg'))
+        imwrite('tmpResave.jpg', imorig, [IMWRITE_JPEG_QUALITY, ii])
+        tmpResave=np.double(imread('tmpResave.jpg'))
         Deltas={}
         overallDelta={}
         for dispx in range(maxDisp+1):

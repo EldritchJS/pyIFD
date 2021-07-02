@@ -1,11 +1,11 @@
 import numpy as np
-import cv2
+from cv2 import IMWRITE_JPEG_QUALITY,imread,imwrite
 import os
 
 def ELA(Filename, Quality=90, Multiplier=15, Flatten=True):
-    ImIn=np.double(cv2.imread(Filename))
-    cv2.imwrite('tmpResave.jpg', ImIn, [cv2.IMWRITE_JPEG_QUALITY, Quality])
-    ImJPG = np.double(cv2.imread('tmpResave.jpg'))
+    ImIn=np.double(imread(Filename))
+    imwrite('tmpResave.jpg', ImIn, [IMWRITE_JPEG_QUALITY, Quality])
+    ImJPG = np.double(imread('tmpResave.jpg'))
 
     OutputMap=(np.abs(ImIn-ImJPG))*Multiplier
     OutputMap[:,:,[0,2]] = OutputMap[:,:,[2,0]]

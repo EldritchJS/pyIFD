@@ -1,1 +1,1 @@
-from pyIFD.GHOST import GHOST
+from pyIFD.GHOST.GHOST import GHOST

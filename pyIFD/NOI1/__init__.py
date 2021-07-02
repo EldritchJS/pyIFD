@@ -1,1 +1,1 @@
-from pyIFD.NOI1 import NOI1
+from pyIFD.NOI1.NOI1 import NOI1

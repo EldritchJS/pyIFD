@@ -1,1 +1,1 @@
-from pyIFD.ELA import ELA
+from pyIFD.ELA.ELA import ELA
