@@ -1,10 +1,13 @@
 import scipy.io as spio
 from numpy.matlib import repmat
 import numpy as np
-#from svmdecision import svmdecision
-#from ExtractFeatures import ExtractFeatures
+import jpegio as jio
+from pyIFD.ADQ3.svmdecision import svmdecision
+from pyIFD.ADQ3.ExtractFeatures import ExtractFeatures
 from pyIFD.ADQ3.EstimateJPEGQuality import EstimateJPEGQuality
-def ADQ3(im):
+
+def ADQ3(filename):
+    im=jio.read(filename)
     out=spio.loadmat("../SVMs.mat")
     SVMStruct=out['SVMStruct'][0]
     Quality=EstimateJPEGQuality(im)

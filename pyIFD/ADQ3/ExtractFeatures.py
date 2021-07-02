@@ -1,5 +1,5 @@
 import numpy as np
-#from dequantize import dequantize
+from pyIFD.ADQ3.dequantize import dequantize
 def ExtractFeatures(im,c1,c2,ncomp,digitBinsToKeep):
     coeffArray=im.coef_arrays[ncomp-1]
     qtable=im.quant_tables[im.comp_info[ncomp].quant_tbl_no-1]
