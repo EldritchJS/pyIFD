@@ -3,7 +3,7 @@ from numpy.matlib import repmat
 import numpy as np
 #from svmdecision import svmdecision
 #from ExtractFeatures import ExtractFeatures
-#from EstimateJPEGQuality import EstimateJPEGQuality
+from pyIFD.ADQ3.EstimateJPEGQuality import EstimateJPEGQuality
 def ADQ3(im):
     out=spio.loadmat("../SVMs.mat")
     SVMStruct=out['SVMStruct'][0]
