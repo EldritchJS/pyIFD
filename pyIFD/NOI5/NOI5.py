@@ -5,10 +5,13 @@ from cv2 import COLOR_BGR2GRAY
 from cv2 import connectedComponentsWithStats
 from cv2 import connectedComponents
 from scipy.signal import medfilt2d
+from pyIFD.NOI5.PCANoiseLevelEstimator import PCANoiseLevelEstimator
+from pyIFD.NOI5.KMeans import KMeans
+from pyIFD.NOI5.dethighlightHZ import dethighlightHZ
 
 def NOI5(impath):
     B = 64
-    I = cvtColor(imread("../demo.tif"), COLOR_BGR2GRAY).astype("double")
+    I = cvtColor(imread(impath), COLOR_BGR2GRAY).astype("double")
     [M,N] = np.shape(I)
     I = I[:int(np.floor(M/B)*B),:int(np.floor(N/B)*B)]
     [M, N] = np.shape(I)
