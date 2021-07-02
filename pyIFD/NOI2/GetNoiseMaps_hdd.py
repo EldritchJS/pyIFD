@@ -3,7 +3,7 @@ from skimage.color import rgb2ycbcr
 from PIL import Image
 import PIL
 from scipy.signal import convolve2d
-#from localNoiVarEstimate_hdd import localNoiVarEstimate_hdd
+from pyIFD.NOI2.localNoiVarEstimate_hdd import localNoiVarEstimate_hdd
 
 def conv2(x, y, mode='same'):
     return np.rot90(convolve2d(np.rot90(x, 2), np.rot90(y, 2), mode=mode), 2)

@@ -1,6 +1,6 @@
-#from rnd2mtx import rnd2mtx
+from pyIFD.NOI2.rnd2mtx import rnd2mtx
 import numpy as np
-#from block_avg import block_avg
+from pyIFD.NOI2.block_avg import block_avg
 from scipy.signal import convolve2d
 
 def conv2(x, y, mode='same'):

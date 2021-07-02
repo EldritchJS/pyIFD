@@ -1,8 +1,9 @@
 import numpy as np
+from PIL import Image
 from pyIFD.NOI2.GetNoiseMaps_ram import GetNoiseMaps_ram
 from pyIFD.NOI2.GetNoiseMaps_hdd import GetNoiseMaps_hdd
 
-def NOI2( im, sizeThreshold=55*(2**5), filter_type='rand', filter_size=4, block_rad=8 ):
+def NOI2( filename, sizeThreshold=55*(2**5), filter_type='rand', filter_size=4, block_rad=8 ):
     # Copyright (C) 2016 Markos Zampoglou
     # Information Technologies Institute, Centre for Research and Technology Hellas
     # 6th Km Harilaou-Thermis, Thessaloniki 57001, Greece
@@ -16,6 +17,7 @@ def NOI2( im, sizeThreshold=55*(2**5), filter_type='rand', filter_size=4, block_
     # especially for large images, this function detects large images and
     # runs a memory efficient version of the code, which stores
     # intermediate data to disk (GetNoiseMaps_hdd)
+    im = Image.open(filename)
     size=np.prod(np.shape(im))
     if size>sizeThreshold:
         #disp('hdd-based');
