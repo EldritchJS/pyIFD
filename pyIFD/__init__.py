@@ -1,5 +1,6 @@
 from pyIFD import ADQ1
 from pyIFD import ADQ2
+from pyIFD import ADQ3
 from pyIFD import BLK
 from pyIFD import CAGI
 from pyIFD import ELA
