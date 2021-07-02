@@ -30,8 +30,8 @@ def inblockpatterns(image, bins, p, q, blk_idx, blk_idy):
             
             a+=1
             
-            Zmat[a,0]=np.abs(A-B-C+D)
-            Zmat[a,1]=np.abs(E-F-G+H)
+            Zmat[a,0]=abs(A-B-C+D)
+            Zmat[a,1]=abs(E-F-G+H)
             
             BlockScoreAll[i,j] = Zmat[a,1] - Zmat[a,0]
             if (BlockScoreAll[i,j]<=0):
@@ -42,21 +42,21 @@ def inblockpatterns(image, bins, p, q, blk_idx, blk_idy):
     Hzn=Hz/(norm+1)
     Hz2=hist_adjust(Zmat[:,1],bins)[0]
     Hz2n=Hz2/(norm+1)
-    y2=Hzn.size.astype(int)
+    y2=int(Hzn.size)
     K=0
     for i in range(y2):
         K_temp=Hzn[i]-Hz2n[i]
-        K+=np.abs(K_temp)
+        K+=abs(K_temp)
         
         
-    A=np.sum(Hzn[0:2])
+    A=sum(Hzn[0:2]);
 
-    E=np.sum(Hz2n[0:2])
+    E=sum(Hz2n[0:2]);
 
     if A>E:
-        Correct=True
+        Correct=True;
     else:
-        Correct=False
+        Correct=False;
 
     return [K,Correct, BlockScoreAll]
 

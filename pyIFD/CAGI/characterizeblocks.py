@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.ndimage import correlate
 import cv2
-#from cagiutils import mat2gray
+from pyIFD.CAGI.cagiutils import mat2gray
 
 
 def characterizeblocks(MeanContent2,MeanStrongEdge, V_im, blk_idx,blk_idy, MeanInSpace,diff_Mean_Best_scaled,diff_Mean_Best_scaledInv,sgrid,PossiblePoints,kx,ky):

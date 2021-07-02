@@ -1,6 +1,6 @@
 import numpy as np
-#from GetNoiseMaps_ram import GetNoiseMaps_ram
-#from GetNoiseMaps_hdd import GetNoiseMaps_hdd
+from pyIFD.NOI2.GetNoiseMaps_ram import GetNoiseMaps_ram
+from pyIFD.NOI2.GetNoiseMaps_hdd import GetNoiseMaps_hdd
 
 def NOI2( im, sizeThreshold=55*(2**5), filter_type='rand', filter_size=4, block_rad=8 ):
     # Copyright (C) 2016 Markos Zampoglou

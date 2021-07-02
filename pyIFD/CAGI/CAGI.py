@@ -5,13 +5,16 @@ import math
 from cv2 import imread,imwrite,cvtColor,COLOR_RGB2HSV
 import jpeg2dct as j2dct
 #import inblockpatterns
-from pyIFD.CAGI import inblockpatterns
+from pyIFD.CAGI.inblockpatterns import inblockpatterns
+from pyIFD.CAGI.predict0 import predict0
+from pyIFD.CAGI.predict1 import predict1
+from pyIFD.CAGI.MainTrain import MainTrain
 #from predict0 import predict0
 #from predict1 import predict1
 #from MainTrain import MainTrain
-#from characterizeblocks import characterizeblocks
-#from RescaleToImageResult import RescaleToImageResult
-#from scores_pick_variables import scores_pick_variables
+from pyIFD.CAGI.characterizeblocks import characterizeblocks
+from pyIFD.CAGI.RescaleToImageResult import RescaleToImageResult
+from pyIFD.CAGI.scores_pick_variables import scores_pick_variables
 
 def CAGI(filename):
     # Read image in as double RGB
