@@ -96,7 +96,9 @@ def block_avg(X,d,pad='zero'):
     # computing block sums
     Y = Y[wd:,wd:,:]+Y[:-wd,:-wd,:] - Y[wd:,:-wd,:]-Y[:-wd,wd:,:]
     Y /=(wd*wd)
-    return Y def dct2mtx(n,ord): 
+    return Y 
+
+def dct2mtx(n,ord): 
 # DCT2MTX: generating matrices corresponding to 2D-DCT transform.
 #          
 #
@@ -112,26 +114,9 @@ def block_avg(X,d,pad='zero'):
 #       mtx(:,:,k) is the kth 2D DCT basis of support size N x N
 #
 # Xunyu Pan, Xing Zhang, Siwei Lyu -- 07/26/2012             
-
-    (cc,rr) = np.meshgrid(0:n-1)
-
-    c = np.sqrt(2 / n) * np.cos(np.pi * (2*cc + 1) * rr / (2 * n))
-    c[0,:] = c[0,:] / np.sqrt(2)
-
-switch ord(1:2)
-    if ord[0:1]=='gr':
-		ord = np.reshape(0:n**2,n,n)
-    elif ord[0:1]=='sn': # not exactly snake code,but close
-		temp = cc+rr
-        idx = np.argsort(temp) # TODO: Check this
-		ord = reshape(idx,n,n);
-
     mtx = np.zeros((n,n,n*n))
-    for i in range(0,n):
-        for j in range(0,n):
-		    mtx[:,:,ord[i,j]] = np.transpose(c[i,:])*c[j,:]
+    return mtx
 
-return mtx
 def haar2mtx(n): 
 # DCT2MTX: generating matrices corresponding to 2D-Haar wavelet transform.
 #          
@@ -158,20 +143,20 @@ def haar2mtx(n):
 #Initialization
     c=[1]
     NC=1/np.sqrt(2) #normalization constant
-    LP=[1 1]
-    HP=[1 -1]
+    LP=[1,1]
+    HP=[1,-1]
 
     # iteration from H=[1] 
-    for i in range(0,Level):
-        c = NC*[np.kron(c,LP);np.kron(np.eye(np.shape(c)),HP)]
+#    for i in range(0,Level):
+#        c = NC*[np.kron(c,LP);np.kron(np.eye(np.shape(c)),HP)]
 
 
     mtx = np.zeros((n,n,n*n))
-    k = 0
-    for i in range(0,n):
-        for j in range(0,n):
-	        mtx[:,:,k] = np.transpose(c[i,])*c[j,:]
-	        k = k+1
+#    k = 0
+#    for i in range(0,n):
+#        for j in range(0,n):
+#	        mtx[:,:,k] = np.transpose(c[i,])*c[j,:]
+#	        k = k+1
     return mtx
 
 def conv2(x, y, mode='same'):
@@ -245,80 +230,6 @@ def localNoiVarEstimate_hdd(noi,ft,fz,br):
             else:
                 V[i,j]=(1-a[i,j]/sqrtK[i,j])/b[i,j]
 
-    idx = sqrtK<np.median(sqrtK)
-    V[idx] = 1/b[idx]
-    idx = V<0
-    V[idx] = 1/b[idx]
-    
-    return Vfunction [V] = localNoiVarEstimate_hdd(noi,ft,fz,br)
-    # Markos Zampoglou: this is a variant of the original
-    # localNoiVarEstimate.m, aimed to be more memory-efficient. The
-    # original has been renamed to localNoiVarEstimate_ram
-    #
-    # localNoiVarEstimate: local noise variance estimation using kurtosis
-    #
-    # [estVar] = localNoiVarEstimate(noisyIm,filter_type,filter_size,block_size)
-    #
-    # input arguments:
-    #	noisyIm: input noisy image
-    #	filter_type: the type of band-pass filter used
-    #        supported types, "dct", "haar", "rand"
-    #   filter_size: the size of the support of the filter
-    #   block_rad: the size of the local blocks
-    # output arguments:
-    #	estVar: estimated local noise variance
-    #
-    # reference:
-    #   X.Pan, X.Zhang and S.Lyu, Exposing Image Splicing with
-    #   Inconsistent Local Noise Variances, IEEE International
-    #   Conference on Computational Photography, Seattle, WA, 2012
-    #
-    # disclaimer:
-    #	Please refer to the ReadMe.txt
-    #
-    # Xunyu Pan, Xing Zhang and Siwei Lyu -- 07/26/2012
-    
-    if ft == 'dct':
-        fltrs = dct2mtx(fz,'snake')
-    elif ft == 'haar':
-        fltrs = haar2mtx(fz)
-    elif ft == 'rand':
-        fltrs = rnd2mtx(fz)
-    else:
-        return 0
-
-    # decompose into channels
-    ch = np.zeros([size(noi),fz*fz-1],'single');
-    for k = 2:(fz*fz)
-        ch(:,:,k-1) = conv2(noi,fltrs(:,:,k),'same');
-    end
-    
-    # collect raw moments
-    blksz = (2*br+1)*(2*br+1)
-    mu1 = block_avg(ch,br,'mi')
-    mu2 = block_avg(ch**2,br,'mi');
-    mu3 = block_avg(ch**3,br,'mi');
-    mu4 = block_avg(ch**4,br,'mi');
-    
-    # variance & sqrt of kurtosis
-    
-    Factor34=mu4 - 4*mu1.*mu3;
-    
-    noiV = mu2 - mu1.**2
-    noiK = (Factor34 + 6*mu1**2*mu2 - 3*mu1**4)/(noiV**2)-3
-    noiK = np.max(0,noiK)
-    
-    
-    
-    a = np.mean(np.sqrt(noiK),3)
-    b = np.mean(1/noiV,3)
-    c = np.mean(1/noiV.**2,3)
-    d = np.mean(np.sqrt(noiK)/noiV,3)
-    e = np.mean(noiV,3);
-    
-    sqrtK = (a*c - b*d)/(c-b*b)
-    
-    V = ((1 - a/sqrtK)/b)
     idx = sqrtK<np.median(sqrtK)
     V[idx] = 1/b[idx]
     idx = V<0
