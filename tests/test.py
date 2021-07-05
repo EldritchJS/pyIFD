@@ -13,17 +13,17 @@ import numpy as np
 import scipy.io as spio
 from skimage.metrics import structural_similarity as comp
 
-ADQ1_CRITERIA = 0.9
-ADQ2_CRITERIA = 0.9
-ADQ3_CRITERIA = 0.9
-BLK_CRITERIA = 0.9
-CAGI_CRITERIA = 0.9
-ELA_CRITERIA = 0.9
-GHOST_CRITERIA = 0.9
-NOI1_CRITERIA = 0.9
-NOI2_CRITERIA = 0.9
-NOI4_CRITERIA = 0.9
-NOI5_CRITERIA = 0.9
+ADQ1_CRITERIA = 0.99
+ADQ2_CRITERIA = 0.99
+ADQ3_CRITERIA = 0.99
+BLK_CRITERIA = 0.99
+CAGI_CRITERIA = 0.99
+ELA_CRITERIA = 0.99
+GHOST_CRITERIA = 0.99
+NOI1_CRITERIA = 0.99
+NOI2_CRITERIA = 0.99
+NOI4_CRITERIA = 0.99
+NOI5_CRITERIA = 0.99
 
 adq1test=detectDQ('../data/demo_adq1.jpg')
 adqmat=spio.loadmat('../data/demo_adq1_jpg.mat')
