@@ -1,17 +1,12 @@
 from PIL import Image
 from skimage.color import rgb2gray
 import numpy as np
-from PIL import Image
-import numpy as np
 import scipy.io as spio
 from scipy.ndimage import correlate
 import cv2
 from scipy import signal
 from skimage.transform import resize
-import numpy as np
 import math
-import cv2
-import jpeg2dct as j2dct
 
 def im2double(im):
     info = np.iinfo(im.dtype) 
