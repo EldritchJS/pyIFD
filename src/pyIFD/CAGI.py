@@ -1,7 +1,6 @@
 from PIL import Image
 from skimage.color import rgb2gray
 import numpy as np
-import scipy.io as spio
 from scipy.ndimage import correlate
 import cv2
 from scipy import signal
