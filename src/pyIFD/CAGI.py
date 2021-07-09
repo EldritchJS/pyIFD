@@ -7,6 +7,7 @@ import cv2
 from scipy import signal
 from skimage.transform import resize
 import math
+import os 
 
 def im2double(im):
     info = np.iinfo(im.dtype) 
@@ -45,11 +46,7 @@ def ImageTiling(OImg):
 
 def MainTrain(R10,blk_idx,blk_idy):
     [x,y,z]=R10.shape
-
-    masks=spio.loadmat('masks.mat')
-    PMasks=masks['PMasks']
-    MMasks=masks['MMasks']
-    MaskWhite=masks['MaskWhite']
+    [PMasks,MMasks,MaskWhite] = getMasks()
     #////////Image Tiling 3 Scales////////////////////////////
     #slight difference in tileF (~99% similarity)
     tileF=ImageTiling(R10)
@@ -709,4 +706,66 @@ def CAGI(filename='../demo.jpg'):
     return [Result_CAGI, Result_Inv_CAGI]
 
 
+def getMasks():
+    PMasks = np.load(os.path.join(os.path.dirname(__file__),'PMasks.npy'))
+    MMasks = np.load(os.path.join(os.path.dirname(__file__),'MMasks.npy'))
+    MaskWhite = np.array([[10],
+       [30],
+       [50],
+       [70],
+       [90],
+       [20],
+       [40],
+       [60],
+       [80],
+       [12],
+       [30],
+       [50],
+       [70],
+       [88],
+       [15],
+       [28],
+       [45],
+       [64],
+       [79],
+       [85],
+       [12],
+       [30],
+       [50],
+       [70],
+       [88],
+       [20],
+       [40],
+       [60],
+       [80],
+       [10],
+       [30],
+       [50],
+       [70],
+       [90],
+       [20],
+       [40],
+       [60],
+       [80],
+       [12],
+       [30],
+       [50],
+       [70],
+       [88],
+       [15],
+       [21],
+       [36],
+       [55],
+       [72],
+       [85],
+       [12],
+       [30],
+       [50],
+       [70],
+       [88],
+       [20],
+       [40],
+       [60],
+       [80]], dtype=np.uint8) 
 
+    return [PMasks, MMasks, MaskWhite]
