@@ -123,5 +123,5 @@ else:
 if(comp(noi5mat['highlighted'],noi5test[1],multichannel=True)<NOI5_CRITERIA):
     print('NOI5 HIGHLIGHTED: FAIL')
 else:
-    print('NOI5 HIGHLIGHED: PASS')
+    print('NOI5 HIGHLIGHTED: PASS')
 
