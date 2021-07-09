@@ -4,7 +4,11 @@ from skimage.color import rgb2ycbcr
 from PIL import Image
 import PIL
 from scipy.signal import convolve2d
-import scipy.io as spio
+
+randx = np.array([[-1.3076883 ,  2.76943703, -0.06305487,  1.48969761],
+       [-0.43359202, -1.34988694,  0.7147429 ,  1.40903449],
+       [ 0.34262447,  3.03492347, -0.20496606,  1.41719241],
+       [ 3.57839694,  0.72540422, -0.12414435,  0.67149713]])
 
 def conv2(x, y, mode='same'):
     return np.rot90(convolve2d(np.rot90(x, 2), np.rot90(y, 2), mode=mode), 2)
@@ -252,9 +256,10 @@ def rnd2mtx(n):
 #
 # Xunyu Pan, Xing Zhang, Siwei Lyu -- 07/26/2012             
 
-    rndmMat=spio.loadmat('random.mat')
-    X=rndmMat["X"]
+#    rndmMat=spio.loadmat('random.mat')
+ #   X=rndmMat["X"]
     #X=np.random.randn(n,n)
+    X = randx 
     X -= np.matlib.repmat(np.mean(X,0),n,1)
     X /=np.matlib.repmat(np.sqrt(np.sum(X**2,0)),n,1)
 
