@@ -1,14 +1,16 @@
-import scipy.io as spio
 from numpy.matlib import repmat
 import numpy as np
 import jpegio as jio
 import numpy as np
 import math
+import os
+
+SupportVector = np.load(os.path.join(os.path.dirname(__file__),'SupportVector.npy'),allow_pickle=True)
+AlphaHat = np.load(os.path.join(os.path.dirname(__file__),'AlphaHat.npy'),allow_pickle=True)
+bias = np.array([ 0.10431149, -0.25288239, -0.2689174 ,  0.39425104, -1.11269764, -1.15730589, -1.18658372, -0.9444815 , -3.46445309, -2.9434976 ])
 
 def BenfordDQ(filename):
     im=jio.read(filename)
-    out=spio.loadmat("../SVMs.mat")
-    SVMStruct=out['SVMStruct'][0]
     Quality=EstimateJPEGQuality(im)
     QualityInd=int(np.round((Quality-50)/5+1))
     if QualityInd>10:
@@ -37,7 +39,7 @@ def BenfordDQ(filename):
             block.coef_arrays[ncomp-1]=YCoef[StartX-1:StartX+BlockSize-1,StartY-1:StartY+BlockSize-1]
             Features=ExtractFeatures(block,c1,c2,ncomp,digitBinsToKeep)
             Features/=64
-            Dist=svmdecision(Features,SVMStruct[QualityInd-1][0][0])
+            Dist=svmdecision(Features,QualityInd-1) #SVMStruct[QualityInd-1][0][0])
             OutputMap[int(np.ceil((StartX-1)/Step)),int(np.ceil((StartY-1)/Step))]=Dist
     OutputMap=np.concatenate((repmat(OutputMap[0,:],int(np.ceil(BlockSize/2/Step)),1),OutputMap),axis=0)
     OutputMap=np.concatenate((repmat(OutputMap[:,0],int(np.ceil(BlockSize/2/Step)),1).T,OutputMap),axis=1)
@@ -140,10 +142,7 @@ def dequantize(qcoef,qtable):
     coef=vec2im(vec,0,blksz,r,c)
     return coef
 
-def svmdecision(Xnew,svm_struct):
-    sv=svm_struct[0]
-    alphaHat=svm_struct[1]
-    bias=svm_struct[2][0][0]
-    f=np.dot(np.tanh(sv @ np.transpose(Xnew)-1),alphaHat)+bias
+def svmdecision(Xnew,index):
+    f=np.dot(np.tanh(SupportVector[index] @ np.transpose(Xnew)-1),AlphaHat[index])+bias[index]
     return f
     
