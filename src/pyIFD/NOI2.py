@@ -2,7 +2,6 @@ import numpy as np
 import numpy.matlib
 from skimage.color import rgb2ycbcr
 from PIL import Image
-import PIL
 from scipy.signal import convolve2d
 
 randx = np.array([[-1.3076883 ,  2.76943703, -0.06305487,  1.48969761],
@@ -26,7 +25,7 @@ def GetNoiseMaps_hdd( image, filter_type, filter_size, block_rad ):
     noiIm = conv2(im,flt,'same') 
 
     estV_tmp = localNoiVarEstimate_hdd(noiIm, filter_type, filter_size, block_rad)
-    estV = np.array(Image.fromarray(estV_tmp).resize(np.flip(np.round(np.asarray(np.shape(estV_tmp))/4)).astype(int),resample=PIL.Image.BOX))     
+    estV = np.array(Image.fromarray(estV_tmp).resize(np.flip(np.round(np.asarray(np.shape(estV_tmp))/4)).astype(int),resample=Image.BOX))     
     estV[estV<=0.001]=np.mean(estV)
     return estV
 
