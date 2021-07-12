@@ -194,7 +194,7 @@ def detectDQ_JPEG( im ):
             P_tampered[:,:,coeffIndex]=P_t/(P_u+P_t)
             P_untampered[:,:,coeffIndex]=P_u/(P_u+P_t)
         else:
-            P_tampered[:,:,coeffIndex]=np.ones((int(np.ceil(size(coeffArray,1)/8)),int(np.ceil(size(coeffArray,2)/8))))*0.5
+            P_tampered[:,:,coeffIndex]=np.ones((int(np.ceil(np.size(coeffArray,0)/8)),int(np.ceil(np.size(coeffArray,1)/8))))*0.5
             P_untampered[:,:,coeffIndex]=1-P_tampered[:,:,coeffIndex]
     P_tampered_Overall=np.prod(P_tampered,axis=2)/(np.prod(P_tampered,axis=2)+np.prod(P_untampered,axis=2))
     P_tampered_Overall[np.isnan(P_tampered_Overall)]=0
