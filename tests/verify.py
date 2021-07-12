@@ -34,8 +34,8 @@ def main(argv):
     filename = str.split(infiledirectory,'/')[-1]
     print('Processing image: ' + filename)
     infilename = infiledirectory + '/' + filename + '.jpg' 
+   
     matfilename = matfiledirectory + '/' + filename + '_ADQ1.mat'
-    ''' 
     adq1test=detectDQ(infilename)
     adqmat=spio.loadmat(matfilename)
     if(comp(adqmat['OutputMap'],adq1test[0])<ADQ1_CRITERIA):
@@ -80,7 +80,7 @@ def main(argv):
         print('CAGI INVERSE: FAIL')
     else:
         print('CAGI INVERSE: PASS')
-    ''' 
+    
     matfilename = matfiledirectory + '/' + filename + '_ELA.mat'
     elatest=ELA(infilename)
     elamat=spio.loadmat(matfilename)
@@ -101,11 +101,11 @@ def main(argv):
         print('GHOST: FAIL')
     else:
         print('GHOST: PASS')
-'''
+
     matfilename = matfiledirectory + '/' + filename + '_NOI1.mat'
     noi1test=GetNoiseMap(infilename)
     noi1mat=spio.loadmat(matfilename)
-    if(comp(noi1mat['Map'],noi1test)<NOI1_CRITERIA):
+    if(comp(noi1mat['OutputMap'],noi1test)<NOI1_CRITERIA):
         print('NOI1: FAIL')
     else:
         print('NOI1: PASS')
@@ -129,14 +129,14 @@ def main(argv):
     matfilename = matfiledirectory + '/' + filename + '_NOI5.mat'
     noi5test=PCANoise(infilename)
     noi5mat=spio.loadmat(matfilename)
-    if(comp(noi5mat['Noise_mix2'],noi5test[0])<NOI5_CRITERIA):
-        print('NOI5 NOISE_MIX2: FAIL')
+    if(comp(noi5mat['OutputMap'],noi5test[0])<NOI5_CRITERIA):
+        print('NOI5 OutputMap: FAIL')
     else:
-        print('NOI5 NOISE_MIX2: PASS')
-    if(comp(noi5mat['highlighted'],noi5test[1],multichannel=True)<NOI5_CRITERIA):
-        print('NOI5 HIGHLIGHTED: FAIL')
+        print('NOI5 OutputMap: PASS')
+    if(comp(noi5mat['OutputMap_Quant'],noi5test[1],multichannel=True)<NOI5_CRITERIA):
+        print('NOI5 OutputMap_Quant: FAIL')
     else:
-        print('NOI5 HIGHLIGHED: PASS')
-'''
+        print('NOI5 OutputMap_Quant: PASS')
+
 if __name__ == "__main__":
     main(sys.argv[1:])
