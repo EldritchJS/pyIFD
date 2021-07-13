@@ -1,29 +1,22 @@
 #!/bin/bash
 
-INFILEPREFIX=$1
-OUTFILEPREFIX=$2
+ImageFilePrefix=$1
+MatFilePrefix=$2
 
-declare -a Algorithms=("ADQ1" "ADQ2" "ADQ3" "BLK" "CAGI" "ELA" "GHO" "NOI1" "NOI2" "NOI4" "NOI5" )
+#declare -a Algorithms=("ADQ1" "ADQ2" "ADQ3" "BLK" "CAGI" "ELA" "GHO" "NOI1" "NOI2" "NOI4" "NOI5" )
+declare -a Algorithms=("ADQ1" )
 
-for filename in `find ${INFILEPREFIX} -name *.jpg`
+for ImageFilename in `find ${ImageFilePrefix} -name *.jpg | sort -n`
 do
-	echo "Processing ${filename}"
-	OutFilenameBase=`basename $filename`
-	OutFilenameNoExt=$(echo "$OutFilenameBase" | cut -f 1 -d '.')
-	OutFiledir="${OUTFILEPREFIX}${OutFilenameNoExt}/"
-	if [ ! -d $OutFiledir ]
-	then
-		mkdir -p $OutFiledir
-		InFilename="../${filename}"
-		for Algorithm in ${Algorithms[@]}
-		do
-			OutFilename="../${OutFiledir}${OutFilenameNoExt}_${Algorithm}.mat"
-			python validate_algo.py $InFilename $Mat
-			matlab -nodesktop -nodisplay -nojvm -nosplash -r "cd('$Algorithm'); ProcessAndSave('$InFilename','$OutFilename'); exit" 
-		done
-	else
-		echo "Skipping ${OutFilenameBase} since output directory exists"
-	fi
+	echo "Processing ${ImageFilename}"
+	MatFilenameBase=`basename $ImageFilename`
+	MatFilenameNoExt=$(echo "$MatFilenameBase" | cut -f 1 -d '.')
+	MatFiledir="${MatFilePrefix}/${MatFilenameNoExt}"
+	for Algorithm in ${Algorithms[@]}
+	do
+		MatFilename="${MatFiledir}/${MatFilenameNoExt}_${Algorithm}.mat"
+		python validate_algo.py $ImageFilename $MatFilename $Algorithm
+	done
 done
 
 
