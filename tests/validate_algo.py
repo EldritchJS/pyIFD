@@ -34,32 +34,36 @@ def main(argv):
     if algoname == 'ADQ1':
         adq1test=detectDQ(infilename)
         adq1mat=spio.loadmat(matfilename)
-        if(comp(adq1mat['OutputMap'],adq1test[0])<ADQ1_CRITERIA):
-            print('ADQ1 JPEG: FAIL')
+        sim = comp(adq1mat['OutputMap'],adq1test[0])
+        if(sim<ADQ1_CRITERIA):
+            print('ADQ1: FAIL Similarity: ' + str(sim))
         else:
-            print('ADQ1 JPEG: PASS')
+            print('ADQ1: PASS')
 
     elif algoname == 'ADQ2':
         adq2test=getJmap(infilename)
         adq2mat=spio.loadmat(matfilename)
-        if(comp(adq2mat['OutputMap'],adq2test[0])<ADQ2_CRITERIA):
-            print('ADQ2: FAIL')
+        sim = comp(adq2mat['OutputMap'],adq2test[0])
+        if(sim<ADQ2_CRITERIA):
+            print('ADQ2: FAIL Similarity: ' + str(sim))
         else:
             print('ADQ2: PASS')            
 
     elif algoname == 'ADQ3':
         adq3test=BenfordDQ(infilename)
         adq3mat=spio.loadmat(matfilename)
-        if(comp(adq3mat['OutputMap'],adq3test)<ADQ3_CRITERIA):
-            print('ADQ3: FAIL')
+        sim = comp(adq3mat['OutputMap'],adq3test)
+        if(sim<ADQ3_CRITERIA):
+            print('ADQ3: FAIL Similarity: ' + str(sim))
         else:
             print('ADQ3: PASS')
 
     elif algoname == 'BLK':
         blktest=GetBlockGrid(infilename)
         blkmat=spio.loadmat(matfilename)
-        if(comp(blkmat['OutputMap'],blktest[0])<BLK_CRITERIA):
-            print('BLK: FAIL')
+        sim = comp(blkmat['OutputMap'],blktest[0])
+        if(sim<BLK_CRITERIA):
+            print('BLK: FAIL Similarity: ' + str(sim))
         else:
             print('BLK: PASS')
 
