@@ -9,7 +9,18 @@
     return bound(*args, **kwds)
 ValueError: attempt to get argmax of an empty sequence
 
+###BLK###
 
+  File "validate_algo.py", line 64, in main
+    sim = comp(blkmat['OutputMap'],blktest[0])
+  File "/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/skimage/metrics/_structural_similarity.py", line 89, in structural_similarity
+    check_shape_equality(im1, im2)
+  File "/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/skimage/_shared/utils.py", line 294, in check_shape_equality
+    raise ValueError('Input images must have the same dimensions.')
+ValueError: Input images must have the same dimensions.
+
+
+Of those that don't get the dimensions error, image 176 has similarity 0.77. All others 0.9 or higher
 
 ###CAGI###
 
@@ -62,11 +73,77 @@ CAGI: FAIL Similarity: 0.8709206227659007
 
 Images 144, 163, 170, 187, 197
 
-```  File "validate_algo.py", line 97, in main   
+ File "validate_algo.py", line 97, in main   
  similarity.append(comp(matDispImages[i],pyDispImages[i]))
   File "/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/skimage/metrics/_structural_similarity.py", line 89, in structural_similarity
     check_shape_equality(im1, im2)
   File "/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/skimage/_shared/utils.py", line 294, in check_shape_equality
     raise ValueError('Input images must have the same dimensions.')
-ValueError: Input images must have the same dimensions.```
+ValueError: Input images must have the same dimensions.
+
+###NOI1###
+
+Image 107 0.88 similarity
+
+###NOI2###
+
+Image 103 0.34 similarity
+Image 138 0.299 similarity
+
+`zero encountered in true_divide
+  noiK = (Factor34 + 6*mu1**2*mu2 - 3*mu1**4)/(noiV**2)-3
+/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI2.py:217: RuntimeWarning: invalid value encountered in true_divide
+  noiK = (Factor34 + 6*mu1**2*mu2 - 3*mu1**4)/(noiV**2)-3
+/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI2.py:222: RuntimeWarning: divide by zero encountered in true_divide
+  b = np.mean(1/noiV,2)
+/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI2.py:223: RuntimeWarning: divide by zero encountered in true_divide
+  c = np.mean(1/noiV**2,2)
+/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI2.py:224: RuntimeWarning: invalid value encountered in true_divide
+  d = np.mean(np.sqrt(noiK)/noiV,2)
+/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI2.py:227: RuntimeWarning: overflow encountered in multiply
+  sqrtK = (a*c - b*d)/(c-b*b)
+/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI2.py:227: RuntimeWarning: invalid value encountered in subtract
+  sqrtK = (a*c - b*d)/(c-b*b)
+/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI2.py:217: RuntimeWarning: divide by zero encountered in true_divide
+  noiK = (Factor34 + 6*mu1**2*mu2 - 3*mu1**4)/(noiV**2)-3
+/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI2.py:217: RuntimeWarning: invalid value encountered in true_divide
+  noiK = (Factor34 + 6*mu1**2*mu2 - 3*mu1**4)/(noiV**2)-3
+/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI2.py:222: RuntimeWarning: divide by zero encountered in true_divide
+  b = np.mean(1/noiV,2)
+/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI2.py:223: RuntimeWarning: divide by zero encountered in true_divide
+  c = np.mean(1/noiV**2,2)
+/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI2.py:223: RuntimeWarning: overflow encountered in true_divide
+  c = np.mean(1/noiV**2,2)
+/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI2.py:224: RuntimeWarning: invalid value encountered in true_divide
+  d = np.mean(np.sqrt(noiK)/noiV,2)
+/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI2.py:227: RuntimeWarning: overflow encountered in multiply
+  sqrtK = (a*c - b*d)/(c-b*b)
+/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI2.py:227: RuntimeWarning: invalid value encountered in multiply
+  sqrtK = (a*c - b*d)/(c-b*b)
+/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI2.py:227: RuntimeWarning: invalid value encountered in subtract
+  sqrtK = (a*c - b*d)/(c-b*b)
+/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI2.py:227: RuntimeWarning: invalid value encountered in true_divide
+  sqrtK = (a*c - b*d)/(c-b*b)`
+
+
+###NOI4###
+
+Significant failures under 0.9 similarity. Some mismatched types in compare? 
+
+###NOI5###
+
+  File "/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI5.py", line 310, in PCANoise
+    (label64[i,j], Noise_64[i,j]) =  PCANoiseLevelEstimator(Ib,5)
+  File "/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI5.py", line 186, in PCANoiseLevelEstimator
+    upper_bound = ComputeUpperBound( block_info )
+  File "/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI5.py", line 144, in ComputeUpperBound
+    nozeroindex = np.min(np.max(np.where(block_info[:,0]== 0)[0])+1,np.shape(block_info)[0])
+  File "<__array_function__ internals>", line 5, in amin
+  File "/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/numpy/core/fromnumeric.py", line 2879, in amin
+    return _wrapreduction(a, np.minimum, 'min', axis, None, out,
+  File "/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/numpy/core/fromnumeric.py", line 84, in _wrapreduction
+    return reduction(axis=axis, out=out, **passkwargs)
+  File "/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/numpy/core/_methods.py", line 44, in _amin
+    return umr_minimum(a, axis, None, out, keepdims, initial, where)
+numpy.AxisError: axis 947 is out of bounds for array of dimension 0
 

@@ -4,7 +4,7 @@ ImageFilePrefix=$1
 MatFilePrefix=$2
 
 #declare -a Algorithms=("ADQ1" "ADQ2" "ADQ3" "BLK" "CAGI" "ELA" "GHO" "NOI1" "NOI2" "NOI4" "NOI5" )
-declare -a Algorithms=("ADQ1" )
+declare -a Algorithms=("NOI5" )
 
 for ImageFilename in `find ${ImageFilePrefix} -name *.jpg | sort -n`
 do
