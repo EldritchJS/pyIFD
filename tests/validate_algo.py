@@ -104,36 +104,41 @@ def main(argv):
     elif algoname == 'NOI1':
         noi1test=GetNoiseMap(infilename)
         noi1mat=spio.loadmat(matfilename)
-        if(comp(noi1mat['OutputMap'],noi1test)<NOI1_CRITERIA):
-            print('NOI1: FAIL')
+        sim = comp(noi1mat['OutputMap'],noi1test)
+        if(sim<NOI1_CRITERIA):
+            print('NOI1: FAIL Similarity: ' + str(sim))
         else:
             print('NOI1: PASS')
 
     elif algoname == 'NOI2':
         noi2test=GetNoiseMaps(infilename)
         noi2mat=spio.loadmat(matfilename)
-        if(comp(noi2mat['OutputMap'],noi2test)<NOI2_CRITERIA):
-            print('NOI2: FAIL')
+        sim = comp(noi2mat['OutputMap'],noi2test)
+        if(sim<NOI2_CRITERIA):
+            print('NOI2: FAIL Similarity: ' + str(sim))
         else:
             print('NOI2: PASS')
 
     elif algoname == 'NOI4':
         noi4test=MedFiltForensics(infilename)
         noi4mat=spio.loadmat(matfilename)
-        if(comp(noi4mat['OutputMap'],noi4test)<NOI4_CRITERIA):
-            print('NOI4: FAIL')
+        sim = comp(noi4mat['OutputMap'],noi4test)
+        if(sim<NOI4_CRITERIA):
+            print('NOI4: FAIL Similarity: ' + str(sim))
         else:
             print('NOI4: PASS')
 
     elif algoname == 'NOI5':
         noi5test=PCANoise(infilename)
         noi5mat=spio.loadmat(matfilename)
-        if(comp(noi5mat['OutputMap'],noi5test[0])<NOI5_CRITERIA):
-            print('NOI5 OutputMap: FAIL')
+        sim = comp(noi5mat['OutputMap'],noi5test[0])
+        if(sim<NOI5_CRITERIA):
+            print('NOI5 OutputMap: FAIL Similarity: ' + str(sim))
         else:
             print('NOI5 OutputMap: PASS')
-        if(comp(noi5mat['OutputMap_Quant'],noi5test[1],multichannel=True)<NOI5_CRITERIA):
-            print('NOI5 OutputMap_Quant: FAIL')
+        sim = comp(noi5mat['OutputMap_Quant'],noi5test[1],multichannel=True)
+        if(sim<NOI5_CRITERIA):
+            print('NOI5 OutputMap_Quant: FAIL Similarity: ' + str(sim))
         else:
             print('NOI5 OutputMap_Quant: PASS')
 
