@@ -4,10 +4,6 @@ from skimage.color import rgb2ycbcr
 from PIL import Image
 from scipy.signal import convolve2d
 
-randx = np.array([[-1.3076883 ,  2.76943703, -0.06305487,  1.48969761],
-       [-0.43359202, -1.34988694,  0.7147429 ,  1.40903449],
-       [ 0.34262447,  3.03492347, -0.20496606,  1.41719241],
-       [ 3.57839694,  0.72540422, -0.12414435,  0.67149713]])
 
 def conv2(x, y, mode='same'):
     return np.rot90(convolve2d(np.rot90(x, 2), np.rot90(y, 2), mode=mode), 2)
@@ -102,7 +98,7 @@ def block_avg(X,d,pad='zero'):
     Y /=(wd*wd)
     return Y 
 
-def dct2mtx(n,ord): 
+def dct2mtx(n,order): 
 # DCT2MTX: generating matrices corresponding to 2D-DCT transform.
 #          
 #
@@ -118,53 +114,50 @@ def dct2mtx(n,ord):
 #       mtx(:,:,k) is the kth 2D DCT basis of support size N x N
 #
 # Xunyu Pan, Xing Zhang, Siwei Lyu -- 07/26/2012             
+
+    (cc,rr) = np.meshgrid(range(n),range(n))
+
+    c = np.sqrt(2 / n) * np.cos(np.pi * (2*cc + 1) * rr / (2 * n))
+    c[0,:] = c[0,:] / np.sqrt(2)
+    if order[:2]=='gr':
+        order = np.reshape(range(n**2),(n,n),order='F')
+    elif order[:2]=='sn': # not exactly snake code,but close
+        temp = cc+rr
+        idx = np.argsort(np.ndarray.flatten(temp))
+        order = np.reshape(idx,(n,n),order='F')
+
     mtx = np.zeros((n,n,n*n))
+    for i in range(n):
+        for j in range(n):
+            mtx[:,:,order[i,j]] = np.outer(c[i,:],c[j,:])
+
     return mtx
 
 def haar2mtx(n): 
-# DCT2MTX: generating matrices corresponding to 2D-Haar wavelet transform.
-#          
-#
-# [mtx] = haar2mtx(N)
-# 
-# input arguments:
-#	N: size of 2D-DCT basis (N x N)
-#	   has to be power of two
-# output arguments:
-#	mtx: 3D matrices of dimension (NxNxN^2)
-#       mtx(:,:,k) is the kth 2D haar basis of support size N x N
-#
-# Xunyu Pan, Xing Zhang, Siwei Lyu -- 07/26/2012             
-#
-# code borrowed from Jin Qi's HaarTransforamtionMatrix function
-
-# check input parameter and make sure it's the power of 2
-    Level=np.log2(n)
+    Level=int(np.log2(n))
     if 2**Level<n:
+        print("input parameter has to be the power of 2")
         return
-#     error('input parameter has to be the power of 2');
 
 #Initialization
-    c=[1]
+    c=np.ones((1,1))
     NC=1/np.sqrt(2) #normalization constant
-    LP=[1,1]
-    HP=[1,-1]
+    LP=[1, 1]
+    HP=[1, -1]
 
     # iteration from H=[1] 
-#    for i in range(0,Level):
-#        c = NC*[np.kron(c,LP);np.kron(np.eye(np.shape(c)),HP)]
-
+    for i in range(0,Level):
+        c = NC*np.concatenate((np.kron(c,LP),np.kron(np.eye(np.shape(c)[0],np.shape(c)[1]),HP)))
 
     mtx = np.zeros((n,n,n*n))
-#    k = 0
-#    for i in range(0,n):
-#        for j in range(0,n):
-#	        mtx[:,:,k] = np.transpose(c[i,])*c[j,:]
-#	        k = k+1
+    k = 0
+    for i in range(n):
+        for j in range(n):
+            mtx[:,:,k] = np.outer(c[i,:],c[j,:])
+            k+=1
     return mtx
 
-def conv2(x, y, mode='same'):
-    return np.rot90(convolve2d(np.rot90(x, 2), np.rot90(y, 2), mode=mode), 2)
+
 
 def localNoiVarEstimate_hdd(noi,ft,fz,br):
     # Markos Zampoglou: this is a variant of the original
@@ -255,10 +248,8 @@ def rnd2mtx(n):
 #
 # Xunyu Pan, Xing Zhang, Siwei Lyu -- 07/26/2012             
 
-#    rndmMat=spio.loadmat('random.mat')
- #   X=rndmMat["X"]
-    #X=np.random.randn(n,n)
-    X = randx 
+
+    X=np.random.randn(n,n)
     X -= np.matlib.repmat(np.mean(X,0),n,1)
     X /=np.matlib.repmat(np.sqrt(np.sum(X**2,0)),n,1)
 
@@ -270,17 +261,6 @@ def rnd2mtx(n):
             k+=1
     return mtx
 
-#    X = np.random.randn(n,n)
-#    X -= np.matlib.repmat(np.mean(X,0),n,1)
-#    X /=np.matlib.repmat(np.sqrt(np.sum(X**2,0)),n,1)
-
-#    mtx = np.zeros((n,n,n*n))
-#    k = 0 
-#    for i in range(n):
-#        for j in range(n):
-#            mtx[:,:,k] = np.outer(X[:,i],np.transpose(X[:,j]))
-#            k+=1
-#    return mtx
 
 def GetNoiseMaps( filename, sizeThreshold=55*(2**5), filter_type='rand', filter_size=4, block_rad=8 ):
     # Copyright (C) 2016 Markos Zampoglou
