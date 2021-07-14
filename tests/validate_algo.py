@@ -32,7 +32,13 @@ def validate_algo(infilename, matfilename, algoname):
     if algoname == 'ADQ1':
         adq1test=detectDQ(infilename)
         adq1mat=spio.loadmat(matfilename)
-        sim = comp(adq1mat['OutputMap'],adq1test[0])
+        sim = 0
+
+        try:
+            sim = comp(adq1mat['OutputMap'],adq1test[0])
+        except ValueError as e:
+            print(e)
+        
         if(sim<ADQ1_CRITERIA):
             print('ADQ1: FAIL Similarity: ' + str(sim))
         else:
@@ -41,7 +47,13 @@ def validate_algo(infilename, matfilename, algoname):
     elif algoname == 'ADQ2':
         adq2test=getJmap(infilename)
         adq2mat=spio.loadmat(matfilename)
-        sim = comp(adq2mat['OutputMap'],adq2test[0])
+        sim = 0
+
+        try:
+            sim = comp(adq2mat['OutputMap'],adq2test[0])
+        except ValueError as e:
+            print(e)
+        
         if(sim<ADQ2_CRITERIA):
             print('ADQ2: FAIL Similarity: ' + str(sim))
         else:
@@ -50,7 +62,13 @@ def validate_algo(infilename, matfilename, algoname):
     elif algoname == 'ADQ3':
         adq3test=BenfordDQ(infilename)
         adq3mat=spio.loadmat(matfilename)
-        sim = comp(adq3mat['OutputMap'],adq3test)
+        sim = 0
+
+        try:
+            sim = comp(adq3mat['OutputMap'],adq3test)
+        except ValueError as e:
+            print(e)
+
         if(sim<ADQ3_CRITERIA):
             print('ADQ3: FAIL Similarity: ' + str(sim))
         else:
@@ -59,7 +77,13 @@ def validate_algo(infilename, matfilename, algoname):
     elif algoname == 'BLK':
         blktest=GetBlockGrid(infilename)
         blkmat=spio.loadmat(matfilename)
-        sim = comp(blkmat['OutputMap'],blktest[0])
+        sim = 0
+
+        try:
+            sim = comp(blkmat['OutputMap'],blktest[0])
+        except ValueError as e:
+            print(e)
+        
         if(sim<BLK_CRITERIA):
             print('BLK: FAIL Similarity: ' + str(sim))
         else:
@@ -68,13 +92,25 @@ def validate_algo(infilename, matfilename, algoname):
     elif algoname == 'CAGI':    
         cagitest=CAGI(infilename)
         cagimat=spio.loadmat(matfilename)
-        sim = comp(cagimat['OutputMap'],cagitest[0])
+        sim = 0
+
+        try:
+            sim = comp(cagimat['OutputMap'],cagitest[0])
+        except ValueError as e:
+            print(e)
+
         if(sim<CAGI_CRITERIA):
             print('CAGI: FAIL Similarity: ' + str(sim))
         else:
             print('CAGI: PASS')
 
-        sim = comp(cagimat['OutputMap_Inverse'],cagitest[1])
+        sim = 0
+
+        try:
+            sim = comp(cagimat['OutputMap_Inverse'],cagitest[1])
+        except ValueError as e:
+            print(e)
+
         if(sim<CAGI_CRITERIA):
             print('CAGI INVERSE: FAIL Similarity: ' + str(sim))
         else:
@@ -83,7 +119,13 @@ def validate_algo(infilename, matfilename, algoname):
     elif algoname == 'ELA':
         elatest=ELA(infilename)
         elamat=spio.loadmat(matfilename)
-        sim=comp(elamat['OutputMap'],elatest.astype(np.uint8))
+        sim = 0
+
+        try:
+            sim=comp(elamat['OutputMap'],elatest.astype(np.uint8))
+        except ValueError as e:
+            print(e)
+
         if(sim<ELA_CRITERIA):
             print('ELA: FAIL Similarity: ' + str(sim))
         else:
@@ -96,7 +138,13 @@ def validate_algo(infilename, matfilename, algoname):
         pyDispImages = ghosttest[2]
         similarity=[]
         for i in range(len(matDispImages)):
-            similarity.append(comp(matDispImages[i],pyDispImages[i]))
+            sim = 0
+            try:
+                sim = comp(matDispImages[i],pyDispImages[i])
+            except ValueError as e:
+                print(e)
+
+            similarity.append(sim)
         sim = np.mean(similarity)
         if(sim<GHOST_CRITERIA):
             print('GHOST: FAIL Similarity: ' + str(sim))
@@ -106,7 +154,13 @@ def validate_algo(infilename, matfilename, algoname):
     elif algoname == 'NOI1':
         noi1test=GetNoiseMap(infilename)
         noi1mat=spio.loadmat(matfilename)
-        sim = comp(noi1mat['OutputMap'],noi1test)
+        sim = 0
+
+        try:
+            sim = comp(noi1mat['OutputMap'],noi1test)
+        except ValueError as e:
+            print(e)
+
         if(sim<NOI1_CRITERIA):
             print('NOI1: FAIL Similarity: ' + str(sim))
         else:
@@ -115,7 +169,13 @@ def validate_algo(infilename, matfilename, algoname):
     elif algoname == 'NOI2':
         noi2test=GetNoiseMaps(infilename)
         noi2mat=spio.loadmat(matfilename)
-        sim = comp(noi2mat['OutputMap'],noi2test)
+        sim = 0
+
+        try:
+            sim = comp(noi2mat['OutputMap'],noi2test)
+        except ValueError as e:
+            print(e)
+
         if(sim<NOI2_CRITERIA):
             print('NOI2: FAIL Similarity: ' + str(sim))
         else:
@@ -124,7 +184,13 @@ def validate_algo(infilename, matfilename, algoname):
     elif algoname == 'NOI4':
         noi4test=MedFiltForensics(infilename)
         noi4mat=spio.loadmat(matfilename)
-        sim = comp(noi4mat['OutputMap'],noi4test)
+        sim = 0
+
+        try:
+            sim = comp(noi4mat['OutputMap'],noi4test)
+        except ValueError as e:
+            print(e)
+
         if(sim<NOI4_CRITERIA):
             print('NOI4: FAIL Similarity: ' + str(sim))
         else:
@@ -133,12 +199,24 @@ def validate_algo(infilename, matfilename, algoname):
     elif algoname == 'NOI5':
         noi5test=PCANoise(infilename)
         noi5mat=spio.loadmat(matfilename)
-        sim = comp(noi5mat['OutputMap'],noi5test[0])
+        sim = 0
+
+        try:
+            sim = comp(noi5mat['OutputMap'],noi5test[0])
+        except ValueError as e:
+            print(e)
+
         if(sim<NOI5_CRITERIA):
             print('NOI5 OutputMap: FAIL Similarity: ' + str(sim))
         else:
             print('NOI5 OutputMap: PASS')
-        sim = comp(noi5mat['OutputMap_Quant'],noi5test[1],multichannel=True)
+
+        sim = 0
+        try:
+            sim = comp(noi5mat['OutputMap_Quant'],noi5test[1],multichannel=True)
+        except ValueError as e:
+            print(e)
+
         if(sim<NOI5_CRITERIA):
             print('NOI5 OutputMap_Quant: FAIL Similarity: ' + str(sim))
         else:
@@ -148,7 +226,7 @@ def validate_algo(infilename, matfilename, algoname):
         print('Unknown algorithm: ' + algoname)
 
 #algorithms = ['ADQ1', 'ADQ2', 'ADQ3', 'BLK', 'CAGI', 'ELA', 'GHO', 'NOI1', 'NOI2', 'NOI4', 'NOI5']
-algorithms = ['ADQ2']
+algorithms = ['NOI2']
 
 def main(argv):
     for root, dirs, files in os.walk(sys.argv[1]):
