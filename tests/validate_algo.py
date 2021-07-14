@@ -13,6 +13,7 @@ import numpy as np
 import scipy.io as spio
 from skimage.metrics import structural_similarity as comp
 import sys
+import os
 
 ADQ1_CRITERIA = 0.99
 ADQ2_CRITERIA = 0.99
@@ -26,10 +27,7 @@ NOI2_CRITERIA = 0.90
 NOI4_CRITERIA = 0.90
 NOI5_CRITERIA = 0.90
 
-def main(argv):
-    infilename = sys.argv[1]
-    matfilename = sys.argv[2]
-    algoname = sys.argv[3]
+def validate_algo(infilename, matfilename, algoname):
 
     if algoname == 'ADQ1':
         adq1test=detectDQ(infilename)
@@ -148,6 +146,24 @@ def main(argv):
 
     else:
         print('Unknown algorithm: ' + algoname)
+
+#algorithms = ['ADQ1', 'ADQ2', 'ADQ3', 'BLK', 'CAGI', 'ELA', 'GHO', 'NOI1', 'NOI2', 'NOI4', 'NOI5']
+algorithms = ['ADQ2']
+
+def main(argv):
+    for root, dirs, files in os.walk(sys.argv[1]):
+        dirs.sort()
+        for basefilename in sorted(files):
+            imagefilename = os.path.join(root,basefilename)
+            splitimage = os.path.splitext(basefilename)
+            if(splitimage[1] == '.jpg'):
+                matfiledir = sys.argv[2] + '/' + splitimage[0]
+                for algorithm in algorithms:
+                    matfilename = matfiledir + '/' + splitimage[0] + '_' + algorithm + '.mat'
+                    print('Validating image ' + basefilename + ' for algorithm ' + algorithm)
+                    validate_algo(imagefilename, matfilename, algorithm)
+
+# Usage: validate_algo.py <IMAGE FILE BASE DIRECTORY> <MATLAB FILE BASE DIRECTORY> 
 
 if __name__ == "__main__":
     main(sys.argv[1:])
