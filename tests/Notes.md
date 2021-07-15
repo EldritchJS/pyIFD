@@ -72,7 +72,7 @@ CAGI: FAIL Similarity: 0.7717142493634741
 Processing ../../image-manipulation-detectors/datasmall/197/197.jpg
 CAGI: FAIL Similarity: 0.8709206227659007
 
-###GHO###
+### GHO ###
 
 Images 144, 163, 170, 187, 197
 
@@ -84,11 +84,11 @@ Images 144, 163, 170, 187, 197
     raise ValueError('Input images must have the same dimensions.')
 ValueError: Input images must have the same dimensions.
 
-###NOI1###
+### NOI1 ###
 
 Image 107 0.88 similarity
 
-###NOI2###
+### NOI2 ###
 
 Image 103 0.34 similarity
 Image 138 0.299 similarity
@@ -129,11 +129,11 @@ Image 138 0.299 similarity
   sqrtK = (a*c - b*d)/(c-b*b)`
 
 
-###NOI4###
+### NOI4 ###
 
 Significant failures under 0.9 similarity. Some mismatched types in compare? 
 
-###NOI5###
+### NOI5 ###
 
   File "/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/NOI5.py", line 310, in PCANoise
     (label64[i,j], Noise_64[i,j]) =  PCANoiseLevelEstimator(Ib,5)
