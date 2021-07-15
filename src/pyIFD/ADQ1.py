@@ -91,15 +91,6 @@ def bdct(a,n=8):
     b=vec2im(dctm @ v,0,n,r,c)
     return b
 
-def detectDQ( impath ):
-    if impath[-4:]==".jpg":
-        [OutputMap, Feature_Vector, coeffArray] = detectDQ_JPEG( jio.read(impath) )
-    else:
-        im=mpimg.imread(impath)
-        im=np.round(im*255)
-        [OutputMap, Feature_Vector, coeffArray] = detectDQ_NonJPEG( im )
-    return [OutputMap, Feature_Vector, coeffArray] 
-
 
 def detectDQ_JPEG( im ):
     # How many DCT coeffs to take into account
@@ -149,10 +140,11 @@ def detectDQ_JPEG( im ):
                 FreqValley+=1
             FFT=FFT[FreqValley-1:int(np.floor(len(FFT)/2))]
             FFT_smoothed[coeffIndex]=FFT
-            FFTPeak=np.argmax(FFT)+1
-            maxPeak=FFT[FFTPeak-1]
-            FFTPeak+=FreqValley-1-1; # -1 because FreqValley appears twice, and -1 for the 0-freq DC term
-            if maxPeak<DC/5 or min(FFT)/maxPeak>0.9: # threshold at 1/5 the DC and 90% the remaining lowest to only retain significant peaks
+            if(np.size(FFT)!=0):
+                FFTPeak=np.argmax(FFT)+1
+                maxPeak=FFT[FFTPeak-1]
+                FFTPeak+=FreqValley-1-1; # -1 because FreqValley appears twice, and -1 for the 0-freq DC term
+            if np.size(FFT)==0 or maxPeak<DC/5 or min(FFT)/maxPeak>0.9: # threshold at 1/5 the DC and 90% the remaining lowest to only retain significant peaks
                 p_h_fft[coeffIndex]=1
             else:
                 p_h_fft[coeffIndex]=round(len(coeffHist)/FFTPeak)
@@ -323,7 +315,7 @@ def detectDQ_NonJPEG( im ):
             P_tampered[:,:,coeffIndex]=P_t/(P_u+P_t)
             P_untampered[:,:,coeffIndex]=P_u/(P_u+P_t)
         else:
-            P_tampered[:,:,coeffIndex]=np.ones((int(np.ceil(size(coeffArray,1)/8)),int(np.ceil(size(coeffArray,2)/8))))*0.5
+            P_tampered[:,:,coeffIndex]=np.ones((int(np.ceil(np.size(coeffArray,1)/8)),int(np.ceil(np.size(coeffArray,2)/8))))*0.5
             P_untampered[:,:,coeffIndex]=1-P_tampered[:,:,coeffIndex]
     P_tampered_Overall=np.prod(P_tampered,axis=2)/(np.prod(P_tampered,axis=2)+np.prod(P_untampered,axis=2))
     P_tampered_Overall[np.isnan(P_tampered_Overall)]=0
@@ -363,4 +355,12 @@ def detectDQ_NonJPEG( im ):
     return [OutputMap, Feature_Vector, coeffArray]
 
 
+def detectDQ( impath ):
+    if impath[-4:]==".jpg":
+        [OutputMap, Feature_Vector, coeffArray] = detectDQ_JPEG( jio.read(impath) )
+    else:
+        im=mpimg.imread(impath)
+        im=np.round(im*255)
+        [OutputMap, Feature_Vector, coeffArray] = detectDQ_NonJPEG( impath )
+    return [OutputMap, Feature_Vector, coeffArray] 
 
