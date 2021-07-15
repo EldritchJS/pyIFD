@@ -1,4 +1,4 @@
-###ADQ1###
+### ADQ1 ###
 
 Validating image 100.jpg for algorithm ADQ1
 ADQ1: PASS
@@ -11,7 +11,7 @@ Validating image 101.jpg for algorithm ADQ1
   ret = ret.dtype.type(ret / rcount)
 ADQ1: PASS
 
-###BLK###
+### BLK ###
 
 
   File "validate_algo.py", line 64, in main
@@ -25,7 +25,7 @@ ValueError: Input images must have the same dimensions.
 
 Of those that don't get the dimensions error, image 176 has similarity 0.77. All others 0.9 or higher
 
-###CAGI###
+### CAGI ###
 
 Similarties below 0.9
 
