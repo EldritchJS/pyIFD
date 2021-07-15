@@ -1,15 +1,18 @@
 ###ADQ1###
 
-  File "/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/pyIFD/ADQ1.py", line 152, in detectDQ_JPEG
-    FFTPeak=np.argmax(FFT)+1
-  File "<__array_function__ internals>", line 5, in argmax
-  File "/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/numpy/core/fromnumeric.py", line 1195, in argmax
-    return _wrapfunc(a, 'argmax', axis=axis, out=out)
-  File "/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/numpy/core/fromnumeric.py", line 57, in _wrapfunc
-    return bound(*args, **kwds)
-ValueError: attempt to get argmax of an empty sequence
+Validating image 100.jpg for algorithm ADQ1
+ADQ1: PASS
+Validating image 101.jpg for algorithm ADQ1
+/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/numpy/core/fromnumeric.py:3723: RuntimeWarning: Degrees of freedom <= 0 for slice
+  return _methods._var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/numpy/core/_methods.py:222: RuntimeWarning: invalid value encountered in true_divide
+  arrmean = um.true_divide(arrmean, div, out=arrmean, casting='unsafe',
+/home/jason/.virtualenvs/ifd/lib/python3.8/site-packages/numpy/core/_methods.py:254: RuntimeWarning: invalid value encountered in double_scalars
+  ret = ret.dtype.type(ret / rcount)
+ADQ1: PASS
 
 ###BLK###
+
 
   File "validate_algo.py", line 64, in main
     sim = comp(blkmat['OutputMap'],blktest[0])
