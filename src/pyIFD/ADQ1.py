@@ -4,7 +4,7 @@ from scipy.signal import medfilt2d
 import math
 import matplotlib.image as mpimg
 
-np.seterr(all='raise')
+#np.seterr(all='raise')
 
 def ExtractYDCT( im ):
     im=np.double(im)
