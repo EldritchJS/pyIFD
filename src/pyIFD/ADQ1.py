@@ -4,6 +4,8 @@ from scipy.signal import medfilt2d
 import math
 import matplotlib.image as mpimg
 
+np.seterr(all='raise')
+
 def ExtractYDCT( im ):
     im=np.double(im)
     
@@ -90,7 +92,6 @@ def bdct(a,n=8):
     [v,r,c]=im2vec(a,n)
     b=vec2im(dctm @ v,0,n,r,c)
     return b
-
 
 def detectDQ_JPEG( im ):
     # How many DCT coeffs to take into account
@@ -199,18 +200,33 @@ def detectDQ_JPEG( im ):
         T=S/100
         Class0=P_tampered_Overall<T
         Class1=P_tampered_Overall>=T
-        s0=np.var(P_tampered_Overall[Class0])
-        s1=np.var(P_tampered_Overall[Class1])
-        Teval[S-1]=s/(s0+s1)
-    
+        if(np.all(Class0 == False)):
+                s0 = 0
+        else:
+            s0=np.var(P_tampered_Overall[Class0])
+        if(np.all(Class1 == False)):
+            s1 = 0
+        else:
+            s1=np.var(P_tampered_Overall[Class1])
+        if s0 == 0 and s1 == 0:
+            Teval[S-1] = 0
+        else:
+            Teval[S-1]=s/(s0+s1)
+
     Topt=np.argmax(Teval)+1
     Topt=Topt/100-0.01
     
     Class0=P_tampered_Overall<Topt
     Class1=P_tampered_Overall>=Topt
-    
-    s0=np.var(P_tampered_Overall[Class0])
-    s1=np.var(P_tampered_Overall[Class1])
+   
+    if(np.all(Class0 == False)):
+        s0 = 0
+    else:
+        s0=np.var(P_tampered_Overall[Class0])
+    if(np.all(Class1 == False)):
+        s1 = 0
+    else:
+        s1=np.var(P_tampered_Overall[Class1])
     
     Class1_filt=medfilt2d(np.array(Class1,dtype="uint8"),[3, 3])
     Class0_filt=medfilt2d(np.array(Class0,dtype="uint8"),[3, 3])
