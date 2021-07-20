@@ -15,7 +15,7 @@ def BlockValue(blockData):
     return b
 
 def GetBlockView(A, block=(8, 8)):
-    shape= (int(A.shape[0]/ block[0]), int(A.shape[1]/ block[1]))+ block
+    shape= (int(np.ceil(A.shape[0]/ block[0])), int(np.ceil(A.shape[1]/ block[1])))+ block
     strides= (block[0]* A.strides[0], block[1]* A.strides[1])+ A.strides
     return ast(A, shape=shape, strides=strides)
 

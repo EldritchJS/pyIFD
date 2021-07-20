@@ -18,7 +18,7 @@ import os
 ADQ1_CRITERIA = 0.99
 ADQ2_CRITERIA = 0.99
 ADQ3_CRITERIA = 0.99
-BLK_CRITERIA = 0.99
+BLK_CRITERIA = 0.90
 CAGI_CRITERIA = 0.90
 ELA_CRITERIA = 0.99
 GHOST_CRITERIA = 0.99
@@ -197,7 +197,11 @@ def validate_algo(infilename, matfilename, algoname):
             print('NOI4: PASS')
 
     elif algoname == 'NOI5':
-        noi5test=PCANoise(infilename)
+        try:
+            noi5test=PCANoise(infilename)
+        except:
+            print('NOI5: ALGO FAILED')
+            return
         noi5mat=spio.loadmat(matfilename)
         sim = 0
 
@@ -226,7 +230,7 @@ def validate_algo(infilename, matfilename, algoname):
         print('Unknown algorithm: ' + algoname)
 
 #algorithms = ['ADQ1', 'ADQ2', 'ADQ3', 'BLK', 'CAGI', 'ELA', 'GHO', 'NOI1', 'NOI2', 'NOI4', 'NOI5']
-algorithms = ['ADQ1']
+algorithms = ['BLK']
 
 def main(argv):
     for root, dirs, files in os.walk(sys.argv[1]):
