@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.matlib
-from skimage.color import rgb2ycbcr
+import cv2
 from PIL import Image
 from scipy.signal import convolve2d
 
@@ -8,20 +8,21 @@ from scipy.signal import convolve2d
 def conv2(x, y, mode='same'):
     return np.rot90(convolve2d(np.rot90(x, 2), np.rot90(y, 2), mode=mode), 2)
 
-def GetNoiseMaps_hdd( image, filter_type, filter_size, block_rad ):
+def GetNoiseMaps_hdd( im, filter_type, filter_size, block_rad ):
     # Markos Zampoglou: This a variant version of the code, which calls
     # localNoiVarEstimate_hdd, a version in which intermediate data are
     # stored on disk
-    
-    YCbCr=np.double(rgb2ycbcr(image))
-    im=np.round(YCbCr[:,:,0])
+    origT=[65.481/255,128.553/255,24.966/255]
+    Y=origT[0]*im[:,:,2]+origT[1]*im[:,:,1]+origT[2]*im[:,:,0]+16
+    im=np.round(Y)
     
     flt = np.ones((filter_size,1))
     flt = (flt*np.transpose(flt))/(filter_size**2)
     noiIm = conv2(im,flt,'same') 
-
+    
     estV_tmp = localNoiVarEstimate_hdd(noiIm, filter_type, filter_size, block_rad)
-    estV = np.array(Image.fromarray(estV_tmp).resize(np.flip(np.round(np.asarray(np.shape(estV_tmp))/4)).astype(int),resample=Image.BOX))     
+    estVSize=tuple(np.round((np.array(np.shape(estV_tmp))+0.1)/4))
+    estV = np.array(Image.fromarray(estV_tmp).resize(np.flip(estVSize).astype(int),resample=Image.BOX))     
     estV[estV<=0.001]=np.mean(estV)
     return estV
 
@@ -196,9 +197,9 @@ def localNoiVarEstimate_hdd(noi,ft,fz,br):
     else:
         return 0
     # decompose into channels
-    ch = np.zeros([np.shape(noi)[0],np.shape(noi)[1],fz*fz-1],'single');
+    ch = np.zeros([np.shape(noi)[0],np.shape(noi)[1],fz*fz-1],'single')
     for k in range(1,fz**2):
-        ch[:,:,k-1] = conv2(noi,fltrs[:,:,k],'same');
+        ch[:,:,k-1] = conv2(noi,fltrs[:,:,k],'same')
     # collect raw moments
     blksz = (2*br+1)*(2*br+1)
     mu1 = block_avg(ch,br,'mi')
@@ -207,31 +208,22 @@ def localNoiVarEstimate_hdd(noi,ft,fz,br):
     mu4 = block_avg(ch**4,br,'mi');
     Factor34=mu4 - 4*mu1*mu3;
     noiV = mu2 - mu1**2
-    noiK = (Factor34 + 6*mu1**2*mu2 - 3*mu1**4)/(noiV**2)-3
-    noiK[noiK<0]=0
+    with np.errstate(invalid='ignore',divide='ignore',over='ignore'):
+        noiK = (Factor34 + 6*mu1**2*mu2 - 3*mu1**4)/(noiV**2)-3
+        noiK[noiK<0]=0
+        a = np.mean(np.sqrt(noiK),2)
+        b = np.mean(1/noiV,2)
+        c = np.mean(1/noiV**2,2)
+        d = np.mean(np.sqrt(noiK)/noiV,2)
 
-
-    a = np.mean(np.sqrt(noiK),2)
-    b = np.mean(1/noiV,2)
-    c = np.mean(1/noiV**2,2)
-    d = np.mean(np.sqrt(noiK)/noiV,2)
-    e = np.mean(noiV,2);
-
-    sqrtK = (a*c - b*d)/(c-b*b)
-
-    V=np.zeros(a.shape,'single')
-    for i in range(a.shape[0]):
-        for j in range(a.shape[1]):
-            if(sqrtK[i,j]==0):
-                V[i,j]=1/b[i,j]
-            else:
-                V[i,j]=(1-a[i,j]/sqrtK[i,j])/b[i,j]
-
-    idx = sqrtK<np.median(sqrtK)
-    V[idx] = 1/b[idx]
-    idx = V<0
-    V[idx] = 1/b[idx]
+        sqrtK = (a*c - b*d)/(c-b*b)
+        V=(1-a/sqrtK)/b
+        V=V.astype("single")
     
+        idx = sqrtK<np.median(sqrtK)
+        V[idx] = 1/b[idx]
+        idx = V<0
+        V[idx] = 1/b[idx]
     return V
 
 def rnd2mtx(n): 
@@ -262,7 +254,7 @@ def rnd2mtx(n):
     return mtx
 
 
-def GetNoiseMaps( filename, sizeThreshold=55*(2**5), filter_type='rand', filter_size=4, block_rad=8 ):
+def GetNoiseMaps( impath, sizeThreshold=55*(2**5), filter_type='rand', filter_size=4, block_rad=8 ):
     # Copyright (C) 2016 Markos Zampoglou
     # Information Technologies Institute, Centre for Research and Technology Hellas
     # 6th Km Harilaou-Thermis, Thessaloniki 57001, Greece
@@ -276,7 +268,7 @@ def GetNoiseMaps( filename, sizeThreshold=55*(2**5), filter_type='rand', filter_
     # especially for large images, this function detects large images and
     # runs a memory efficient version of the code, which stores
     # intermediate data to disk (GetNoiseMaps_hdd)
-    im = Image.open(filename)
+    im=cv2.imread(impath)
     size=np.prod(np.shape(im))
     if size>sizeThreshold:
         #disp('hdd-based');
@@ -284,5 +276,5 @@ def GetNoiseMaps( filename, sizeThreshold=55*(2**5), filter_type='rand', filter_
     else:
         #disp('ram-based');
         estV = GetNoiseMaps_ram( im, filter_type, filter_size, block_rad )
-    
+    estV=np.nan_to_num(estV,posinf=0,neginf=0)
     return estV

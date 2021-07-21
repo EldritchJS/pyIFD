@@ -167,7 +167,7 @@ def validate_algo(infilename, matfilename, algoname):
             print('NOI1: PASS')
 
     elif algoname == 'NOI2':
-        noi2test=GetNoiseMaps(infilename)
+        noi2test=GetNoiseMaps(infilename,filter_type='haar')
         noi2mat=spio.loadmat(matfilename)
         sim = 0
 

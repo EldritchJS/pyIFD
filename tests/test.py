@@ -99,7 +99,7 @@ if(comp(noi1mat['Map'],noi1test)<NOI1_CRITERIA):
 else:
     print('NOI1: PASS')
 
-noi2test=GetNoiseMaps('../data/demo_noi2.tif')
+noi2test=GetNoiseMaps('../data/demo_noi2.tif',filter_type='haar')
 noi2mat=spio.loadmat('../data/demo_noi2.mat')
 if(comp(noi2mat['OutputMap'],noi2test)<NOI2_CRITERIA):
     print('NOI2: FAIL')
