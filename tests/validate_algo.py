@@ -182,12 +182,12 @@ def validate_algo(infilename, matfilename, algoname):
             print('NOI2: PASS')
 
     elif algoname == 'NOI4':
-        noi4test=MedFiltForensics(infilename)
+        noi4test=MedFiltForensics(infilename, Flatten=False)
         noi4mat=spio.loadmat(matfilename)
         sim = 0
 
         try:
-            sim = comp(noi4mat['OutputMap'],noi4test)
+            sim = comp(noi4mat['OutputMap'],noi4test,multichannel=True)
         except ValueError as e:
             print(e)
 
@@ -230,7 +230,7 @@ def validate_algo(infilename, matfilename, algoname):
         print('Unknown algorithm: ' + algoname)
 
 #algorithms = ['ADQ1', 'ADQ2', 'ADQ3', 'BLK', 'CAGI', 'ELA', 'GHO', 'NOI1', 'NOI2', 'NOI4', 'NOI5']
-algorithms = ['BLK']
+algorithms = ['NOI4']
 
 def main(argv):
     for root, dirs, files in os.walk(sys.argv[1]):
