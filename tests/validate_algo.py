@@ -230,7 +230,7 @@ def validate_algo(infilename, matfilename, algoname):
         print('Unknown algorithm: ' + algoname)
 
 #algorithms = ['ADQ1', 'ADQ2', 'ADQ3', 'BLK', 'CAGI', 'ELA', 'GHO', 'NOI1', 'NOI2', 'NOI4', 'NOI5']
-algorithms = ['NOI4']
+algorithms = ['NOI5']
 
 def main(argv):
     for root, dirs, files in os.walk(sys.argv[1]):

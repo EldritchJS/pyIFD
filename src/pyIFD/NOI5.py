@@ -141,8 +141,8 @@ def PCANoiseLevelEstimator( image, Bsize ):
         if zero_idx.size==0:
             nozeroindex=round(UpperBoundLevel*max_index)
         else:
-            nozeroindex = np.min(np.max(np.where(block_info[:,0]== 0)[0])+1,np.shape(block_info)[0])
-        index = Clamp(round(UpperBoundLevel*max_index) + 1, nozeroindex, np.shape(block_info)[0])
+            nozeroindex = min(np.max(np.where(block_info[:,0]== 0)[0])+1,np.shape(block_info)[0]-1)
+        index = Clamp(round(UpperBoundLevel*max_index) + 1, nozeroindex, np.shape(block_info)[0]-1)
         upper_bound = UpperBoundFactor * block_info[index,0]
         return upper_bound
     #==========================================================================
@@ -172,7 +172,7 @@ def PCANoiseLevelEstimator( image, Bsize ):
    
     label = 0
     block_info = ComputeBlockInfo( image )
-    if np.max(np.shape(block_info))==0:
+    if np.min(np.shape(block_info))==0:
         label = 1
         variance = np.var(image)
     else:
@@ -307,13 +307,19 @@ def PCANoise(impath):
     for i in range(irange):
         for j in range(jrange):
             Ib = I[i*B:(i+1)*B,j*B:(j+1)*B]
+           # if i==5 and j == 7:
+            #    print('B= 64 i = 5 j = 7')
+  #          try:
             (label64[i,j], Noise_64[i,j]) =  PCANoiseLevelEstimator(Ib,5)
+ #           except:
+#                print('B = 64 i = ' + str(i) + ' j = ' + str(j))
     [u,re]  = KMeans(Noise_64.flatten(order='F'),2)
     result4 = np.reshape(re[:,1],np.shape(Noise_64),order='F') # trace to determine size
     
 
     
     B = 32
+    print('B = 32')
     irange = int(np.floor(M/B))
     jrange = int(np.floor(N/B))
     label32=np.zeros((irange,jrange))
@@ -321,7 +327,10 @@ def PCANoise(impath):
     for i  in range(irange):
         for j in range(jrange):
             Ib = I[i*B:(i+1)*B,j*B:(j+1)*B]
+#            try:
             [label32[i,j], Noise_32[i,j]] =  PCANoiseLevelEstimator(Ib,5)
+ #           except:
+  #              print('B = 32 i = ' + str(i) + ' j = ' + str(j))
     MEDNoise_32= medfilt2d(Noise_32,[5, 5])
     Noise_32[label32==1]= MEDNoise_32[label32==1]
     [u, re]=KMeans(Noise_32.flatten(order='F'),2)
