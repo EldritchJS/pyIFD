@@ -1,7 +1,7 @@
 import numpy as np
-from numpy.linalg import eigvals
+from numpy.linalg import eigh
 import cv2
-from scipy.signal import medfilt2d
+from scipy.ndimage import median_filter as medfilt
 
 # Finished KMeans review
 def KMeans(data,N):
@@ -107,15 +107,15 @@ def PCANoiseLevelEstimator( image, Bsize ):
         sum2 =  np.zeros((M,M,loop_iters))
         subset_size = np.zeros((loop_iters,1))
         subset_count = 0
-
+        max_index=np.shape(block_info)[0]-1
         for p  in np.arange(1,MinLevel,-LevelStep):
             q = 0
             if p - LevelStep > MinLevel:
                 q = p - LevelStep
 
-            max_index = np.shape(block_info)[0] - 1
-            beg_index = Clamp( round(np.nextafter(q*max_index,q*max_index+1)) + 1, 1, np.shape(block_info)[0] )
-            end_index = Clamp( round(np.nextafter(p*max_index,p*max_index+1)) + 1, 1, np.shape(block_info)[0] )
+            beg_index = Clamp( round(q*max_index+LevelStep/2) + 1, 1, max_index+1 )
+            end_index = Clamp( round(p*max_index+LevelStep/2) + 1, 1, max_index+1 )
+            #Matlab is dumb and sometimes rounds weirdly above
             curr_sum1 = np.zeros((M, 1))
             curr_sum2 = np.zeros((M,M))
             for k in range (int(beg_index)-1,int(end_index)-1):
@@ -123,7 +123,7 @@ def PCANoiseLevelEstimator( image, Bsize ):
                 curr_y = int(block_info[k,2])
                 block = np.reshape( image[curr_y-1 : curr_y+M2-1, curr_x-1 : curr_x+M1-1], (M, 1),order='F' ).astype("double")
                 curr_sum1 += block
-                curr_sum2 +=  block * np.transpose(block)
+                curr_sum2 +=  block * block.T
             subset_count += 1
             sum1[:,:,subset_count-1] = curr_sum1.copy()
             sum2[:,:,subset_count-1] = curr_sum2.copy()
@@ -150,15 +150,14 @@ def PCANoiseLevelEstimator( image, Bsize ):
     def ApplyPCA( sum1, sum2, subset_size ): 
             meanval = sum1 / subset_size
             cov_matrix = sum2 / subset_size - meanval * np.transpose(meanval)
-            eigen_value = np.sort( eigvals(cov_matrix) )
-            return eigen_value
+            return eigh(cov_matrix)[0]
     #==========================================================================
     #Finished GetNextEstimate review
     def GetNextEstimate( sum1, sum2, subset_size, prev_estimate, upper_bound ):
         variance = 0;       
         for i in range(len(subset_size)):
             eigen_value = ApplyPCA( sum1[:,:,i], sum2[:,:,i], subset_size[i])
-            variance = eigen_value[0]
+            variance=eigen_value[0]
             if variance < 0.00001: #1e-5: 
                 break;
             diff            = eigen_value[EigenValueCount-1] - eigen_value[0]
@@ -178,7 +177,7 @@ def PCANoiseLevelEstimator( image, Bsize ):
     else:
         idx=np.lexsort((block_info[:,2],block_info[:,0]))
         block_info = np.asarray([block_info[i,:] for i in idx])
-        [sum1, sum2, subset_size] = ComputeStatistics( image, block_info );
+        [sum1, sum2, subset_size] = ComputeStatistics( image, block_info )
         if subset_size[-1] == 0:
             label = 1
             variance = np.var(image)
@@ -186,110 +185,17 @@ def PCANoiseLevelEstimator( image, Bsize ):
             upper_bound = ComputeUpperBound( block_info )
             prev_variance = 0
             variance = upper_bound
-    
             for iter in range(10):
-                if( np.abs(prev_variance - variance) < 0.00001): #1e-5 ):
+                if( np.abs(prev_variance - variance) < 0.00001): 
                     break
                 prev_variance = variance
                 variance = GetNextEstimate( sum1, sum2, subset_size, variance, upper_bound )
-            if variance < 0:                
+            if variance < 0: 
                 label = 1
                 variance = np.var(image)
-    variance = np.sqrt(variance);
+    variance = np.sqrt(variance)
     return [label, variance]
 
-def dethighlightHZ(im,blocksize,detections):
-    im = np.transpose(im)
-    rval = 255
-    bval = 0
-    gval = 0
-    
-    if im.ndim==2:
-        [rows,cols]=np.shape(im)
-        colors=1
-    else:
-        [rows, cols, colors]= np.shape(im)
-    rowblocks = int(np.floor(rows/blocksize))
-    # calculate the number of blocks contained in the colnum
-    colblocks = int(np.floor(cols/blocksize))
-    # calculate the number of blocks contained in the rownum %cols/blocksize;
-    if colors == 1:
-        newim=np.zeros((rows,cols,3))
-        newim[:,:,0]= im
-        newim[:,:,1]= im
-        newim[:,:,2]= im
-        im = newim
-    # pick red color layer for highlighting
-    highlighted= im;
-
-    for rowblock in range(1,rowblocks+1):
-        for colblock in range(1,colblocks+1):
-            if detections[rowblock-1,colblock-1] == 2:
-            # label 2 in Kmeans denotes tampered area
-                rowst= int((rowblock-1) * blocksize+1)
-                rowfin= int(rowblock * blocksize)
-                colst= int((colblock-1) * blocksize + 1)
-                colfin= int(colblock * blocksize)
-                # red
-                highlighted[rowst-1:rowst+2,colst-1:colfin,0]= rval
-                highlighted[rowfin-3:rowfin,colst-1:colfin,0]= rval
-                highlighted[rowst-1:rowfin,colst-1:colst+2,0]= rval
-                highlighted[rowst-1:rowfin,colfin-3:colfin,0]= rval
-            
-                # green
-                highlighted[rowst-1:rowst+2,colst-1:colfin,1]= gval
-                highlighted[rowfin-3:rowfin,colst-1:colfin,1]= gval
-                highlighted[rowst-1:rowfin,colst-1:colst+2,1]= gval
-                highlighted[rowst-1:rowfin,colfin-3:colfin,1]= gval
-            
-                # blue
-                highlighted[rowst-1:rowst+2,colst-1:colfin,2]= bval
-                highlighted[rowfin-3:rowfin,colst-1:colfin,2]= bval
-                highlighted[rowst-1:rowfin,colst-1:colst+2,2]= bval
-                highlighted[rowst-1:rowfin,colfin-3:colfin,2]= bval
-            
-                if rowst-1 > 0:
-                    highlighted[rowst-4:rowst-1,colst-1:colfin,0]= rval
-                    highlighted[rowst-4:rowst-1,colst-1:colfin,1]= gval
-                    highlighted[rowst-4:rowst-1,colst-1:colfin,2]= bval
-               
-                    if colst-1 > 0:
-                        highlighted[rowst-4:rowst-1,colst-4:colst-1,0]= rval
-                        highlighted[rowst-4:rowst-1,colst-4:colst-1,1]= gval
-                        highlighted[rowst-4:rowst-1,colst-4:colst-1,2]= bval 
-                    if colfin+1 < cols:
-                        highlighted[rowst-4:rowst-1,colfin:colfin+3,0]= rval
-                        highlighted[rowst-4:rowst-1,colfin:colfin+3,1]= gval
-                        highlighted[rowst-4:rowst-1,colfin:colfin+3,2]= bval
-            
-                if rowfin+1 < rows:
-                    highlighted[rowfin:rowfin+3,colst-1:colfin,0]= rval
-                    highlighted[rowfin:rowfin+3,colst-1:colfin,1]= gval
-                    highlighted[rowfin:rowfin+3,colst-1:colfin,2]= bval
-                
-                    if colst-1 > 0:
-                        highlighted[rowfin:rowfin+3,colst-4:colst-1,0]= rval
-                        highlighted[rowfin:rowfin+3,colst-4:colst-1,1]= gval
-                        highlighted[rowfin:rowfin+3,colst-4:colst-1,2]= bval
-                    if colfin+1 < cols:
-                        highlighted[rowfin:rowfin+3,colfin:colfin+3,0]= rval
-                        highlighted[rowfin:rowfin+3,colfin:colfin+3,1]= gval
-                        highlighted[rowfin:rowfin+3,colfin:colfin+3,2]= bval
-           
-                if colst-1 > 0:
-                    highlighted[rowst-1:rowfin,colst-4:colst-1,0]= rval
-                    highlighted[rowst-1:rowfin,colst-4:colst-1,1]= gval
-                    highlighted[rowst-1:rowfin,colst-4:colst-1,2]= bval
-            
-                if colfin+1 < cols:
-                    highlighted[rowst-1:rowfin,colfin:colfin+3,0]= rval
-                    highlighted[rowst-1:rowfin,colfin:colfin+3,1]= gval
-                    highlighted[rowst-1:rowfin,colfin:colfin+3,2]= bval
-    highlighted= highlighted.astype(np.uint8)
-    out=np.zeros((cols,rows,3))
-    for i in range(3):
-        out[:,:,i]=np.transpose(highlighted[:,:,i])
-    return out
 
 def PCANoise(impath):
     B = 64
@@ -307,15 +213,18 @@ def PCANoise(impath):
     for i in range(irange):
         for j in range(jrange):
             Ib = I[i*B:(i+1)*B,j*B:(j+1)*B]
+<<<<<<< HEAD
+            Noise_64[i,j] =  PCANoiseLevelEstimator(Ib,5)[1]
+=======
            # if i==5 and j == 7:
             #    print('B= 64 i = 5 j = 7')
   #          try:
             (label64[i,j], Noise_64[i,j]) =  PCANoiseLevelEstimator(Ib,5)
  #           except:
 #                print('B = 64 i = ' + str(i) + ' j = ' + str(j))
+>>>>>>> f14415966621b201c1afda21ea41cd9b769b10b8
     [u,re]  = KMeans(Noise_64.flatten(order='F'),2)
-    result4 = np.reshape(re[:,1],np.shape(Noise_64),order='F') # trace to determine size
-    
+    result4 = np.reshape(re[:,1],np.shape(Noise_64),order='F')
 
     
     B = 32
@@ -329,14 +238,18 @@ def PCANoise(impath):
             Ib = I[i*B:(i+1)*B,j*B:(j+1)*B]
 #            try:
             [label32[i,j], Noise_32[i,j]] =  PCANoiseLevelEstimator(Ib,5)
+<<<<<<< HEAD
+    MEDNoise_32= medfilt(Noise_32,[5, 5])
+=======
  #           except:
   #              print('B = 32 i = ' + str(i) + ' j = ' + str(j))
     MEDNoise_32= medfilt2d(Noise_32,[5, 5])
+>>>>>>> f14415966621b201c1afda21ea41cd9b769b10b8
     Noise_32[label32==1]= MEDNoise_32[label32==1]
     [u, re]=KMeans(Noise_32.flatten(order='F'),2)
-    result2=np.reshape(re[:,1],np.size(Noise_32),order='F') # trace to determine size
-    irange = int(np.floor(M/64))
-    jrange = int(np.floor(N/64))
+    result2=np.reshape(re[:,1],np.shape(Noise_32),order='F')
+    irange = int(M/64)
+    jrange = int(N/64)
     Noise_mix=np.zeros((irange*2,jrange*2))
     initialdetected=np.zeros((irange*2,jrange*2))
     for i in range(irange):
@@ -344,7 +257,6 @@ def PCANoise(impath):
             Noise_mix[2*i:2*(i+1),2*j:2*(j+1)] = Noise_64[i,j]
             initialdetected[2*i:2*(i+1),2*j:2*(j+1)] = result4[i,j]
     Noise_mix = 0.8*Noise_mix+0.2*Noise_32[:2*(i+1),:2*(j+1)]
-
     Noise_mix2 = Noise_mix.copy()
     DL = initialdetected[1:-1,:-2] - initialdetected[1:-1,1:-1]
     DR = initialdetected[1:-1,1:-1] - initialdetected[1:-1,2:]
@@ -362,7 +274,5 @@ def PCANoise(impath):
     for num in range(1,len(area)):
         if (area[num] < 4):
             result4[bwpp==num]=1
-    bwpp = cv2.connectedComponents(np.uint8(result4-1)) 
-    highlighted=dethighlightHZ(I,B,np.transpose(result4)).astype("uint8")
-
-    return [Noise_mix2,highlighted]
+    bwpp = cv2.connectedComponents(np.uint8(result4-1))[1]
+    return [Noise_mix2,bwpp.astype("uint8")]
