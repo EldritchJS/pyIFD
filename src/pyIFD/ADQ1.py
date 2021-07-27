@@ -389,10 +389,13 @@ def detectDQ_NonJPEG( im ):
 def detectDQ( impath ):
     """Detect DQ for input image file"""
     if impath[-4:]==".jpg":
-        [OutputMap, Feature_Vector, coeffArray] = detectDQ_JPEG( jio.read(impath) )
+        try:
+            [OutputMap, Feature_Vector, coeffArray] = detectDQ_JPEG( jio.read(impath) )
+        except:
+            print("Exception oh no")
     else:
         im=mpimg.imread(impath)
         im=np.round(im*255)
-        [OutputMap, Feature_Vector, coeffArray] = detectDQ_NonJPEG( impath )
+        [OutputMap, Feature_Vector, coeffArray] = detectDQ_NonJPEG( im )
     return [OutputMap, Feature_Vector, coeffArray] 
 
