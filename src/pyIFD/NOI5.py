@@ -213,22 +213,12 @@ def PCANoise(impath):
     for i in range(irange):
         for j in range(jrange):
             Ib = I[i*B:(i+1)*B,j*B:(j+1)*B]
-<<<<<<< HEAD
             Noise_64[i,j] =  PCANoiseLevelEstimator(Ib,5)[1]
-=======
-           # if i==5 and j == 7:
-            #    print('B= 64 i = 5 j = 7')
-  #          try:
-            (label64[i,j], Noise_64[i,j]) =  PCANoiseLevelEstimator(Ib,5)
- #           except:
-#                print('B = 64 i = ' + str(i) + ' j = ' + str(j))
->>>>>>> f14415966621b201c1afda21ea41cd9b769b10b8
     [u,re]  = KMeans(Noise_64.flatten(order='F'),2)
     result4 = np.reshape(re[:,1],np.shape(Noise_64),order='F')
 
     
     B = 32
-    print('B = 32')
     irange = int(np.floor(M/B))
     jrange = int(np.floor(N/B))
     label32=np.zeros((irange,jrange))
@@ -236,15 +226,8 @@ def PCANoise(impath):
     for i  in range(irange):
         for j in range(jrange):
             Ib = I[i*B:(i+1)*B,j*B:(j+1)*B]
-#            try:
             [label32[i,j], Noise_32[i,j]] =  PCANoiseLevelEstimator(Ib,5)
-<<<<<<< HEAD
     MEDNoise_32= medfilt(Noise_32,[5, 5])
-=======
- #           except:
-  #              print('B = 32 i = ' + str(i) + ' j = ' + str(j))
-    MEDNoise_32= medfilt2d(Noise_32,[5, 5])
->>>>>>> f14415966621b201c1afda21ea41cd9b769b10b8
     Noise_32[label32==1]= MEDNoise_32[label32==1]
     [u, re]=KMeans(Noise_32.flatten(order='F'),2)
     result2=np.reshape(re[:,1],np.shape(Noise_32),order='F')
