@@ -31,8 +31,11 @@ def GetNoiseMaps_ram( im, filter_type, filter_size, block_rad ):
     # Markos Zampoglou: This is the original version of the code, where all
     # processing takes place in memory
     
-    YCbCr=np.double(rgb2ycbcr(im))
-    im=np.round(YCbCr[:,:,0])
+    #YCbCr=np.double(rgb2ycbcr(im))
+    #im=np.round(YCbCr[:,:,0])
+    origT=[65.481/255,128.553/255,24.966/255]
+    Y=origT[0]*im[:,:,2]+origT[1]*im[:,:,1]+origT[2]*im[:,:,0]+16
+    im=np.round(Y)
     
     flt = np.ones((filter_size,1))
     flt = (flt*np.transpose(flt))/(filter_size**2)
