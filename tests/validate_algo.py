@@ -215,17 +215,6 @@ def validate_algo(infilename, matfilename, algoname):
         else:
             print('NOI5 OutputMap: PASS')
 
-        sim = 0
-        try:
-            sim = comp(noi5mat['OutputMap_Quant'],noi5test[1],multichannel=True)
-        except ValueError as e:
-            print(e)
-
-        if(sim<NOI5_CRITERIA):
-            print('NOI5 OutputMap_Quant: FAIL Similarity: ' + str(sim))
-        else:
-            print('NOI5 OutputMap_Quant: PASS')
-
     else:
         print('Unknown algorithm: ' + algoname)
 

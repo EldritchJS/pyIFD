@@ -1,3 +1,11 @@
+"""
+This module provides the ADQ1 algorithm
+
+# TODO
+ - Add image file error handling
+
+"""
+
 import numpy as np
 import jpegio as jio
 from scipy.signal import medfilt2d
@@ -7,6 +15,7 @@ import matplotlib.image as mpimg
 #np.seterr(all='raise')
 
 def ExtractYDCT( im ):
+    """Determine YDCT"""
     im=np.double(im)
     
     Y=0.299*im[:,:,0]+0.587*im[:,:,1]+0.114*im[:,:,2]
@@ -23,6 +32,7 @@ def ExtractYDCT( im ):
 
 
 def vec2im(v,padsize=[0,0],bsize=None,rows=None,cols=None):
+    """Convert vector to image"""
     [m,n]=np.shape(v)
     
     padsize=padsize+np.zeros((1,2),dtype=int)[0]
@@ -51,6 +61,7 @@ def vec2im(v,padsize=[0,0],bsize=None,rows=None,cols=None):
     return im
 
 def im2vec(im, bsize, padsize=0):
+    """Convert image to vector"""
     bsize=bsize+np.zeros((1,2),dtype=int)[0]
     padsize=padsize+np.zeros((1,2),dtype=int)[0]
     if(padsize.any()<0):
@@ -71,6 +82,7 @@ def im2vec(im, bsize, padsize=0):
     return [v,rows,cols]
 
 def bdctmtx(n):
+    """Process matrix using bdct"""
     [c,r]=np.meshgrid(range(8),range(8))
     [c0,r0]=np.meshgrid(r,r)
     [c1,r1]=np.meshgrid(c,c)
@@ -87,6 +99,7 @@ def bdctmtx(n):
     return m
 
 def bdct(a,n=8):
+    """Compute bdct"""
     dctm=bdctmtx(n)
     
     [v,r,c]=im2vec(a,n)
@@ -94,6 +107,7 @@ def bdct(a,n=8):
     return b
 
 def detectDQ_JPEG( im ):
+    """Determing DQ for JPEG"""
     # How many DCT coeffs to take into account
     MaxCoeffs=15;
     # JPEG zig-zag sequence
@@ -243,6 +257,7 @@ def detectDQ_JPEG( im ):
 
 
 def detectDQ_NonJPEG( im ):
+    """Determine DQ for non-JPEG"""
     # How many DCT coeffs to take into account
     MaxCoeffs=15;
     # JPEG zig-zag sequence
@@ -372,6 +387,7 @@ def detectDQ_NonJPEG( im ):
 
 
 def detectDQ( impath ):
+    """Detect DQ for input image file"""
     if impath[-4:]==".jpg":
         [OutputMap, Feature_Vector, coeffArray] = detectDQ_JPEG( jio.read(impath) )
     else:
