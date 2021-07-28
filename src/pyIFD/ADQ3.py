@@ -10,7 +10,10 @@ AlphaHat = np.load(os.path.join(os.path.dirname(__file__),'AlphaHat.npy'),allow_
 bias = np.array([ 0.10431149, -0.25288239, -0.2689174 ,  0.39425104, -1.11269764, -1.15730589, -1.18658372, -0.9444815 , -3.46445309, -2.9434976 ])
 
 def BenfordDQ(filename):
-    im=jio.read(filename)
+    try:
+        im=jio.read(filename)
+    except:
+        return
     Quality=EstimateJPEGQuality(im)
     QualityInd=int(np.round((Quality-50)/5+1))
     if QualityInd>10:

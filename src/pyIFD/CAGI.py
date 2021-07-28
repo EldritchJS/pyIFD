@@ -640,7 +640,7 @@ def scores_pick_variables(BlockScoreALL,sgrid,blk_idx,blk_idy,PossiblePoints,kx,
 
     return [MeanInSpace,PossiblePoints,diff_Mean_Best_scaled,diff_Mean_Best_scaledInv]
 
-def CAGI(filename='../demo.jpg'):
+def CAGI(filename):
     # Read image in as double RGB
     BGR=cv2.imread(filename)
     RGB=np.double(BGR[...,::-1])

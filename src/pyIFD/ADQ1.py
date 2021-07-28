@@ -392,7 +392,7 @@ def detectDQ( impath ):
         try:
             [OutputMap, Feature_Vector, coeffArray] = detectDQ_JPEG( jio.read(impath) )
         except:
-            print("Exception oh no")
+            return 
     else:
         im=mpimg.imread(impath)
         im=np.round(im*255)

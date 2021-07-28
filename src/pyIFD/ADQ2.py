@@ -157,7 +157,10 @@ def ceil2(x1):
     return x2
 
 def getJmap(filename, ncomp=1,c1=1,c2=15):
-    image=jio.read(filename)
+    try:
+        image=jio.read(filename)
+    except:
+        return
     ncomp-=1#indexing
     coeffArray=image.coef_arrays[ncomp]
     qtable=image.quant_tables[image.comp_info[ncomp].quant_tbl_no]
