@@ -6,7 +6,6 @@ This module provides the ADQ2 Algorithm
 import numpy as np
 import math
 from scipy.signal import medfilt2d
-#from statistics import mean
 import matplotlib.pyplot as plt
 import scipy.io as spio
 from skimage.metrics import structural_similarity as comp

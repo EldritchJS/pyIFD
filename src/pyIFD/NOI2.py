@@ -39,8 +39,6 @@ def GetNoiseMaps_ram( im, filter_type, filter_size, block_rad ):
      filter_type={'dct','haar','rand'}
      filter_size and block_rad are positive integers.
     """
-    #YCbCr=np.double(rgb2ycbcr(im))
-    #im=np.round(YCbCr[:,:,0])
     origT=[65.481/255,128.553/255,24.966/255]
     Y=origT[0]*im[:,:,2]+origT[1]*im[:,:,1]+origT[2]*im[:,:,0]+16
     im=np.round(Y)
@@ -49,11 +47,9 @@ def GetNoiseMaps_ram( im, filter_type, filter_size, block_rad ):
     flt = (flt*np.transpose(flt))/(filter_size**2)
     noiIm = conv2(im,flt,'same')
     
-    #estV_tmp = localNoiVarEstimate_ram(noiIm, filter_type, filter_size, block_rad)
-    #estV = imresize(single(estV_tmp),round(size(estV_tmp)/4),'method','box')
     estV_tmp = localNoiVarEstimate_hdd(noiIm, filter_type, filter_size, block_rad)
     
-    estV = imresize(single(estV_tmp),np.round(np.size(estV_tmp)/4),'method','box')  # TODO: is single necessary?
+    estV = imresize(single(estV_tmp),np.round(np.size(estV_tmp)/4),'method','box')  
 
     estV[estV<=0.001]=np.mean(estV)
 
@@ -81,7 +77,6 @@ def block_avg(X,d,pad='zero'):
 
     [nx,ny,ns] = np.shape(X)
     if d < 0 or d != np.floor(d) or d >= min(nx,ny):
-    #error('window size needs to be a positive integer');
         return
     wd = 2*d+1 # size of the sliding window
 
@@ -101,10 +96,9 @@ def block_avg(X,d,pad='zero'):
             # mirroring right
             Y[:,ny+d+1:,:] = np.flip(Y[:,ny:ny+d,:],axis=1)
         else:
-            #error('unknown padding pattern');
             return
     
-# forming integral image
+    # forming integral image
     Y = np.cumsum(np.cumsum(Y,0),1)
 
     # computing block sums
@@ -293,10 +287,8 @@ def GetNoiseMaps( impath, sizeThreshold=55*(2**5), filter_type='rand', filter_si
     im=cv2.imread(impath)
     size=np.prod(np.shape(im))
     if size>sizeThreshold:
-        #disp('hdd-based');
         estV = GetNoiseMaps_hdd( im, filter_type, filter_size, block_rad )
     else:
-        #disp('ram-based');
         estV = GetNoiseMaps_ram( im, filter_type, filter_size, block_rad )
     estV=np.nan_to_num(estV,posinf=0,neginf=0)
     return estV

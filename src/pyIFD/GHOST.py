@@ -6,8 +6,6 @@ import math
 import cv2
 import os
 
-# TODO: Check speedup using cv2 imencode decode
-
 def GHOST(filename, checkDisplacements=0):
     """Main driver of GHOST. checkDisplacements can be either 0 or 1."""
     imorig=np.double(cv2.imread(filename))
