@@ -32,7 +32,7 @@ def ExtractYDCT( im ):
 
 
 def vec2im(v,padsize=[0,0],bsize=None,rows=None,cols=None):
-    """Convert vector to image"""
+    """Convert vector to image."""
     [m,n]=np.shape(v)
     
     padsize=padsize+np.zeros((1,2),dtype=int)[0]
