@@ -9,11 +9,13 @@ import math
 import os 
 
 def im2double(im):
+    """Converts image to type double"""
     info = np.iinfo(im.dtype) 
     return im.astype(np.double) / info.max 
 
 #99% similarity, difference is with the first line resize.
 def ImageTiling(OImg):
+    
     Img = np.array(Image.fromarray(OImg.astype(np.uint8)).resize(size=(600,600),resample=Image.NEAREST))
     #[d1,d2]=Img.shape[0:2]
     #if (d2>601):      

@@ -10,6 +10,7 @@ AlphaHat = np.load(os.path.join(os.path.dirname(__file__),'AlphaHat.npy'),allow_
 bias = np.array([ 0.10431149, -0.25288239, -0.2689174 ,  0.39425104, -1.11269764, -1.15730589, -1.18658372, -0.9444815 , -3.46445309, -2.9434976 ])
 
 def BenfordDQ(filename):
+    """Main driver of ADQ3. Required that filename is a jpg"""
     try:
         im=jio.read(filename)
     except:
@@ -49,6 +50,7 @@ def BenfordDQ(filename):
     return OutputMap
 
 def EstimateJPEGQuality(imIn):
+    """Estimates the quality of JPEG imIn (0-100)"""
     if(len(imIn.quant_tables)==1):
         imIn.quant_tables[1]=imIn.quant_tables[0]
     YQuality=100-(np.sum(imIn.quant_tables[0])-imIn.quant_tables[0][0][0])/63
@@ -58,6 +60,9 @@ def EstimateJPEGQuality(imIn):
     return Quality
 
 def ExtractFeatures(im,c1,c2,ncomp,digitBinsToKeep):
+    """This function extracts a descriptor feature based on the first-digit distribution of DCT coefficients of an image. It is needed by BenfordDQ. 
+    
+     c1 and c2 are the first and last DCT coefficients to be taken into account, DC term included (default: c1=2, c2=10). ncomp is the component from which to extract the feature (default: 1, which corresponds to the Y component digitBinsToKeep is an array containing the digits for which we keep their frequency. Default digitBinsToKeep=[2 5 7]"""
     coeffArray=im.coef_arrays[ncomp-1]
     qtable=im.quant_tables[im.comp_info[ncomp].quant_tbl_no-1]
     Y=dequantize(coeffArray,qtable)
@@ -87,6 +92,7 @@ def ExtractFeatures(im,c1,c2,ncomp,digitBinsToKeep):
     return np.ndarray.flatten(HistToKeep)
 
 def vec2im(v,padsize=[0,0],bsize=None,rows=None,cols=None):
+    """Converts vector to an image"""
     [m,n]=np.shape(v)
     
     padsize=padsize+np.zeros((1,2),dtype=int)[0]
@@ -115,6 +121,7 @@ def vec2im(v,padsize=[0,0],bsize=None,rows=None,cols=None):
     return im
 
 def im2vec(im, bsize, padsize=0):
+    """Converts image to a vector"""
     bsize=bsize+np.zeros((1,2),dtype=int)[0]
     padsize=padsize+np.zeros((1,2),dtype=int)[0]
     if(padsize.any()<0):
@@ -135,7 +142,7 @@ def im2vec(im, bsize, padsize=0):
     return [v,rows,cols]
 
 def dequantize(qcoef,qtable):
-    
+    """Dequantizes a coef table given a quant table"""
     blksz=np.shape(qtable)
     [v,r,c]=im2vec(qcoef,blksz)
     
@@ -146,6 +153,7 @@ def dequantize(qcoef,qtable):
     return coef
 
 def svmdecision(Xnew,index):
+    """Uses given index of svm to classify Xnew"""
     f=np.dot(np.tanh(SupportVector[index] @ np.transpose(Xnew)-1),AlphaHat[index])+bias[index]
     return f
     

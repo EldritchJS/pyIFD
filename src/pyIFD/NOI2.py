@@ -6,12 +6,17 @@ from scipy.signal import convolve2d
 
 
 def conv2(x, y, mode='same'):
+    """Standard 2d convolution for matrices x and y"""
     return np.rot90(convolve2d(np.rot90(x, 2), np.rot90(y, 2), mode=mode), 2)
 
 def GetNoiseMaps_hdd( im, filter_type, filter_size, block_rad ):
-    # Markos Zampoglou: This a variant version of the code, which calls
-    # localNoiVarEstimate_hdd, a version in which intermediate data are
-    # stored on disk
+    """
+     Markos Zampoglou: This a variant version of the code, which calls
+     localNoiVarEstimate_hdd, a version in which intermediate data are
+     stored on disk.
+     filter_type={'dct','haar','rand'}
+     filter_size and block_rad are positive integers.
+    """
     origT=[65.481/255,128.553/255,24.966/255]
     Y=origT[0]*im[:,:,2]+origT[1]*im[:,:,1]+origT[2]*im[:,:,0]+16
     im=np.round(Y)
@@ -28,11 +33,12 @@ def GetNoiseMaps_hdd( im, filter_type, filter_size, block_rad ):
 
 
 def GetNoiseMaps_ram( im, filter_type, filter_size, block_rad ):
-    # Markos Zampoglou: This is the original version of the code, where all
-    # processing takes place in memory
-    
-    #YCbCr=np.double(rgb2ycbcr(im))
-    #im=np.round(YCbCr[:,:,0])
+    """ 
+     Markos Zampoglou: This is the original version of the code, where all
+     processing takes place in memory.
+     filter_type={'dct','haar','rand'}
+     filter_size and block_rad are positive integers.
+    """
     origT=[65.481/255,128.553/255,24.966/255]
     Y=origT[0]*im[:,:,2]+origT[1]*im[:,:,1]+origT[2]*im[:,:,0]+16
     im=np.round(Y)
@@ -41,37 +47,36 @@ def GetNoiseMaps_ram( im, filter_type, filter_size, block_rad ):
     flt = (flt*np.transpose(flt))/(filter_size**2)
     noiIm = conv2(im,flt,'same')
     
-    #estV_tmp = localNoiVarEstimate_ram(noiIm, filter_type, filter_size, block_rad)
-    #estV = imresize(single(estV_tmp),round(size(estV_tmp)/4),'method','box')
     estV_tmp = localNoiVarEstimate_hdd(noiIm, filter_type, filter_size, block_rad)
     
-    estV = imresize(single(estV_tmp),np.round(np.size(estV_tmp)/4),'method','box')  # TODO: is single necessary?
+    estV = imresize(single(estV_tmp),np.round(np.size(estV_tmp)/4),'method','box')  
 
     estV[estV<=0.001]=np.mean(estV)
 
     return estV
 
 def block_avg(X,d,pad='zero'): 
-# BLOCK_SUM: Compute the avg of elements for all overlapping dxd windows
-#            in data X, where d = 2*rad+1.
-#
-# [bksum] = block_avg(X,rad)
-# 
-# input arguments:
-    #X: an [nx,ny,ns] array as a stack of ns images of size [nx,ny]
-    #rad: radius of the sliding window, i.e., window size = (2*rad+1)*(2*rad+1)
-#  pad: padding patterns:
-            #'zero': padding with zeros (default)
-            #'mirror': padding with mirrored boundary area
-#
-# output arguments:
-#    bksum:sum of elements for all overlapping dxd windows
-#
-# Xunyu Pan, Xing Zhang and Siwei Lyu -- 07/26/2012             
+    """
+     BLOCK_SUM: Compute the avg of elements for all overlapping dxd windows
+                in data X, where d = 2*rad+1.
+
+     [bksum] = block_avg(X,rad)
+
+     input arguments:
+        X: an [nx,ny,ns] array as a stack of ns images of size [nx,ny]
+        rad: radius of the sliding window, i.e., window size = (2*rad+1)*(2*rad+1)
+      pad: padding patterns:
+                #'zero': padding with zeros (default)
+                #'mirror': padding with mirrored boundary area
+
+     output arguments:
+        bksum:sum of elements for all overlapping dxd windows
+
+     Xunyu Pan, Xing Zhang and Siwei Lyu -- 07/26/2012    
+    """
 
     [nx,ny,ns] = np.shape(X)
     if d < 0 or d != np.floor(d) or d >= min(nx,ny):
-    #error('window size needs to be a positive integer');
         return
     wd = 2*d+1 # size of the sliding window
 
@@ -91,10 +96,9 @@ def block_avg(X,d,pad='zero'):
             # mirroring right
             Y[:,ny+d+1:,:] = np.flip(Y[:,ny:ny+d,:],axis=1)
         else:
-            #error('unknown padding pattern');
             return
     
-# forming integral image
+    # forming integral image
     Y = np.cumsum(np.cumsum(Y,0),1)
 
     # computing block sums
@@ -103,21 +107,23 @@ def block_avg(X,d,pad='zero'):
     return Y 
 
 def dct2mtx(n,order): 
-# DCT2MTX: generating matrices corresponding to 2D-DCT transform.
-#          
-#
-# [mtx] = dct2mtx(N)
-# 
-# input arguments:
-#	N: size of 2D-DCT basis (N x N)
-#  ord: order of the obtained DCT basis
-#		'grid': as grid order (default)
-#     'snake': as snake order
-# output arguments:
-#	mtx: 3D matrices of dimension (NxNxN^2)
-#       mtx(:,:,k) is the kth 2D DCT basis of support size N x N
-#
-# Xunyu Pan, Xing Zhang, Siwei Lyu -- 07/26/2012             
+    """
+     DCT2MTX: generating matrices corresponding to 2D-DCT transform.
+
+
+     [mtx] = dct2mtx(N)
+
+     input arguments:
+        N: size of 2D-DCT basis (N x N)
+      ord: order of the obtained DCT basis
+            'grid': as grid order (default)
+         'snake': as snake order
+     output arguments:
+        mtx: 3D matrices of dimension (NxNxN^2)
+           mtx(:,:,k) is the kth 2D DCT basis of support size N x N
+
+     Xunyu Pan, Xing Zhang, Siwei Lyu -- 07/26/2012         
+    """
 
     (cc,rr) = np.meshgrid(range(n),range(n))
 
@@ -138,12 +144,13 @@ def dct2mtx(n,order):
     return mtx
 
 def haar2mtx(n): 
+    """Generates haar filter of size (n,n,n**2)"""
     Level=int(np.log2(n))
     if 2**Level<n:
         print("input parameter has to be the power of 2")
         return
 
-#Initialization
+    #Initialization
     c=np.ones((1,1))
     NC=1/np.sqrt(2) #normalization constant
     LP=[1, 1]
@@ -164,32 +171,34 @@ def haar2mtx(n):
 
 
 def localNoiVarEstimate_hdd(noi,ft,fz,br):
-    # Markos Zampoglou: this is a variant of the original
-    # localNoiVarEstimate.m, aimed to be more memory-efficient. The
-    # original has been renamed to localNoiVarEstimate_ram
-    #
-    # localNoiVarEstimate: local noise variance estimation using kurtosis
-    #
-    # [estVar] = localNoiVarEstimate(noisyIm,filter_type,filter_size,block_size)
-    #
-    # input arguments:
-    #	noisyIm: input noisy image
-    #	filter_type: the type of band-pass filter used
-    #        supported types, "dct", "haar", "rand"
-    #   filter_size: the size of the support of the filter
-    #   block_rad: the size of the local blocks
-    # output arguments:
-    #	estVar: estimated local noise variance
-    #
-    # reference:
-    #   X.Pan, X.Zhang and S.Lyu, Exposing Image Splicing with
-    #   Inconsistent Local Noise Variances, IEEE International
-    #   Conference on Computational Photography, Seattle, WA, 2012
-    #
-    # disclaimer:
-    #	Please refer to the ReadMe.txt
-    #
-    # Xunyu Pan, Xing Zhang and Siwei Lyu -- 07/26/2012
+    """
+     Markos Zampoglou: this is a variant of the original
+     localNoiVarEstimate.m, aimed to be more memory-efficient. The
+     original has been renamed to localNoiVarEstimate_ram
+
+     localNoiVarEstimate: local noise variance estimation using kurtosis
+
+     [estVar] = localNoiVarEstimate(noisyIm,filter_type,filter_size,block_size)
+
+     input arguments:
+        noisyIm: input noisy image
+        filter_type: the type of band-pass filter used
+            supported types, "dct", "haar", "rand"
+       filter_size: the size of the support of the filter
+       block_rad: the size of the local blocks
+     output arguments:
+        estVar: estimated local noise variance
+
+     reference:
+       X.Pan, X.Zhang and S.Lyu, Exposing Image Splicing with
+       Inconsistent Local Noise Variances, IEEE International
+       Conference on Computational Photography, Seattle, WA, 2012
+
+     disclaimer:
+        Please refer to the ReadMe.txt
+
+     Xunyu Pan, Xing Zhang and Siwei Lyu -- 07/26/2012
+     """
     
     if ft == 'dct':
         fltrs = dct2mtx(fz,'snake')
@@ -230,18 +239,20 @@ def localNoiVarEstimate_hdd(noi,ft,fz,br):
     return V
 
 def rnd2mtx(n): 
-# DCT2MTX: generating matrices corresponding to random orthnormal transform.
-#
-# [mtx] = rnd2mtx(N)
-# 
-# input arguments:
-#	N: size of 2D random basis (N x N)
-#
-# output arguments:
-#	mtx: 3D matrices of dimension (NxNxN^2)
-#       mtx(:,:,k) is the kth 2D DCT basis of support size N x N
-#
-# Xunyu Pan, Xing Zhang, Siwei Lyu -- 07/26/2012             
+    """
+     DCT2MTX: generating matrices corresponding to random orthnormal transform.
+
+     [mtx] = rnd2mtx(N)
+
+     input arguments:
+        N: size of 2D random basis (N x N)
+
+     output arguments:
+        mtx: 3D matrices of dimension (NxNxN^2)
+           mtx(:,:,k) is the kth 2D DCT basis of support size N x N
+
+     Xunyu Pan, Xing Zhang, Siwei Lyu -- 07/26/2012     
+    """
 
 
     X=np.random.randn(n,n)
@@ -258,26 +269,26 @@ def rnd2mtx(n):
 
 
 def GetNoiseMaps( impath, sizeThreshold=55*(2**5), filter_type='rand', filter_size=4, block_rad=8 ):
-    # Copyright (C) 2016 Markos Zampoglou
-    # Information Technologies Institute, Centre for Research and Technology Hellas
-    # 6th Km Harilaou-Thermis, Thessaloniki 57001, Greece
-    #
-    # This code implements the algorithm presented in:
-    # Lyu, Siwei, Xunyu Pan, and Xing Zhang. "Exposing region splicing
-    # forgeries with blind local noise estimation." International Journal
-    # of Computer Vision 110, no. 2 (2014): 202-221. 
+    """
+     Copyright (C) 2016 Markos Zampoglou
+     Information Technologies Institute, Centre for Research and Technology Hellas
+     6th Km Harilaou-Thermis, Thessaloniki 57001, Greece
     
-    # Due to extremely high memory requirements,
-    # especially for large images, this function detects large images and
-    # runs a memory efficient version of the code, which stores
-    # intermediate data to disk (GetNoiseMaps_hdd)
+     This code implements the algorithm presented in:
+     Lyu, Siwei, Xunyu Pan, and Xing Zhang. "Exposing region splicing
+     forgeries with blind local noise estimation." International Journal
+     of Computer Vision 110, no. 2 (2014): 202-221. 
+    
+     Due to extremely high memory requirements,
+     especially for large images, this function detects large images and
+     runs a memory efficient version of the code, which stores
+     intermediate data to disk (GetNoiseMaps_hdd)
+    """
     im=cv2.imread(impath)
     size=np.prod(np.shape(im))
     if size>sizeThreshold:
-        #disp('hdd-based');
         estV = GetNoiseMaps_hdd( im, filter_type, filter_size, block_rad )
     else:
-        #disp('ram-based');
         estV = GetNoiseMaps_ram( im, filter_type, filter_size, block_rad )
     estV=np.nan_to_num(estV,posinf=0,neginf=0)
     return estV

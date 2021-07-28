@@ -5,6 +5,16 @@ from scipy.ndimage import median_filter as medfilt
 
 # Finished KMeans review
 def KMeans(data,N):
+    """
+    Sorts data into N bins. Similar to any other KMeans algo.
+    input args:
+    data: data to be sorted (vector)
+    N: number of bins to be sorted into (int)
+    
+    output args:
+    u: means of the bins.
+    re: If data is a nx1 vector, this will be a nx2 output. The first column will be the point, and the second will be its bin assignment
+    """
     m = data.size
     u=np.zeros((N,1));
     Sdata = np.sort(data);

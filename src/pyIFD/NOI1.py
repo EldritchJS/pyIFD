@@ -4,7 +4,10 @@ from PIL import Image
 from pywt import dwt2
 
 def GetNoiseMap(imfilename, BlockSize=8):
-
+    """
+    Main driver for NOI1. imfilename is input image. 
+    BlockSize: the block size for noise variance estimation. Too small reduces quality, too large reduces localization accuracy
+    """
     im = Image.open(imfilename)
     YCbCr=np.double(rgb2ycbcr(im))
     Y=np.round(YCbCr[:,:,0])
