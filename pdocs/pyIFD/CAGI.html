@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.2" />
 <title>pyIFD.CAGI API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="This module provides the CAGI algorithm" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,11 +22,16 @@
 <h1 class="title">Module <code>pyIFD.CAGI</code></h1>
 </header>
 <section id="section-intro">
+<p>This module provides the CAGI algorithm</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from PIL import Image
+<pre><code class="python">&#34;&#34;&#34;
+This module provides the CAGI algorithm
+&#34;&#34;&#34;
+
+from PIL import Image
 from skimage.color import rgb2gray
 import numpy as np
 from scipy.ndimage import correlate
@@ -37,18 +42,34 @@ import math
 import os 
 
 def im2double(im):
+    &#34;&#34;&#34;
+    Converts image to type double.
+
+    Args:
+        im:
+
+    Returns: 
+        image as double:
+    &#34;&#34;&#34;
     info = np.iinfo(im.dtype) 
     return im.astype(np.double) / info.max 
 
-#99% similarity, difference is with the first line resize.
 def ImageTiling(OImg):
+    &#34;&#34;&#34;
+    Fill me in please.
+
+    Args:
+        OImg:
+
+    Returns:
+        tile:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;
     Img = np.array(Image.fromarray(OImg.astype(np.uint8)).resize(size=(600,600),resample=Image.NEAREST))
-    #[d1,d2]=Img.shape[0:2]
-    #if (d2&gt;601):      
     R1=rgb2gray(Img)
-    R=R1*255#(im2double(R1)*255) 
-    #else:
-        #R=(im2double(Img)*255)
+    R=R1*255
 
 
     blocks=3600
@@ -72,6 +93,21 @@ def ImageTiling(OImg):
     return tile
 
 def MainTrain(R10,blk_idx,blk_idy):
+    &#34;&#34;&#34;
+    Fill me in please.
+
+    Args:
+        R10:
+        blk_idx:
+        blk_idy:
+
+    Returns:
+        MeanContent:
+        MeanStrongEdge:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;    
     [x,y,z]=R10.shape
     [PMasks,MMasks,MaskWhite] = getMasks()
     #////////Image Tiling 3 Scales////////////////////////////
@@ -106,7 +142,22 @@ def MainTrain(R10,blk_idx,blk_idy):
     return [MeanContent,MeanStrongEdge]
 
 def PaintimgEdges(smap, MMasks, scale):
+    &#34;&#34;&#34;
+    Fill me in please.
 
+    Args:
+        smap:
+        MMasks:
+        scale:
+
+    Returns:
+        edgeImg2:
+        edgeImg:
+        edgeImg3:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;    
     if (scale==1):
         blocks=3600
         stepX=60
@@ -134,6 +185,22 @@ def PaintimgEdges(smap, MMasks, scale):
     return [edgeImg2, edgeImg,edgeImg3]
 
 def RescaleToImageResult(E,sgrid,kx,ky,pixels):
+    &#34;&#34;&#34;
+    Fill me in please.
+
+    Args:
+        E:
+        sgrid:
+        kx:
+        ky:
+        pixels:
+
+    Returns:
+        Result:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;    
     result = np.zeros((kx*sgrid*8,ky*sgrid*8))
     for x in range(kx):
         for y in range(ky):
@@ -156,25 +223,29 @@ def RescaleToImageResult(E,sgrid,kx,ky,pixels):
     return Result
 
 def SmapIng(ImgTiles, MaskTiles, WhiteMaskPoints):
+    &#34;&#34;&#34;
+    Fill me in please.
+
+    Args:
+        ImgTiles:
+        MaskTiles:
+        WhiteMaskPoints:
+
+    Returns:
+        smap:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;    
     blocks=np.shape(ImgTiles)[2]
     smap=np.zeros((blocks,2))
     winMask=59
     MaskWhite = (MaskTiles&gt;0).astype(int)
     MaskBlack = (MaskTiles&lt;=0).astype(int)
 
-    for a in range(blocks): #3600
+    for a in range(blocks): 
         maxR=0
-        for k in range(58): #58
-            #TempW=0
-            #TempB=0
-            #for x in range(10): #10
-            #    for y in range(10): #10
-            #        if (MaskTiles[x,y,k]&gt;0):
-            #            TempW=TempW+ImgTiles[x,y,a]
-            #        else: 
-            #            TempB=TempB+ImgTiles[x,y,a]
-            #TempW = np.sum([ImgTiles[x,y,a] for x in range(10) for y in range(10) if MaskTiles[x,y,k]&gt;0])
-            #TempB = np.sum([ImgTiles[x,y,a] for x in range(10) for y in range(10) if MaskTiles[x,y,k]&lt;=0])
+        for k in range(58): 
             TempW = np.sum(ImgTiles[:,:,a]*MaskWhite[:,:,k])
             TempB = np.sum(ImgTiles[:,:,a]*MaskBlack[:,:,k])
             whiteScore=TempW/WhiteMaskPoints[k]
@@ -190,13 +261,19 @@ def SmapIng(ImgTiles, MaskTiles, WhiteMaskPoints):
 
     return smap
 
-def analyze(filenameIm):
-
-    [ Result_CAGI,Result_Inv_CAGI ] = CAGI( filenameIm );
-    
-    return Result_CAGI
-
 def mat2gray(A):
+    &#34;&#34;&#34;
+    Fill me in please.
+
+    Args:
+        A:
+
+    Returns:
+        A/A.max():
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;    
     A-=A.min()
     if(A.max()==0):
         return A
@@ -204,7 +281,30 @@ def mat2gray(A):
 
 
 def characterizeblocks(MeanContent2,MeanStrongEdge, V_im, blk_idx,blk_idy, MeanInSpace,diff_Mean_Best_scaled,diff_Mean_Best_scaledInv,sgrid,PossiblePoints,kx,ky):
+    &#34;&#34;&#34;
+    Fill me in please.
 
+    Args:
+        MeanContent2:
+        MeanStrongEdge:
+        V_im:
+        blk_idx:
+        blk_idy:
+        MeanInSpace:
+        diff_Mean_Best_scaled:
+        diff_Mean_Best_scaledInv:
+        sgrid:
+        PossiblePoints:
+        kx:
+        ky:
+
+    Returns:
+        E:
+        EInv:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;
     uniform=np.zeros((int(np.floor(blk_idx/sgrid)),int(np.floor(blk_idy/sgrid))))
 
     for a in range(kx):
@@ -379,6 +479,20 @@ def characterizeblocks(MeanContent2,MeanStrongEdge, V_im, blk_idx,blk_idy, MeanI
 blocksize = 6
 
 def filtering(smap):
+    &#34;&#34;&#34;
+    Fill me in please.
+
+    Args:
+        smap:
+
+    Returns:
+        meansmallAreas:
+        meanbigAreas:
+        meanImg: 
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;
     blocks=np.shape(smap)[0]
     step=np.int(np.sqrt(blocks))
     smallAreas=np.zeros((blocksize,blocksize))
@@ -418,7 +532,21 @@ def filtering(smap):
 blocksize = 6
 
 def filteringMethod (smap, ThressSmall, ThressBigV, ThressImg):
+    &#34;&#34;&#34;
+    Fill me in please.
 
+    Args:
+        smap:
+        ThressSmall:
+        ThressBigV:
+        ThressImg:
+
+    Returns:
+        smap:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;
     blocks=np.size(smap,0)
     step=int(np.sqrt(blocks))
  
@@ -472,6 +600,19 @@ def filteringMethod (smap, ThressSmall, ThressBigV, ThressImg):
     return smap                        
 
 def hist_adjust(arr,bins):
+    &#34;&#34;&#34;
+    Fill me in please.
+
+    Args:
+        arr:
+        bins:
+    
+    Returns:
+        [A,B]:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;    
     [A,B]=np.histogram(arr,bins)
     for i in range(1,bins):
         count=np.count_nonzero(arr==B[i])
@@ -480,6 +621,25 @@ def hist_adjust(arr,bins):
     return [A,B]
 
 def inblockpatterns(image, bins, p, q, blk_idx, blk_idy):
+    &#34;&#34;&#34;
+    Fill me in please.
+
+    Args:
+        image:
+        bins:
+        p:
+        q:
+        blk_idx:
+        blk_idy:
+    
+    Returns:
+        K:
+        Correct:
+        BlockScoreAll: 
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;    
     Zmat=np.zeros((int(np.floor(blk_idx*blk_idy)),2))
     a=-1
     BlockScoreAll = np.zeros((blk_idx,blk_idy))
@@ -532,29 +692,20 @@ def inblockpatterns(image, bins, p, q, blk_idx, blk_idy):
     return [K,Correct, BlockScoreAll]
 
 
-#def hist_adjust2(arr,bins):
-#    edges=(max(arr)-min(arr))/bins*range(bins+1)
-#    for i in range(1,bins+1):
-#        edges[i]+=np.spacing(edges[i])
-#    return np.histogram(arr,edges)
-
-
-#def histc(X, bins):
-#    map_to_bins = np.digitize(X,bins)
-#    r = np.zeros(bins.shape)
-#    for i in map_to_bins:
-#        r[i-1] += 1
-#    return [r, map_to_bins]
-
-#def hist_adjust3(arr,bins):
-#    edges=np.linspace(min(arr),max(arr),bins+1)
-#    edges+=np.spacing(edges)
-#    edges[0]=-np.Inf
-#    edges[-1]=np.Inf
-#    return (histc(Zmat[:,0],edges)[0]).astype(int)
-
 def predict0(Kscores):
+    &#34;&#34;&#34;
+    Fill me in please.
 
+    Args:
+        Kscores:
+    
+    Returns:
+        Kpredict:
+        Kpre:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;
     Kpredict=np.zeros((9,9))
     Kpredict[0:8,0:8]=Kscores[:,:,1]
     for i in range(8):
@@ -569,6 +720,21 @@ def predict0(Kscores):
     return [Kpredict, Kpre]
 
 def predict1(Kscores,Kpredict,Kpre):
+    &#34;&#34;&#34;
+    Fill me in please.
+
+    Args:
+        Kscores:
+        Kpredict:
+        Kpre:
+
+    Returns:
+
+        PossiblePoints:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;    
     A = np.zeros((4,4))
     for i in range(4):
         for j in range(4):
@@ -576,10 +742,6 @@ def predict1(Kscores,Kpredict,Kpre):
 
     r1=[1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4]
     c1=[1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4]
-
-    #r1=[0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3]
-    #c1=[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3]
-
 
     PossiblePoints=np.zeros((len(r1),8));
     A_point = [0,0]
@@ -626,7 +788,28 @@ def predict1(Kscores,Kpredict,Kpre):
     return PossiblePoints 
 
 def scores_pick_variables(BlockScoreALL,sgrid,blk_idx,blk_idy,PossiblePoints,kx,ky):
+    &#34;&#34;&#34;
+    Fill me in please.
 
+    Args:
+        BlockScoreAll:
+        sgrid:
+        blk_idx:
+        blk_idy:
+        PossiblePoints:
+        kx:
+        ky:
+
+    Returns:
+        MeanInSpace:
+        PossiblePoints:
+        diff_Mean_Best_scaled:
+        diff_Mean_Best_scaledInv
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;    
+    
  
     BlockScore=np.zeros((blk_idx,blk_idy,16)) 
     for i in range(16):
@@ -668,9 +851,19 @@ def scores_pick_variables(BlockScoreALL,sgrid,blk_idx,blk_idy,PossiblePoints,kx,
 
     return [MeanInSpace,PossiblePoints,diff_Mean_Best_scaled,diff_Mean_Best_scaledInv]
 
-def CAGI(filename=&#39;../demo.jpg&#39;):
+def CAGI(impath):
+    &#34;&#34;&#34;
+    Main driver for CAGI algorithm.    
+
+    Args:
+        impath:
+
+    Returns:
+        Result_CAGI:
+        Result_Inv_CAGI:
+    &#34;&#34;&#34;        
     # Read image in as double RGB
-    BGR=cv2.imread(filename)
+    BGR=cv2.imread(impath)
     RGB=np.double(BGR[...,::-1])
     
     (height,width,color) = RGB.shape
@@ -692,12 +885,8 @@ def CAGI(filename=&#39;../demo.jpg&#39;):
     ky = int(np.floor(blk_idy/sgrid))
     BlockScoreAll = np.zeros((blk_idx,blk_idy, 8, 8))
     Kscores = np.zeros((8,8,2))
-    #K=0
-    #Correct=0
-    #All good through here
     for p in range(8):
         for q in range(8):
-            #Slight error w/i inblockpatterns 
             (K, Correct, BlockScoreAll[:, :, p, q]) = inblockpatterns(imageGS, bins, p+1, q+1, blk_idx, blk_idy)
             if (K&gt;1.999999):
                 Kscores[p, q, 0]=0
@@ -708,7 +897,6 @@ def CAGI(filename=&#39;../demo.jpg&#39;):
     [Kpredict, Kpre] = predict0(Kscores)
     PossiblePoints = predict1(Kscores, Kpredict, Kpre)
     PossiblePoints = PossiblePoints[np.argsort(PossiblePoints[:,6])] 
-    #Slightly different results also in MainTrain-&gt;ImageTiling
     [MeanContent, MeanStrongEdge] = MainTrain(RGB, blk_idx, blk_idy)
     MeanContent2 = np.zeros((kx,ky))
     for i in range(kx):
@@ -727,6 +915,17 @@ def CAGI(filename=&#39;../demo.jpg&#39;):
 
 
 def getMasks():
+    &#34;&#34;&#34;
+    Return image masks.
+
+    Args:
+
+    Returns:
+        PMasks:
+        MMasks:
+        MaskWhite:
+    &#34;&#34;&#34;    
+    
     PMasks = np.load(os.path.join(os.path.dirname(__file__),&#39;PMasks.npy&#39;))
     MMasks = np.load(os.path.join(os.path.dirname(__file__),&#39;MMasks.npy&#39;))
     MaskWhite = np.array([[10],
@@ -799,17 +998,33 @@ def getMasks():
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyIFD.CAGI.CAGI"><code class="name flex">
-<span>def <span class="ident">CAGI</span></span>(<span>filename='../demo.jpg')</span>
+<span>def <span class="ident">CAGI</span></span>(<span>impath)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Main driver for CAGI algorithm.
+</p>
+<h2 id="args">Args</h2>
+<p>impath:</p>
+<h2 id="returns">Returns</h2>
+<p>Result_CAGI:
+Result_Inv_CAGI:</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def CAGI(filename=&#39;../demo.jpg&#39;):
+<pre><code class="python">def CAGI(impath):
+    &#34;&#34;&#34;
+    Main driver for CAGI algorithm.    
+
+    Args:
+        impath:
+
+    Returns:
+        Result_CAGI:
+        Result_Inv_CAGI:
+    &#34;&#34;&#34;        
     # Read image in as double RGB
-    BGR=cv2.imread(filename)
+    BGR=cv2.imread(impath)
     RGB=np.double(BGR[...,::-1])
     
     (height,width,color) = RGB.shape
@@ -831,12 +1046,8 @@ def getMasks():
     ky = int(np.floor(blk_idy/sgrid))
     BlockScoreAll = np.zeros((blk_idx,blk_idy, 8, 8))
     Kscores = np.zeros((8,8,2))
-    #K=0
-    #Correct=0
-    #All good through here
     for p in range(8):
         for q in range(8):
-            #Slight error w/i inblockpatterns 
             (K, Correct, BlockScoreAll[:, :, p, q]) = inblockpatterns(imageGS, bins, p+1, q+1, blk_idx, blk_idy)
             if (K&gt;1.999999):
                 Kscores[p, q, 0]=0
@@ -847,7 +1058,6 @@ def getMasks():
     [Kpredict, Kpre] = predict0(Kscores)
     PossiblePoints = predict1(Kscores, Kpredict, Kpre)
     PossiblePoints = PossiblePoints[np.argsort(PossiblePoints[:,6])] 
-    #Slightly different results also in MainTrain-&gt;ImageTiling
     [MeanContent, MeanStrongEdge] = MainTrain(RGB, blk_idx, blk_idy)
     MeanContent2 = np.zeros((kx,ky))
     for i in range(kx):
@@ -869,19 +1079,35 @@ def getMasks():
 <span>def <span class="ident">ImageTiling</span></span>(<span>OImg)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Fill me in please.</p>
+<h2 id="args">Args</h2>
+<p>OImg:</p>
+<h2 id="returns">Returns</h2>
+<p>tile:</p>
+<h2 id="todos">Todos</h2>
+<ul>
+<li>Fill this in with proper summary</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def ImageTiling(OImg):
+    &#34;&#34;&#34;
+    Fill me in please.
+
+    Args:
+        OImg:
+
+    Returns:
+        tile:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;
     Img = np.array(Image.fromarray(OImg.astype(np.uint8)).resize(size=(600,600),resample=Image.NEAREST))
-    #[d1,d2]=Img.shape[0:2]
-    #if (d2&gt;601):      
     R1=rgb2gray(Img)
-    R=R1*255#(im2double(R1)*255) 
-    #else:
-        #R=(im2double(Img)*255)
+    R=R1*255
 
 
     blocks=3600
@@ -909,12 +1135,38 @@ def getMasks():
 <span>def <span class="ident">MainTrain</span></span>(<span>R10, blk_idx, blk_idy)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Fill me in please.</p>
+<h2 id="args">Args</h2>
+<p>R10:
+blk_idx:
+blk_idy:</p>
+<h2 id="returns">Returns</h2>
+<p>MeanContent:
+MeanStrongEdge:</p>
+<h2 id="todos">Todos</h2>
+<ul>
+<li>Fill this in with proper summary</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def MainTrain(R10,blk_idx,blk_idy):
+    &#34;&#34;&#34;
+    Fill me in please.
+
+    Args:
+        R10:
+        blk_idx:
+        blk_idy:
+
+    Returns:
+        MeanContent:
+        MeanStrongEdge:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;    
     [x,y,z]=R10.shape
     [PMasks,MMasks,MaskWhite] = getMasks()
     #////////Image Tiling 3 Scales////////////////////////////
@@ -953,13 +1205,40 @@ def getMasks():
 <span>def <span class="ident">PaintimgEdges</span></span>(<span>smap, MMasks, scale)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Fill me in please.</p>
+<h2 id="args">Args</h2>
+<p>smap:
+MMasks:
+scale:</p>
+<h2 id="returns">Returns</h2>
+<p>edgeImg2:
+edgeImg:
+edgeImg3:</p>
+<h2 id="todos">Todos</h2>
+<ul>
+<li>Fill this in with proper summary</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def PaintimgEdges(smap, MMasks, scale):
+    &#34;&#34;&#34;
+    Fill me in please.
 
+    Args:
+        smap:
+        MMasks:
+        scale:
+
+    Returns:
+        edgeImg2:
+        edgeImg:
+        edgeImg3:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;    
     if (scale==1):
         blocks=3600
         stepX=60
@@ -991,12 +1270,40 @@ def getMasks():
 <span>def <span class="ident">RescaleToImageResult</span></span>(<span>E, sgrid, kx, ky, pixels)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Fill me in please.</p>
+<h2 id="args">Args</h2>
+<p>E:
+sgrid:
+kx:
+ky:
+pixels:</p>
+<h2 id="returns">Returns</h2>
+<p>Result:</p>
+<h2 id="todos">Todos</h2>
+<ul>
+<li>Fill this in with proper summary</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def RescaleToImageResult(E,sgrid,kx,ky,pixels):
+    &#34;&#34;&#34;
+    Fill me in please.
+
+    Args:
+        E:
+        sgrid:
+        kx:
+        ky:
+        pixels:
+
+    Returns:
+        Result:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;    
     result = np.zeros((kx*sgrid*8,ky*sgrid*8))
     for x in range(kx):
         for y in range(ky):
@@ -1023,31 +1330,45 @@ def getMasks():
 <span>def <span class="ident">SmapIng</span></span>(<span>ImgTiles, MaskTiles, WhiteMaskPoints)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Fill me in please.</p>
+<h2 id="args">Args</h2>
+<p>ImgTiles:
+MaskTiles:
+WhiteMaskPoints:</p>
+<h2 id="returns">Returns</h2>
+<p>smap:</p>
+<h2 id="todos">Todos</h2>
+<ul>
+<li>Fill this in with proper summary</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def SmapIng(ImgTiles, MaskTiles, WhiteMaskPoints):
+    &#34;&#34;&#34;
+    Fill me in please.
+
+    Args:
+        ImgTiles:
+        MaskTiles:
+        WhiteMaskPoints:
+
+    Returns:
+        smap:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;    
     blocks=np.shape(ImgTiles)[2]
     smap=np.zeros((blocks,2))
     winMask=59
     MaskWhite = (MaskTiles&gt;0).astype(int)
     MaskBlack = (MaskTiles&lt;=0).astype(int)
 
-    for a in range(blocks): #3600
+    for a in range(blocks): 
         maxR=0
-        for k in range(58): #58
-            #TempW=0
-            #TempB=0
-            #for x in range(10): #10
-            #    for y in range(10): #10
-            #        if (MaskTiles[x,y,k]&gt;0):
-            #            TempW=TempW+ImgTiles[x,y,a]
-            #        else: 
-            #            TempB=TempB+ImgTiles[x,y,a]
-            #TempW = np.sum([ImgTiles[x,y,a] for x in range(10) for y in range(10) if MaskTiles[x,y,k]&gt;0])
-            #TempB = np.sum([ImgTiles[x,y,a] for x in range(10) for y in range(10) if MaskTiles[x,y,k]&lt;=0])
+        for k in range(58): 
             TempW = np.sum(ImgTiles[:,:,a]*MaskWhite[:,:,k])
             TempB = np.sum(ImgTiles[:,:,a]*MaskBlack[:,:,k])
             whiteScore=TempW/WhiteMaskPoints[k]
@@ -1064,33 +1385,60 @@ def getMasks():
     return smap</code></pre>
 </details>
 </dd>
-<dt id="pyIFD.CAGI.analyze"><code class="name flex">
-<span>def <span class="ident">analyze</span></span>(<span>filenameIm)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def analyze(filenameIm):
-
-    [ Result_CAGI,Result_Inv_CAGI ] = CAGI( filenameIm );
-    
-    return Result_CAGI</code></pre>
-</details>
-</dd>
 <dt id="pyIFD.CAGI.characterizeblocks"><code class="name flex">
 <span>def <span class="ident">characterizeblocks</span></span>(<span>MeanContent2, MeanStrongEdge, V_im, blk_idx, blk_idy, MeanInSpace, diff_Mean_Best_scaled, diff_Mean_Best_scaledInv, sgrid, PossiblePoints, kx, ky)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Fill me in please.</p>
+<h2 id="args">Args</h2>
+<p>MeanContent2:
+MeanStrongEdge:
+V_im:
+blk_idx:
+blk_idy:
+MeanInSpace:
+diff_Mean_Best_scaled:
+diff_Mean_Best_scaledInv:
+sgrid:
+PossiblePoints:
+kx:
+ky:</p>
+<h2 id="returns">Returns</h2>
+<p>E:
+EInv:</p>
+<h2 id="todos">Todos</h2>
+<ul>
+<li>Fill this in with proper summary</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def characterizeblocks(MeanContent2,MeanStrongEdge, V_im, blk_idx,blk_idy, MeanInSpace,diff_Mean_Best_scaled,diff_Mean_Best_scaledInv,sgrid,PossiblePoints,kx,ky):
+    &#34;&#34;&#34;
+    Fill me in please.
 
+    Args:
+        MeanContent2:
+        MeanStrongEdge:
+        V_im:
+        blk_idx:
+        blk_idy:
+        MeanInSpace:
+        diff_Mean_Best_scaled:
+        diff_Mean_Best_scaledInv:
+        sgrid:
+        PossiblePoints:
+        kx:
+        ky:
+
+    Returns:
+        E:
+        EInv:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;
     uniform=np.zeros((int(np.floor(blk_idx/sgrid)),int(np.floor(blk_idy/sgrid))))
 
     for a in range(kx):
@@ -1267,12 +1615,39 @@ def getMasks():
 <span>def <span class="ident">filtering</span></span>(<span>smap)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Fill me in please.</p>
+<h2 id="args">Args</h2>
+<p>smap:</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt>meansmallAreas:</dt>
+<dt>meanbigAreas:</dt>
+<dt><code>meanImg</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="todos">Todos</h2>
+<ul>
+<li>Fill this in with proper summary</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def filtering(smap):
+    &#34;&#34;&#34;
+    Fill me in please.
+
+    Args:
+        smap:
+
+    Returns:
+        meansmallAreas:
+        meanbigAreas:
+        meanImg: 
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;
     blocks=np.shape(smap)[0]
     step=np.int(np.sqrt(blocks))
     smallAreas=np.zeros((blocksize,blocksize))
@@ -1314,13 +1689,38 @@ def getMasks():
 <span>def <span class="ident">filteringMethod</span></span>(<span>smap, ThressSmall, ThressBigV, ThressImg)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Fill me in please.</p>
+<h2 id="args">Args</h2>
+<p>smap:
+ThressSmall:
+ThressBigV:
+ThressImg:</p>
+<h2 id="returns">Returns</h2>
+<p>smap:</p>
+<h2 id="todos">Todos</h2>
+<ul>
+<li>Fill this in with proper summary</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def filteringMethod (smap, ThressSmall, ThressBigV, ThressImg):
+    &#34;&#34;&#34;
+    Fill me in please.
 
+    Args:
+        smap:
+        ThressSmall:
+        ThressBigV:
+        ThressImg:
+
+    Returns:
+        smap:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;
     blocks=np.size(smap,0)
     step=int(np.sqrt(blocks))
  
@@ -1378,12 +1778,28 @@ def getMasks():
 <span>def <span class="ident">getMasks</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Return image masks.</p>
+<p>Args:</p>
+<h2 id="returns">Returns</h2>
+<p>PMasks:
+MMasks:
+MaskWhite:</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def getMasks():
+    &#34;&#34;&#34;
+    Return image masks.
+
+    Args:
+
+    Returns:
+        PMasks:
+        MMasks:
+        MaskWhite:
+    &#34;&#34;&#34;    
+    
     PMasks = np.load(os.path.join(os.path.dirname(__file__),&#39;PMasks.npy&#39;))
     MMasks = np.load(os.path.join(os.path.dirname(__file__),&#39;MMasks.npy&#39;))
     MaskWhite = np.array([[10],
@@ -1452,12 +1868,34 @@ def getMasks():
 <span>def <span class="ident">hist_adjust</span></span>(<span>arr, bins)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Fill me in please.</p>
+<h2 id="args">Args</h2>
+<p>arr:
+bins:</p>
+<h2 id="returns">Returns</h2>
+<p>[A,B]:</p>
+<h2 id="todos">Todos</h2>
+<ul>
+<li>Fill this in with proper summary</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def hist_adjust(arr,bins):
+    &#34;&#34;&#34;
+    Fill me in please.
+
+    Args:
+        arr:
+        bins:
+    
+    Returns:
+        [A,B]:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;    
     [A,B]=np.histogram(arr,bins)
     for i in range(1,bins):
         count=np.count_nonzero(arr==B[i])
@@ -1470,12 +1908,25 @@ def getMasks():
 <span>def <span class="ident">im2double</span></span>(<span>im)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Converts image to type double.</p>
+<h2 id="args">Args</h2>
+<p>im:
+Returns:
+image as double:</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def im2double(im):
+    &#34;&#34;&#34;
+    Converts image to type double.
+
+    Args:
+        im:
+
+    Returns: 
+        image as double:
+    &#34;&#34;&#34;
     info = np.iinfo(im.dtype) 
     return im.astype(np.double) / info.max </code></pre>
 </details>
@@ -1484,12 +1935,49 @@ def getMasks():
 <span>def <span class="ident">inblockpatterns</span></span>(<span>image, bins, p, q, blk_idx, blk_idy)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Fill me in please.</p>
+<h2 id="args">Args</h2>
+<p>image:
+bins:
+p:
+q:
+blk_idx:
+blk_idy:</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt>K:</dt>
+<dt>Correct:</dt>
+<dt><code>BlockScoreAll</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="todos">Todos</h2>
+<ul>
+<li>Fill this in with proper summary</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def inblockpatterns(image, bins, p, q, blk_idx, blk_idy):
+    &#34;&#34;&#34;
+    Fill me in please.
+
+    Args:
+        image:
+        bins:
+        p:
+        q:
+        blk_idx:
+        blk_idy:
+    
+    Returns:
+        K:
+        Correct:
+        BlockScoreAll: 
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;    
     Zmat=np.zeros((int(np.floor(blk_idx*blk_idy)),2))
     a=-1
     BlockScoreAll = np.zeros((blk_idx,blk_idy))
@@ -1546,12 +2034,32 @@ def getMasks():
 <span>def <span class="ident">mat2gray</span></span>(<span>A)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Fill me in please.</p>
+<h2 id="args">Args</h2>
+<p>A:</p>
+<h2 id="returns">Returns</h2>
+<p>A/A.max():</p>
+<h2 id="todos">Todos</h2>
+<ul>
+<li>Fill this in with proper summary</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def mat2gray(A):
+    &#34;&#34;&#34;
+    Fill me in please.
+
+    Args:
+        A:
+
+    Returns:
+        A/A.max():
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;    
     A-=A.min()
     if(A.max()==0):
         return A
@@ -1562,13 +2070,34 @@ def getMasks():
 <span>def <span class="ident">predict0</span></span>(<span>Kscores)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Fill me in please.</p>
+<h2 id="args">Args</h2>
+<p>Kscores:</p>
+<h2 id="returns">Returns</h2>
+<p>Kpredict:
+Kpre:</p>
+<h2 id="todos">Todos</h2>
+<ul>
+<li>Fill this in with proper summary</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def predict0(Kscores):
+    &#34;&#34;&#34;
+    Fill me in please.
 
+    Args:
+        Kscores:
+    
+    Returns:
+        Kpredict:
+        Kpre:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;
     Kpredict=np.zeros((9,9))
     Kpredict[0:8,0:8]=Kscores[:,:,1]
     for i in range(8):
@@ -1587,12 +2116,37 @@ def getMasks():
 <span>def <span class="ident">predict1</span></span>(<span>Kscores, Kpredict, Kpre)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Fill me in please.</p>
+<h2 id="args">Args</h2>
+<p>Kscores:
+Kpredict:
+Kpre:</p>
+<h2 id="returns">Returns</h2>
+<p>PossiblePoints:</p>
+<h2 id="todos">Todos</h2>
+<ul>
+<li>Fill this in with proper summary</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def predict1(Kscores,Kpredict,Kpre):
+    &#34;&#34;&#34;
+    Fill me in please.
+
+    Args:
+        Kscores:
+        Kpredict:
+        Kpre:
+
+    Returns:
+
+        PossiblePoints:
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;    
     A = np.zeros((4,4))
     for i in range(4):
         for j in range(4):
@@ -1600,10 +2154,6 @@ def getMasks():
 
     r1=[1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4]
     c1=[1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4]
-
-    #r1=[0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3]
-    #c1=[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3]
-
 
     PossiblePoints=np.zeros((len(r1),8));
     A_point = [0,0]
@@ -1654,13 +2204,51 @@ def getMasks():
 <span>def <span class="ident">scores_pick_variables</span></span>(<span>BlockScoreALL, sgrid, blk_idx, blk_idy, PossiblePoints, kx, ky)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Fill me in please.</p>
+<h2 id="args">Args</h2>
+<p>BlockScoreAll:
+sgrid:
+blk_idx:
+blk_idy:
+PossiblePoints:
+kx:
+ky:</p>
+<h2 id="returns">Returns</h2>
+<p>MeanInSpace:
+PossiblePoints:
+diff_Mean_Best_scaled:
+diff_Mean_Best_scaledInv</p>
+<h2 id="todos">Todos</h2>
+<ul>
+<li>Fill this in with proper summary</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def scores_pick_variables(BlockScoreALL,sgrid,blk_idx,blk_idy,PossiblePoints,kx,ky):
+    &#34;&#34;&#34;
+    Fill me in please.
 
+    Args:
+        BlockScoreAll:
+        sgrid:
+        blk_idx:
+        blk_idy:
+        PossiblePoints:
+        kx:
+        ky:
+
+    Returns:
+        MeanInSpace:
+        PossiblePoints:
+        diff_Mean_Best_scaled:
+        diff_Mean_Best_scaledInv
+
+    Todos:
+        * Fill this in with proper summary
+    &#34;&#34;&#34;    
+    
  
     BlockScore=np.zeros((blk_idx,blk_idy,16)) 
     for i in range(16):
@@ -1727,7 +2315,6 @@ def getMasks():
 <li><code><a title="pyIFD.CAGI.PaintimgEdges" href="#pyIFD.CAGI.PaintimgEdges">PaintimgEdges</a></code></li>
 <li><code><a title="pyIFD.CAGI.RescaleToImageResult" href="#pyIFD.CAGI.RescaleToImageResult">RescaleToImageResult</a></code></li>
 <li><code><a title="pyIFD.CAGI.SmapIng" href="#pyIFD.CAGI.SmapIng">SmapIng</a></code></li>
-<li><code><a title="pyIFD.CAGI.analyze" href="#pyIFD.CAGI.analyze">analyze</a></code></li>
 <li><code><a title="pyIFD.CAGI.characterizeblocks" href="#pyIFD.CAGI.characterizeblocks">characterizeblocks</a></code></li>
 <li><code><a title="pyIFD.CAGI.filtering" href="#pyIFD.CAGI.filtering">filtering</a></code></li>
 <li><code><a title="pyIFD.CAGI.filteringMethod" href="#pyIFD.CAGI.filteringMethod">filteringMethod</a></code></li>

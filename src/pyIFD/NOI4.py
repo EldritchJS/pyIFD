@@ -2,12 +2,14 @@ import numpy as np
 from scipy.signal import medfilt
 from PIL import Image
 
-def MedFiltForensics(Filename, NSize=3, Multiplier=10, Flatten=True):
-    """Main driver for NOI4.
-    Input args:
-    filename: input image
-    NSize: size of blocks to apply median filter to
-    Multiplier: Number to scale output by
+def MedFiltForensics(impath, NSize=3, Multiplier=10, Flatten=True):
+    """
+    Main driver for NOI4.
+    
+    Args:
+        impath: input image
+        NSize (optional, default=3): size of blocks to apply median filter to
+        Multiplier: Number to scale output by
     Flatten: Whether to flatten output or not (False/True)
     
     Output args:

@@ -1,19 +1,23 @@
+"""
+This module provides the NOI5 algorithm
+"""
+
 import numpy as np
 from numpy.linalg import eigh
 import cv2
 from scipy.ndimage import median_filter as medfilt
 
-# Finished KMeans review
 def KMeans(data,N):
     """
-    Sorts data into N bins. Similar to any other KMeans algo.
-    input args:
-    data: data to be sorted (vector)
-    N: number of bins to be sorted into (int)
+    Sorts data into N bins.
     
-    output args:
-    u: means of the bins.
-    re: If data is a nx1 vector, this will be a nx2 output. The first column will be the point, and the second will be its bin assignment
+    Args:
+        data: data to be sorted 
+        N: number of bins to be sorted into 
+    
+    Returns:
+        u: means of the bins
+        re: If data is a nx1 vector, this will be a nx2 output. The first column will be the point, and the second will be its bin assignment
     """
     m = data.size
     u=np.zeros((N,1));
@@ -57,9 +61,18 @@ def KMeans(data,N):
     
     return [u,re]
 
-
-#Finished review of PCANoiseLevelEstimator
 def PCANoiseLevelEstimator( image, Bsize ):
+    """
+    Summary please.
+
+    Args:
+        image:
+        Bsize:
+
+    Returns:
+        label:
+        variance: 
+    """
     UpperBoundLevel             = 0.0005
     UpperBoundFactor            = 3.1
     M1                          = Bsize
@@ -71,10 +84,19 @@ def PCANoiseLevelEstimator( image, Bsize ):
     MinLevel                    = 0.06
     MaxClippedPixelCount        = round(np.nextafter(0.1*M,0.1*M+1))
     
-
     #==========================================================================
-    #Finished Clamp review
     def Clamp(x, a, b):
+        """
+        Limit input value to a range.
+
+        Args:
+            x: value to clamp
+            a: minimum value
+            b: maximum value
+
+        Returns:
+            y: clamped value
+        """        
         y=x
         if x < a:
             y = a
@@ -83,8 +105,16 @@ def PCANoiseLevelEstimator( image, Bsize ):
         return y
 
     #==========================================================================
-    #Finished ComputeBlockInfo review
-    def ComputeBlockInfo( image ):
+    def ComputeBlockInfo(image):
+        """
+        Summary please.
+
+        Args:
+            image:
+
+        Returns:
+            block_info: 
+        """        
         block_info = np.zeros((np.shape(image)[0]*np.shape(image)[1],3))
         block_count = 0
 
@@ -110,8 +140,19 @@ def PCANoiseLevelEstimator( image, Bsize ):
         block_info=np.delete(block_info,slice(block_count,np.shape(image)[0]*np.shape(image)[1]),0)
         return block_info
     #==========================================================================
-    #Finished review of Compute Statistics
-    def ComputeStatistics( image, block_info ):
+    def ComputeStatistics(image, block_info):
+        """
+        Summary please.
+
+        Args:
+            image:
+            block_info:
+
+        Returns:
+            sum1:
+            sum2:
+            subset_size:
+        """        
         loop_iters=len(np.arange(1,MinLevel,-0.05))
         sum1 = np.zeros((M,1,loop_iters))
         sum2 =  np.zeros((M,M,loop_iters))
@@ -125,7 +166,6 @@ def PCANoiseLevelEstimator( image, Bsize ):
 
             beg_index = Clamp( round(q*max_index+LevelStep/2) + 1, 1, max_index+1 )
             end_index = Clamp( round(p*max_index+LevelStep/2) + 1, 1, max_index+1 )
-            #Matlab is dumb and sometimes rounds weirdly above
             curr_sum1 = np.zeros((M, 1))
             curr_sum2 = np.zeros((M,M))
             for k in range (int(beg_index)-1,int(end_index)-1):
@@ -144,8 +184,16 @@ def PCANoiseLevelEstimator( image, Bsize ):
             subset_size[i-1] += subset_size[i]
         return [sum1,sum2,subset_size]
     #==========================================================================
-    #Finished ComputeUpperBound review
-    def ComputeUpperBound( block_info ):
+    def ComputeUpperBound(block_info):
+        """
+        Summary please.
+
+        Args:
+            block_info:
+
+        Returns:
+            upper_bound: 
+        """        
         max_index = np.shape(block_info)[0] - 1
         zero_idx=np.where(block_info[:,0]== 0)[0]
         if zero_idx.size==0:
@@ -156,14 +204,36 @@ def PCANoiseLevelEstimator( image, Bsize ):
         upper_bound = UpperBoundFactor * block_info[index,0]
         return upper_bound
     #==========================================================================
-    #Finished ApplyPCA review
-    def ApplyPCA( sum1, sum2, subset_size ): 
-            meanval = sum1 / subset_size
-            cov_matrix = sum2 / subset_size - meanval * np.transpose(meanval)
-            return eigh(cov_matrix)[0]
+    def ApplyPCA( sum1, sum2, subset_size ):        
+        """
+        Summary please.
+
+        Args:
+            sum1:
+            sum2:
+            subset_size:
+
+        Returns:
+            eigh: 
+        """                
+        meanval = sum1 / subset_size
+        cov_matrix = sum2 / subset_size - meanval * np.transpose(meanval)
+        return eigh(cov_matrix)[0]
     #==========================================================================
-    #Finished GetNextEstimate review
     def GetNextEstimate( sum1, sum2, subset_size, prev_estimate, upper_bound ):
+        """
+        Summary please.
+
+        Args:
+            sum1:
+            sum2:
+            subset_size:
+            prev_estimate:
+            upper_bound:
+
+        Returns:
+            variance: 
+        """                
         variance = 0;       
         for i in range(len(subset_size)):
             eigen_value = ApplyPCA( sum1[:,:,i], sum2[:,:,i], subset_size[i])
@@ -206,8 +276,19 @@ def PCANoiseLevelEstimator( image, Bsize ):
     variance = np.sqrt(variance)
     return [label, variance]
 
-
 def PCANoise(impath):
+    """
+    Main driver for NOI5 algorithm.
+    
+    Args:
+        impath: input image
+    
+    Returns:
+        OutputMap: Output image
+
+    Todos:
+        * Fix the returns
+    """
     B = 64
     I = cv2.cvtColor(cv2.imread(impath), cv2.COLOR_BGR2GRAY).astype("double")
     [M,N] = np.shape(I)

@@ -1,3 +1,7 @@
+"""
+This module provides the ADQ3 algorithm
+"""
+
 from numpy.matlib import repmat
 import numpy as np
 import jpegio as jio
@@ -9,10 +13,18 @@ SupportVector = np.load(os.path.join(os.path.dirname(__file__),'SupportVector.np
 AlphaHat = np.load(os.path.join(os.path.dirname(__file__),'AlphaHat.npy'),allow_pickle=True)
 bias = np.array([ 0.10431149, -0.25288239, -0.2689174 ,  0.39425104, -1.11269764, -1.15730589, -1.18658372, -0.9444815 , -3.46445309, -2.9434976 ])
 
-def BenfordDQ(filename):
-    """Main driver of ADQ3. Required that filename is a jpg"""
+def BenfordDQ(impath):
+    """
+    Main driver for ADQ3 algorithm.
+
+    Args:
+        impath: Input image path, required to be JPEG with extension .jpg
+
+    Returns:
+        OutputMap:
+    """    
     try:
-        im=jio.read(filename)
+        im=jio.read(impath)
     except:
         return
     Quality=EstimateJPEGQuality(im)
@@ -50,7 +62,15 @@ def BenfordDQ(filename):
     return OutputMap
 
 def EstimateJPEGQuality(imIn):
-    """Estimates the quality of JPEG imIn (0-100)"""
+    """
+    Estimates the quality of JPEG.
+
+    Args:
+        imIn:   Image
+
+    Returns:        
+        Quality: (0-100)
+    """
     if(len(imIn.quant_tables)==1):
         imIn.quant_tables[1]=imIn.quant_tables[0]
     YQuality=100-(np.sum(imIn.quant_tables[0])-imIn.quant_tables[0][0][0])/63
@@ -60,9 +80,18 @@ def EstimateJPEGQuality(imIn):
     return Quality
 
 def ExtractFeatures(im,c1,c2,ncomp,digitBinsToKeep):
-    """This function extracts a descriptor feature based on the first-digit distribution of DCT coefficients of an image. It is needed by BenfordDQ. 
+    """
+    This function extracts a descriptor feature based on the first-digit distribution of DCT coefficients of an image. It is needed by BenfordDQ. 
     
-     c1 and c2 are the first and last DCT coefficients to be taken into account, DC term included (default: c1=2, c2=10). ncomp is the component from which to extract the feature (default: 1, which corresponds to the Y component digitBinsToKeep is an array containing the digits for which we keep their frequency. Default digitBinsToKeep=[2 5 7]"""
+     Args:
+         c1: first DCT coefficient to be taken into account, DC term included
+         c2: final DCT coefficient to be taken into account, DC term included
+         ncomp: component from which to extract the feature (1 corresponds to the Y component)
+         digitBinsToKeep: digits for which to keep their frequency
+
+    Returns:
+        np.ndarray.flatten(HistToKeep):
+    """
     coeffArray=im.coef_arrays[ncomp-1]
     qtable=im.quant_tables[im.comp_info[ncomp].quant_tbl_no-1]
     Y=dequantize(coeffArray,qtable)
@@ -92,7 +121,19 @@ def ExtractFeatures(im,c1,c2,ncomp,digitBinsToKeep):
     return np.ndarray.flatten(HistToKeep)
 
 def vec2im(v,padsize=[0,0],bsize=None,rows=None,cols=None):
-    """Converts vector to an image"""
+    """
+    Converts vector to an image.
+
+    Args:
+        v:
+        padsize (optional, default=[0,0]):
+        bsize (optional, default=None):
+        rows (optional, default=None):
+        cols (optional, default=None):
+
+    Returns:
+        im:
+    """
     [m,n]=np.shape(v)
     
     padsize=padsize+np.zeros((1,2),dtype=int)[0]
@@ -121,7 +162,19 @@ def vec2im(v,padsize=[0,0],bsize=None,rows=None,cols=None):
     return im
 
 def im2vec(im, bsize, padsize=0):
-    """Converts image to a vector"""
+    """
+    Converts image to a vector.
+
+    Args:
+        im:
+        bsize:
+        padsize (optional, default=0):
+
+    Returns:
+        v:
+        rows:
+        cols:
+    """
     bsize=bsize+np.zeros((1,2),dtype=int)[0]
     padsize=padsize+np.zeros((1,2),dtype=int)[0]
     if(padsize.any()<0):
@@ -142,7 +195,16 @@ def im2vec(im, bsize, padsize=0):
     return [v,rows,cols]
 
 def dequantize(qcoef,qtable):
-    """Dequantizes a coef table given a quant table"""
+    """
+    Dequantizes a coef table given a quant table.
+
+    Args:
+        qcoef:
+        qtable:
+
+    Returns:
+        coef:
+    """
     blksz=np.shape(qtable)
     [v,r,c]=im2vec(qcoef,blksz)
     
@@ -153,7 +215,16 @@ def dequantize(qcoef,qtable):
     return coef
 
 def svmdecision(Xnew,index):
-    """Uses given index of svm to classify Xnew"""
+    """
+    Uses given index of svm to classify Xnew.
+    
+    Args:
+        Xnew:
+        index:
+
+    Returns:
+        f:
+    """
     f=np.dot(np.tanh(SupportVector[index] @ np.transpose(Xnew)-1),AlphaHat[index])+bias[index]
     return f
     

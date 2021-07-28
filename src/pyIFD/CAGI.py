@@ -1,3 +1,7 @@
+"""
+This module provides the CAGI algorithm
+"""
+
 from PIL import Image
 from skimage.color import rgb2gray
 import numpy as np
@@ -9,20 +13,34 @@ import math
 import os 
 
 def im2double(im):
-    """Converts image to type double"""
+    """
+    Converts image to type double.
+
+    Args:
+        im:
+
+    Returns: 
+        image as double:
+    """
     info = np.iinfo(im.dtype) 
     return im.astype(np.double) / info.max 
 
-#99% similarity, difference is with the first line resize.
 def ImageTiling(OImg):
-    
+    """
+    Fill me in please.
+
+    Args:
+        OImg:
+
+    Returns:
+        tile:
+
+    Todos:
+        * Fill this in with proper summary
+    """
     Img = np.array(Image.fromarray(OImg.astype(np.uint8)).resize(size=(600,600),resample=Image.NEAREST))
-    #[d1,d2]=Img.shape[0:2]
-    #if (d2>601):      
     R1=rgb2gray(Img)
-    R=R1*255#(im2double(R1)*255) 
-    #else:
-        #R=(im2double(Img)*255)
+    R=R1*255
 
 
     blocks=3600
@@ -46,6 +64,21 @@ def ImageTiling(OImg):
     return tile
 
 def MainTrain(R10,blk_idx,blk_idy):
+    """
+    Fill me in please.
+
+    Args:
+        R10:
+        blk_idx:
+        blk_idy:
+
+    Returns:
+        MeanContent:
+        MeanStrongEdge:
+
+    Todos:
+        * Fill this in with proper summary
+    """    
     [x,y,z]=R10.shape
     [PMasks,MMasks,MaskWhite] = getMasks()
     #////////Image Tiling 3 Scales////////////////////////////
@@ -80,7 +113,22 @@ def MainTrain(R10,blk_idx,blk_idy):
     return [MeanContent,MeanStrongEdge]
 
 def PaintimgEdges(smap, MMasks, scale):
+    """
+    Fill me in please.
 
+    Args:
+        smap:
+        MMasks:
+        scale:
+
+    Returns:
+        edgeImg2:
+        edgeImg:
+        edgeImg3:
+
+    Todos:
+        * Fill this in with proper summary
+    """    
     if (scale==1):
         blocks=3600
         stepX=60
@@ -108,6 +156,22 @@ def PaintimgEdges(smap, MMasks, scale):
     return [edgeImg2, edgeImg,edgeImg3]
 
 def RescaleToImageResult(E,sgrid,kx,ky,pixels):
+    """
+    Fill me in please.
+
+    Args:
+        E:
+        sgrid:
+        kx:
+        ky:
+        pixels:
+
+    Returns:
+        Result:
+
+    Todos:
+        * Fill this in with proper summary
+    """    
     result = np.zeros((kx*sgrid*8,ky*sgrid*8))
     for x in range(kx):
         for y in range(ky):
@@ -130,25 +194,29 @@ def RescaleToImageResult(E,sgrid,kx,ky,pixels):
     return Result
 
 def SmapIng(ImgTiles, MaskTiles, WhiteMaskPoints):
+    """
+    Fill me in please.
+
+    Args:
+        ImgTiles:
+        MaskTiles:
+        WhiteMaskPoints:
+
+    Returns:
+        smap:
+
+    Todos:
+        * Fill this in with proper summary
+    """    
     blocks=np.shape(ImgTiles)[2]
     smap=np.zeros((blocks,2))
     winMask=59
     MaskWhite = (MaskTiles>0).astype(int)
     MaskBlack = (MaskTiles<=0).astype(int)
 
-    for a in range(blocks): #3600
+    for a in range(blocks): 
         maxR=0
-        for k in range(58): #58
-            #TempW=0
-            #TempB=0
-            #for x in range(10): #10
-            #    for y in range(10): #10
-            #        if (MaskTiles[x,y,k]>0):
-            #            TempW=TempW+ImgTiles[x,y,a]
-            #        else: 
-            #            TempB=TempB+ImgTiles[x,y,a]
-            #TempW = np.sum([ImgTiles[x,y,a] for x in range(10) for y in range(10) if MaskTiles[x,y,k]>0])
-            #TempB = np.sum([ImgTiles[x,y,a] for x in range(10) for y in range(10) if MaskTiles[x,y,k]<=0])
+        for k in range(58): 
             TempW = np.sum(ImgTiles[:,:,a]*MaskWhite[:,:,k])
             TempB = np.sum(ImgTiles[:,:,a]*MaskBlack[:,:,k])
             whiteScore=TempW/WhiteMaskPoints[k]
@@ -164,13 +232,19 @@ def SmapIng(ImgTiles, MaskTiles, WhiteMaskPoints):
 
     return smap
 
-def analyze(filenameIm):
-
-    [ Result_CAGI,Result_Inv_CAGI ] = CAGI( filenameIm );
-    
-    return Result_CAGI
-
 def mat2gray(A):
+    """
+    Fill me in please.
+
+    Args:
+        A:
+
+    Returns:
+        A/A.max():
+
+    Todos:
+        * Fill this in with proper summary
+    """    
     A-=A.min()
     if(A.max()==0):
         return A
@@ -178,7 +252,30 @@ def mat2gray(A):
 
 
 def characterizeblocks(MeanContent2,MeanStrongEdge, V_im, blk_idx,blk_idy, MeanInSpace,diff_Mean_Best_scaled,diff_Mean_Best_scaledInv,sgrid,PossiblePoints,kx,ky):
+    """
+    Fill me in please.
 
+    Args:
+        MeanContent2:
+        MeanStrongEdge:
+        V_im:
+        blk_idx:
+        blk_idy:
+        MeanInSpace:
+        diff_Mean_Best_scaled:
+        diff_Mean_Best_scaledInv:
+        sgrid:
+        PossiblePoints:
+        kx:
+        ky:
+
+    Returns:
+        E:
+        EInv:
+
+    Todos:
+        * Fill this in with proper summary
+    """
     uniform=np.zeros((int(np.floor(blk_idx/sgrid)),int(np.floor(blk_idy/sgrid))))
 
     for a in range(kx):
@@ -353,6 +450,20 @@ def characterizeblocks(MeanContent2,MeanStrongEdge, V_im, blk_idx,blk_idy, MeanI
 blocksize = 6
 
 def filtering(smap):
+    """
+    Fill me in please.
+
+    Args:
+        smap:
+
+    Returns:
+        meansmallAreas:
+        meanbigAreas:
+        meanImg: 
+
+    Todos:
+        * Fill this in with proper summary
+    """
     blocks=np.shape(smap)[0]
     step=np.int(np.sqrt(blocks))
     smallAreas=np.zeros((blocksize,blocksize))
@@ -392,7 +503,21 @@ def filtering(smap):
 blocksize = 6
 
 def filteringMethod (smap, ThressSmall, ThressBigV, ThressImg):
+    """
+    Fill me in please.
 
+    Args:
+        smap:
+        ThressSmall:
+        ThressBigV:
+        ThressImg:
+
+    Returns:
+        smap:
+
+    Todos:
+        * Fill this in with proper summary
+    """
     blocks=np.size(smap,0)
     step=int(np.sqrt(blocks))
  
@@ -446,6 +571,19 @@ def filteringMethod (smap, ThressSmall, ThressBigV, ThressImg):
     return smap                        
 
 def hist_adjust(arr,bins):
+    """
+    Fill me in please.
+
+    Args:
+        arr:
+        bins:
+    
+    Returns:
+        [A,B]:
+
+    Todos:
+        * Fill this in with proper summary
+    """    
     [A,B]=np.histogram(arr,bins)
     for i in range(1,bins):
         count=np.count_nonzero(arr==B[i])
@@ -454,6 +592,25 @@ def hist_adjust(arr,bins):
     return [A,B]
 
 def inblockpatterns(image, bins, p, q, blk_idx, blk_idy):
+    """
+    Fill me in please.
+
+    Args:
+        image:
+        bins:
+        p:
+        q:
+        blk_idx:
+        blk_idy:
+    
+    Returns:
+        K:
+        Correct:
+        BlockScoreAll: 
+
+    Todos:
+        * Fill this in with proper summary
+    """    
     Zmat=np.zeros((int(np.floor(blk_idx*blk_idy)),2))
     a=-1
     BlockScoreAll = np.zeros((blk_idx,blk_idy))
@@ -506,29 +663,20 @@ def inblockpatterns(image, bins, p, q, blk_idx, blk_idy):
     return [K,Correct, BlockScoreAll]
 
 
-#def hist_adjust2(arr,bins):
-#    edges=(max(arr)-min(arr))/bins*range(bins+1)
-#    for i in range(1,bins+1):
-#        edges[i]+=np.spacing(edges[i])
-#    return np.histogram(arr,edges)
-
-
-#def histc(X, bins):
-#    map_to_bins = np.digitize(X,bins)
-#    r = np.zeros(bins.shape)
-#    for i in map_to_bins:
-#        r[i-1] += 1
-#    return [r, map_to_bins]
-
-#def hist_adjust3(arr,bins):
-#    edges=np.linspace(min(arr),max(arr),bins+1)
-#    edges+=np.spacing(edges)
-#    edges[0]=-np.Inf
-#    edges[-1]=np.Inf
-#    return (histc(Zmat[:,0],edges)[0]).astype(int)
-
 def predict0(Kscores):
+    """
+    Fill me in please.
 
+    Args:
+        Kscores:
+    
+    Returns:
+        Kpredict:
+        Kpre:
+
+    Todos:
+        * Fill this in with proper summary
+    """
     Kpredict=np.zeros((9,9))
     Kpredict[0:8,0:8]=Kscores[:,:,1]
     for i in range(8):
@@ -543,6 +691,21 @@ def predict0(Kscores):
     return [Kpredict, Kpre]
 
 def predict1(Kscores,Kpredict,Kpre):
+    """
+    Fill me in please.
+
+    Args:
+        Kscores:
+        Kpredict:
+        Kpre:
+
+    Returns:
+
+        PossiblePoints:
+
+    Todos:
+        * Fill this in with proper summary
+    """    
     A = np.zeros((4,4))
     for i in range(4):
         for j in range(4):
@@ -550,10 +713,6 @@ def predict1(Kscores,Kpredict,Kpre):
 
     r1=[1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4]
     c1=[1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4]
-
-    #r1=[0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3]
-    #c1=[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3]
-
 
     PossiblePoints=np.zeros((len(r1),8));
     A_point = [0,0]
@@ -600,7 +759,28 @@ def predict1(Kscores,Kpredict,Kpre):
     return PossiblePoints 
 
 def scores_pick_variables(BlockScoreALL,sgrid,blk_idx,blk_idy,PossiblePoints,kx,ky):
+    """
+    Fill me in please.
 
+    Args:
+        BlockScoreAll:
+        sgrid:
+        blk_idx:
+        blk_idy:
+        PossiblePoints:
+        kx:
+        ky:
+
+    Returns:
+        MeanInSpace:
+        PossiblePoints:
+        diff_Mean_Best_scaled:
+        diff_Mean_Best_scaledInv
+
+    Todos:
+        * Fill this in with proper summary
+    """    
+    
  
     BlockScore=np.zeros((blk_idx,blk_idy,16)) 
     for i in range(16):
@@ -642,9 +822,19 @@ def scores_pick_variables(BlockScoreALL,sgrid,blk_idx,blk_idy,PossiblePoints,kx,
 
     return [MeanInSpace,PossiblePoints,diff_Mean_Best_scaled,diff_Mean_Best_scaledInv]
 
-def CAGI(filename):
+def CAGI(impath):
+    """
+    Main driver for CAGI algorithm.    
+
+    Args:
+        impath:
+
+    Returns:
+        Result_CAGI:
+        Result_Inv_CAGI:
+    """        
     # Read image in as double RGB
-    BGR=cv2.imread(filename)
+    BGR=cv2.imread(impath)
     RGB=np.double(BGR[...,::-1])
     
     (height,width,color) = RGB.shape
@@ -666,12 +856,8 @@ def CAGI(filename):
     ky = int(np.floor(blk_idy/sgrid))
     BlockScoreAll = np.zeros((blk_idx,blk_idy, 8, 8))
     Kscores = np.zeros((8,8,2))
-    #K=0
-    #Correct=0
-    #All good through here
     for p in range(8):
         for q in range(8):
-            #Slight error w/i inblockpatterns 
             (K, Correct, BlockScoreAll[:, :, p, q]) = inblockpatterns(imageGS, bins, p+1, q+1, blk_idx, blk_idy)
             if (K>1.999999):
                 Kscores[p, q, 0]=0
@@ -682,7 +868,6 @@ def CAGI(filename):
     [Kpredict, Kpre] = predict0(Kscores)
     PossiblePoints = predict1(Kscores, Kpredict, Kpre)
     PossiblePoints = PossiblePoints[np.argsort(PossiblePoints[:,6])] 
-    #Slightly different results also in MainTrain->ImageTiling
     [MeanContent, MeanStrongEdge] = MainTrain(RGB, blk_idx, blk_idy)
     MeanContent2 = np.zeros((kx,ky))
     for i in range(kx):
@@ -701,6 +886,17 @@ def CAGI(filename):
 
 
 def getMasks():
+    """
+    Return image masks.
+
+    Args:
+
+    Returns:
+        PMasks:
+        MMasks:
+        MaskWhite:
+    """    
+    
     PMasks = np.load(os.path.join(os.path.dirname(__file__),'PMasks.npy'))
     MMasks = np.load(os.path.join(os.path.dirname(__file__),'MMasks.npy'))
     MaskWhite = np.array([[10],

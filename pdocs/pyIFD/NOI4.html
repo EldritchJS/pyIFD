@@ -30,7 +30,19 @@
 from scipy.signal import medfilt
 from PIL import Image
 
-def MedFiltForensics(Filename, NSize=3, Multiplier=10, Flatten=True):
+def MedFiltForensics(impath, NSize=3, Multiplier=10, Flatten=True):
+    &#34;&#34;&#34;
+    Main driver for NOI4.
+    
+    Args:
+        impath: input image
+        NSize (optional, default=3): size of blocks to apply median filter to
+        Multiplier: Number to scale output by
+    Flatten: Whether to flatten output or not (False/True)
+    
+    Output args:
+    OutputMap: Output image
+    &#34;&#34;&#34;
 
     Im=Image.open(Filename)
     ImIn=np.array(Im, dtype=np.double)
@@ -56,15 +68,39 @@ def MedFiltForensics(Filename, NSize=3, Multiplier=10, Flatten=True):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyIFD.NOI4.MedFiltForensics"><code class="name flex">
-<span>def <span class="ident">MedFiltForensics</span></span>(<span>Filename, NSize=3, Multiplier=10, Flatten=True)</span>
+<span>def <span class="ident">MedFiltForensics</span></span>(<span>impath, NSize=3, Multiplier=10, Flatten=True)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Main driver for NOI4.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>impath</code></strong></dt>
+<dd>input image</dd>
+<dt><strong><code>NSize</code></strong> :&ensp;<code>optional</code>, default=<code>3</code></dt>
+<dd>size of blocks to apply median filter to</dd>
+<dt><strong><code>Multiplier</code></strong></dt>
+<dd>Number to scale output by</dd>
+</dl>
+<p>Flatten: Whether to flatten output or not (False/True)</p>
+<p>Output args:
+OutputMap: Output image</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def MedFiltForensics(Filename, NSize=3, Multiplier=10, Flatten=True):
+<pre><code class="python">def MedFiltForensics(impath, NSize=3, Multiplier=10, Flatten=True):
+    &#34;&#34;&#34;
+    Main driver for NOI4.
+    
+    Args:
+        impath: input image
+        NSize (optional, default=3): size of blocks to apply median filter to
+        Multiplier: Number to scale output by
+    Flatten: Whether to flatten output or not (False/True)
+    
+    Output args:
+    OutputMap: Output image
+    &#34;&#34;&#34;
 
     Im=Image.open(Filename)
     ImIn=np.array(Im, dtype=np.double)

@@ -1,3 +1,7 @@
+"""
+This module provides the GHOST algorithm
+"""
+
 from scipy import signal
 from scipy.signal import fftconvolve
 from skimage.transform import resize
@@ -6,9 +10,22 @@ import math
 import cv2
 import os
 
-def GHOST(filename, checkDisplacements=0):
-    """Main driver of GHOST. checkDisplacements can be either 0 or 1."""
-    imorig=np.double(cv2.imread(filename))
+def GHOST(impath, checkDisplacements=0):
+    """
+    Main driver for GHOST algorithm.
+    
+    Args:
+        impath:
+        checkDisplacements (0 or 1, optional, default=0):
+
+    Returns:
+        OutputX:
+        OutputY:
+        dispImages:
+        imin:
+        Qualities,Mins:
+    """
+    imorig=np.double(cv2.imread(impath))
     minQ=51
     maxQ=100
     stepQ=1

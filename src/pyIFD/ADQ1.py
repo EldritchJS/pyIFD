@@ -1,9 +1,5 @@
 """
 This module provides the ADQ1 algorithm
-
-# TODO
- - Add image file error handling
-
 """
 
 import numpy as np
@@ -12,8 +8,16 @@ from scipy.signal import medfilt2d
 import math
 import matplotlib.image as mpimg
 
-def ExtractYDCT( im ):
-    """Determine YDCT"""
+def ExtractYDCT(im):
+    """
+    Determines YDCT.
+    
+    Args:
+        im:
+
+    Returns:
+        YDCT: 
+    """
     im=np.double(im)
     
     Y=0.299*im[:,:,0]+0.587*im[:,:,1]+0.114*im[:,:,2]
@@ -24,7 +28,19 @@ def ExtractYDCT( im ):
 
 
 def vec2im(v,padsize=[0,0],bsize=None,rows=None,cols=None):
-    """Convert vector to image."""
+    """
+    Converts vector to image.
+
+    Args:
+        v:
+        padsize (optional, default=[0,0]):
+        bsize (optional, default=None):
+        rows (optional, default=None):
+        cols (optional, default=None):
+
+    Returns:
+        im:
+    """
     [m,n]=np.shape(v)
     
     padsize=padsize+np.zeros((1,2),dtype=int)[0]
@@ -53,7 +69,19 @@ def vec2im(v,padsize=[0,0],bsize=None,rows=None,cols=None):
     return im
 
 def im2vec(im, bsize, padsize=0):
-    """Convert image to vector"""
+    """
+    Converts image to vector.
+
+    Args:
+        im:
+        bsize:
+        padsize (optional, default=0):
+
+    Returns:
+        v:
+        rows:
+        cols:
+    """
     bsize=bsize+np.zeros((1,2),dtype=int)[0]
     padsize=padsize+np.zeros((1,2),dtype=int)[0]
     if(padsize.any()<0):
@@ -74,7 +102,15 @@ def im2vec(im, bsize, padsize=0):
     return [v,rows,cols]
 
 def bdctmtx(n):
-    """Process matrix using bdct"""
+    """
+    Processes matrix using bdct.
+
+    Args:
+        n:
+
+    Returns:
+        m:
+    """
     [c,r]=np.meshgrid(range(8),range(8))
     [c0,r0]=np.meshgrid(r,r)
     [c1,r1]=np.meshgrid(c,c)
@@ -91,15 +127,31 @@ def bdctmtx(n):
     return m
 
 def bdct(a,n=8):
-    """Compute bdct"""
+    """
+    Computes bdct.
+
+    Args:
+        a:
+        n (optional, default=8): 
+    Returns:
+        b: 
+    """
     dctm=bdctmtx(n)
     
     [v,r,c]=im2vec(a,n)
     b=vec2im(dctm @ v,0,n,r,c)
     return b
 
-def detectDQ_JPEG( im ):
-    """Determing DQ for JPEG"""
+def detectDQ_JPEG(im):
+    """
+    Determines DQ for JPEG image.
+
+    Args:
+        im: Input image as read in by JPEGIO
+
+    Returns:
+        OutputMap: Heatmap values for detected areas
+    """    
     # How many DCT coeffs to take into account
     MaxCoeffs=15;
     # JPEG zig-zag sequence
@@ -248,8 +300,16 @@ def detectDQ_JPEG( im ):
     return [OutputMap, Feature_Vector, coeffArray]
 
 
-def detectDQ_NonJPEG( im ):
-    """Determine DQ for non-JPEG"""
+def detectDQ_NonJPEG(im):
+    """
+    Determines DQ for non-JPEG.
+
+    Args:
+        im:
+
+    Returns: 
+        OutputMap: Heatmap values for detected areas
+    """
     # How many DCT coeffs to take into account
     MaxCoeffs=15;
     # JPEG zig-zag sequence
@@ -375,19 +435,27 @@ def detectDQ_NonJPEG( im ):
         s0=0
         s1=0
     Feature_Vector=[Topt, s, s0+s1, K_0]
-    return [OutputMap, Feature_Vector, coeffArray]
+    return OutputMap
 
 
-def detectDQ( impath ):
-    """Detect DQ for input image file"""
+def detectDQ(impath):
+    """
+    Main driver for ADQ1 algorithm
+
+    Args:
+        impath: Input image path
+
+    Returns:
+        OutputMap: Heatmap values for detected areas
+    """
     if impath[-4:]==".jpg":
         try:
-            [OutputMap, Feature_Vector, coeffArray] = detectDQ_JPEG( jio.read(impath) )
+            OutputMap = detectDQ_JPEG( jio.read(impath) )
         except:
             return 
     else:
         im=mpimg.imread(impath)
         im=np.round(im*255)
-        [OutputMap, Feature_Vector, coeffArray] = detectDQ_NonJPEG( im )
-    return [OutputMap, Feature_Vector, coeffArray] 
+        OutputMap = detectDQ_NonJPEG( im )
+    return OutputMap
 

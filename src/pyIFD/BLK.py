@@ -1,3 +1,7 @@
+"""
+This module provides the BLK algorithm
+"""
+
 import numpy as np
 from skimage.color import rgb2ycbcr
 from scipy.ndimage import median_filter
@@ -6,7 +10,15 @@ from PIL import Image
 from numpy.lib.stride_tricks import as_strided as ast
 
 def BlockValue(blockData):
-    """Get the per-block feature of blockData"""
+    """
+    Get the per-block feature of blockData.
+
+    Args:
+        blockData:
+
+    Returns:
+        b:
+    """
     Max1=np.max(np.sum(blockData[1:7,1:7],0)) # Inner rows and columns added rowwise
     Min1=np.min(np.sum(blockData[1:7,(0,7)],0)) # First and last columns, inner rows, added rowwise
     Max2=np.max(np.sum(blockData[1:7,1:7],1)) # Inner rows and columns added columnwise
@@ -16,14 +28,32 @@ def BlockValue(blockData):
     return b
 
 def GetBlockView(A, block=(8, 8)):
-    """Splits A into blocks of size blocks."""
+    """
+    Splits A into blocks of size blocks.
+
+    Args:
+        A:
+        block (optional, default=(8, 8)):
+
+    Returns:
+        ast(A, shape=shape, strides=strides):
+    """
     shape= (int(np.ceil(A.shape[0]/ block[0])), int(np.ceil(A.shape[1]/ block[1])))+ block
     strides= (block[0]* A.strides[0], block[1]* A.strides[1])+ A.strides
     return ast(A, shape=shape, strides=strides)
 
 
 def ApplyFunction(M, blk_size=(8,8)):
-    """Applies BlockValue to each block of M of size blk_size"""
+    """
+    Applies BlockValue function to blocks of input
+
+    Args:
+        M:
+        blk_size (optional, default=(8,8)):
+
+    Returns:
+        OutputMap:
+    """
     stride = blk_size
     output = np.zeros(M.shape)
 
@@ -36,7 +66,24 @@ def ApplyFunction(M, blk_size=(8,8)):
     return OutputMap
 
 def GetBlockGrid(impath):
-    """Main driver of BLK."""
+    """
+    Main driver for BLK algorithm.
+
+    Args:
+        impath: Input image path
+
+    Returns:
+        b:
+        eH:
+        HorzMid:
+        eV:
+        VertMid:
+        BlockDiff:
+
+    Todos:
+        * Check if all returns necessary
+        * Check which, if any, corresponds to OutputMap
+    """        
     im = Image.open(impath)
     YCbCr = np.double(rgb2ycbcr(im))
     Y=YCbCr[:,:,0]

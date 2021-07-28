@@ -1,14 +1,24 @@
+"""
+This module provides the NOI1 algorithm
+"""
+
 import numpy as np
 from skimage.color import rgb2ycbcr
 from PIL import Image
 from pywt import dwt2
 
-def GetNoiseMap(imfilename, BlockSize=8):
+def GetNoiseMap(impath, BlockSize=8):
     """
-    Main driver for NOI1. imfilename is input image. 
-    BlockSize: the block size for noise variance estimation. Too small reduces quality, too large reduces localization accuracy
+    Main driver for NOI1 algorithm. 
+
+    Args:
+        impath:
+        BlockSize: the block size for noise variance estimation. Too small reduces quality, too large reduces localization accuracy
+
+    Returns:
+        OutputMap:
     """
-    im = Image.open(imfilename)
+    im = Image.open(impath)
     YCbCr=np.double(rgb2ycbcr(im))
     Y=np.round(YCbCr[:,:,0])
     
@@ -23,8 +33,8 @@ def GetNoiseMap(imfilename, BlockSize=8):
             blockElements=cD[ii:ii+BlockSize,jj:jj+BlockSize]
             Block[int(ii/BlockSize),int(jj/BlockSize),:]=np.reshape(blockElements,(1,1,np.size(blockElements)))
 
-    Map=np.median(np.abs(Block),2)/0.6745 
+    OutputMap=np.median(np.abs(Block),2)/0.6745 
 
-    return Map
+    return OutputMap
 
 
