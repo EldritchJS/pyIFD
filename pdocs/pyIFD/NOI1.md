@@ -10,7 +10,7 @@ Functions
 :   Main driver for NOI1 algorithm. 
     
     Args:
-        impath:
+        impath: Path to the image to be processed.
         BlockSize: the block size for noise variance estimation. Too small reduces quality, too large reduces localization accuracy
     
     Returns:

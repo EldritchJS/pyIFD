@@ -6,7 +6,7 @@ import numpy as np
 import jpegio as jio
 from scipy.signal import medfilt2d
 import matplotlib.image as mpimg
-from util import vec2im, im2vec, bdct, bdctmtx
+from pyIFD.util import vec2im, im2vec, bdct, bdctmtx
 
 def ExtractYDCT(im):
     """

@@ -42,8 +42,8 @@ def conv2(x, y, mode=&#39;same&#39;):
     Computes standard 2d convolution for matrices x and y.
 
     Args:
-        x:
-        y:
+        x: 2d matrix.
+        y: 2d matrix.
         mode (optional, default=&#39;same&#39;):
 
     Returns:
@@ -56,16 +56,18 @@ def conv2(x, y, mode=&#39;same&#39;):
 
 def GetNoiseMaps_hdd( im, filter_type, filter_size, block_rad ):
     &#34;&#34;&#34;
-    Summary please.
+    Outputs variance estimates for im. Equivalent to GetNoiseMaps_ram
 
     Args:
-        im:
-        filter_type:
-        filter_size:
-        block_rad:
+        im: Image to be processed.
+        filter_type: Type of filter. Must be one of (&#39;haar&#39;,&#39;dct&#39;,&#39;rand&#39;)
+        filter_size: the size of the support of the filter
+        block_rad: the size of the local blocks
 
     Returns:
-        estV:
+        estV: estimated local noise variance
+    TODO:
+        * Consider removing the ram function path.
     &#34;&#34;&#34;
     origT=[65.481/255,128.553/255,24.966/255]
     Y=origT[0]*im[:,:,2]+origT[1]*im[:,:,1]+origT[2]*im[:,:,0]+16
@@ -84,16 +86,16 @@ def GetNoiseMaps_hdd( im, filter_type, filter_size, block_rad ):
 
 def GetNoiseMaps_ram( im, filter_type, filter_size, block_rad ):
     &#34;&#34;&#34;
-    Summary please.
+    Outputs variance estimates for im.
 
     Args:
-        im:
-        filter_type:
-        filter_size:
-        block_rad:
+        im: Image to be processed.
+        filter_type: Type of filter. Must be one of (&#39;haar&#39;,&#39;dct&#39;,&#39;rand&#39;)
+        filter_size: the size of the support of the filter
+        block_rad: the size of the local blocks
 
     Returns:
-        estV:
+        estV: estimated local noise variance
     &#34;&#34;&#34;    
     origT=[65.481/255,128.553/255,24.966/255]
     Y=origT[0]*im[:,:,2]+origT[1]*im[:,:,1]+origT[2]*im[:,:,0]+16
@@ -188,10 +190,10 @@ def haar2mtx(n):
     Generates haar filter of size (n,n,n**2).
     
     Args:
-        n:
+        n: Positive integer. 
 
     Returns:
-        mtx:
+        mtx: nxn filter array.
     &#34;&#34;&#34;
     Level=int(np.log2(n))
     if 2**Level&lt;n:
@@ -304,10 +306,8 @@ def GetNoiseMaps(impath, sizeThreshold=55*(2**5), filter_type=&#39;rand&#39;, fi
         block_rad (optional, default=8):
 
     Returns:
-        estV:
+        estV: Equivalent to OutputMap
 
-    Todos:
-        * Check if estV is equivalent to OutputMap
     &#34;&#34;&#34;
     im=cv2.imread(impath)
     size=np.prod(np.shape(im))
@@ -338,11 +338,10 @@ filter_type (optional, default='rand'):
 filter_size (optional, default=4):
 block_rad (optional, default=8):</p>
 <h2 id="returns">Returns</h2>
-<p>estV:</p>
-<h2 id="todos">Todos</h2>
-<ul>
-<li>Check if estV is equivalent to OutputMap</li>
-</ul></div>
+<dl>
+<dt><code>estV</code></dt>
+<dd>Equivalent to OutputMap</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -359,10 +358,8 @@ block_rad (optional, default=8):</p>
         block_rad (optional, default=8):
 
     Returns:
-        estV:
+        estV: Equivalent to OutputMap
 
-    Todos:
-        * Check if estV is equivalent to OutputMap
     &#34;&#34;&#34;
     im=cv2.imread(impath)
     size=np.prod(np.shape(im))
@@ -378,30 +375,45 @@ block_rad (optional, default=8):</p>
 <span>def <span class="ident">GetNoiseMaps_hdd</span></span>(<span>im, filter_type, filter_size, block_rad)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Summary please.</p>
+<div class="desc"><p>Outputs variance estimates for im. Equivalent to GetNoiseMaps_ram</p>
 <h2 id="args">Args</h2>
-<p>im:
-filter_type:
-filter_size:
-block_rad:</p>
+<dl>
+<dt><strong><code>im</code></strong></dt>
+<dd>Image to be processed.</dd>
+<dt><strong><code>filter_type</code></strong></dt>
+<dd>Type of filter. Must be one of ('haar','dct','rand')</dd>
+<dt><strong><code>filter_size</code></strong></dt>
+<dd>the size of the support of the filter</dd>
+<dt><strong><code>block_rad</code></strong></dt>
+<dd>the size of the local blocks</dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p>estV:</p></div>
+<dl>
+<dt><code>estV</code></dt>
+<dd>estimated local noise variance</dd>
+</dl>
+<h2 id="todo">Todo</h2>
+<ul>
+<li>Consider removing the ram function path.</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def GetNoiseMaps_hdd( im, filter_type, filter_size, block_rad ):
     &#34;&#34;&#34;
-    Summary please.
+    Outputs variance estimates for im. Equivalent to GetNoiseMaps_ram
 
     Args:
-        im:
-        filter_type:
-        filter_size:
-        block_rad:
+        im: Image to be processed.
+        filter_type: Type of filter. Must be one of (&#39;haar&#39;,&#39;dct&#39;,&#39;rand&#39;)
+        filter_size: the size of the support of the filter
+        block_rad: the size of the local blocks
 
     Returns:
-        estV:
+        estV: estimated local noise variance
+    TODO:
+        * Consider removing the ram function path.
     &#34;&#34;&#34;
     origT=[65.481/255,128.553/255,24.966/255]
     Y=origT[0]*im[:,:,2]+origT[1]*im[:,:,1]+origT[2]*im[:,:,0]+16
@@ -422,30 +434,39 @@ block_rad:</p>
 <span>def <span class="ident">GetNoiseMaps_ram</span></span>(<span>im, filter_type, filter_size, block_rad)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Summary please.</p>
+<div class="desc"><p>Outputs variance estimates for im.</p>
 <h2 id="args">Args</h2>
-<p>im:
-filter_type:
-filter_size:
-block_rad:</p>
+<dl>
+<dt><strong><code>im</code></strong></dt>
+<dd>Image to be processed.</dd>
+<dt><strong><code>filter_type</code></strong></dt>
+<dd>Type of filter. Must be one of ('haar','dct','rand')</dd>
+<dt><strong><code>filter_size</code></strong></dt>
+<dd>the size of the support of the filter</dd>
+<dt><strong><code>block_rad</code></strong></dt>
+<dd>the size of the local blocks</dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p>estV:</p></div>
+<dl>
+<dt><code>estV</code></dt>
+<dd>estimated local noise variance</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def GetNoiseMaps_ram( im, filter_type, filter_size, block_rad ):
     &#34;&#34;&#34;
-    Summary please.
+    Outputs variance estimates for im.
 
     Args:
-        im:
-        filter_type:
-        filter_size:
-        block_rad:
+        im: Image to be processed.
+        filter_type: Type of filter. Must be one of (&#39;haar&#39;,&#39;dct&#39;,&#39;rand&#39;)
+        filter_size: the size of the support of the filter
+        block_rad: the size of the local blocks
 
     Returns:
-        estV:
+        estV: estimated local noise variance
     &#34;&#34;&#34;    
     origT=[65.481/255,128.553/255,24.966/255]
     Y=origT[0]*im[:,:,2]+origT[1]*im[:,:,1]+origT[2]*im[:,:,0]+16
@@ -536,9 +557,13 @@ block_rad:</p>
 <dd>
 <div class="desc"><p>Computes standard 2d convolution for matrices x and y.</p>
 <h2 id="args">Args</h2>
-<p>x:
-y:
-mode (optional, default='same'):</p>
+<dl>
+<dt><strong><code>x</code></strong></dt>
+<dd>2d matrix.</dd>
+<dt><strong><code>y</code></strong></dt>
+<dd>2d matrix.</dd>
+</dl>
+<p>mode (optional, default='same'):</p>
 <h2 id="returns">Returns</h2>
 <p>computation:</p>
 <h2 id="todos">Todos</h2>
@@ -554,8 +579,8 @@ mode (optional, default='same'):</p>
     Computes standard 2d convolution for matrices x and y.
 
     Args:
-        x:
-        y:
+        x: 2d matrix.
+        y: 2d matrix.
         mode (optional, default=&#39;same&#39;):
 
     Returns:
@@ -624,9 +649,15 @@ mode (optional, default='same'):</p>
 <dd>
 <div class="desc"><p>Generates haar filter of size (n,n,n**2).</p>
 <h2 id="args">Args</h2>
-<p>n:</p>
+<dl>
+<dt><strong><code>n</code></strong></dt>
+<dd>Positive integer. </dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p>mtx:</p></div>
+<dl>
+<dt><code>mtx</code></dt>
+<dd>nxn filter array.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -636,10 +667,10 @@ mode (optional, default='same'):</p>
     Generates haar filter of size (n,n,n**2).
     
     Args:
-        n:
+        n: Positive integer. 
 
     Returns:
-        mtx:
+        mtx: nxn filter array.
     &#34;&#34;&#34;
     Level=int(np.log2(n))
     if 2**Level&lt;n:

@@ -95,7 +95,7 @@ def PCANoiseLevelEstimator( image, Bsize ):
     Summary please.
 
     Args:
-        image:
+        image: Image to process
         Bsize:
 
     Returns:
@@ -238,12 +238,12 @@ def PCANoiseLevelEstimator( image, Bsize ):
         Summary please.
 
         Args:
-            sum1:
-            sum2:
-            subset_size:
+            sum1: Matrix one for PCA
+            sum2: Matrix two for PCA
+            subset_size: Vector for subset size
 
         Returns:
-            eigh: 
+            eigh: Eigenvalues.
         &#34;&#34;&#34;                
         meanval = sum1 / subset_size
         cov_matrix = sum2 / subset_size - meanval * np.transpose(meanval)
@@ -310,13 +310,12 @@ def PCANoise(impath):
     Main driver for NOI5 algorithm.
     
     Args:
-        impath: input image
+        impath: input image path.
     
     Returns:
-        OutputMap: Output image
+        Noise_mix2: OutputMap
+        bwpp: OutputMap (Quantized)
 
-    Todos:
-        * Fix the returns
     &#34;&#34;&#34;
     B = 64
     I = cv2.cvtColor(cv2.imread(impath), cv2.COLOR_BGR2GRAY).astype(&#34;double&#34;)
@@ -474,17 +473,15 @@ def PCANoise(impath):
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>impath</code></strong></dt>
-<dd>input image</dd>
+<dd>input image path.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>OutputMap</code></dt>
-<dd>Output image</dd>
-</dl>
-<h2 id="todos">Todos</h2>
-<ul>
-<li>Fix the returns</li>
-</ul></div>
+<dt><code>Noise_mix2</code></dt>
+<dd>OutputMap</dd>
+<dt><code>bwpp</code></dt>
+<dd>OutputMap (Quantized)</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -494,13 +491,12 @@ def PCANoise(impath):
     Main driver for NOI5 algorithm.
     
     Args:
-        impath: input image
+        impath: input image path.
     
     Returns:
-        OutputMap: Output image
+        Noise_mix2: OutputMap
+        bwpp: OutputMap (Quantized)
 
-    Todos:
-        * Fix the returns
     &#34;&#34;&#34;
     B = 64
     I = cv2.cvtColor(cv2.imread(impath), cv2.COLOR_BGR2GRAY).astype(&#34;double&#34;)
@@ -571,8 +567,11 @@ def PCANoise(impath):
 <dd>
 <div class="desc"><p>Summary please.</p>
 <h2 id="args">Args</h2>
-<p>image:
-Bsize:</p>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>Image to process</dd>
+</dl>
+<p>Bsize:</p>
 <h2 id="returns">Returns</h2>
 <p>label:
 variance:</p></div>
@@ -585,7 +584,7 @@ variance:</p></div>
     Summary please.
 
     Args:
-        image:
+        image: Image to process
         Bsize:
 
     Returns:
@@ -728,12 +727,12 @@ variance:</p></div>
         Summary please.
 
         Args:
-            sum1:
-            sum2:
-            subset_size:
+            sum1: Matrix one for PCA
+            sum2: Matrix two for PCA
+            subset_size: Vector for subset size
 
         Returns:
-            eigh: 
+            eigh: Eigenvalues.
         &#34;&#34;&#34;                
         meanval = sum1 / subset_size
         cov_matrix = sum2 / subset_size - meanval * np.transpose(meanval)

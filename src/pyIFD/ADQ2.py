@@ -9,18 +9,18 @@ import scipy.io as spio
 from skimage.metrics import structural_similarity as comp
 import jpegio as jio
 import math
-from util import bdctmtx, im2vec, vec2im, dequantize, bdct
+from pyIFD.util import bdctmtx, im2vec, vec2im, dequantize, bdct
 
 def ibdct(a,n=8):
     """
-    Generates inverse bdct matrix of size nxn.
+    Performs an inverse discrete cosine transorm on array a with blocks of size nxn.
     
     Args:
-        a:
-        n (optional, default=8):
+        a: Array to be transformed. (2d array)
+        n (optional, default=8): Size of blocks.
 
     Returns:
-        b:
+        b: Output after transform. (2d array)
     """
     dctm=bdctmtx(n)
     
@@ -33,11 +33,11 @@ def jpeg_rec(image):
     Simulate decompressed JPEG image from JPEG object.
 
     Args:
-        image:
+        image: JPEG object. (jpegio struct).
 
     Returns:
-        I:
-        YCbCr:
+        I: Reconstructed BGR image
+        YCbCr: YCbCr image
     """
     
     Y=ibdct(dequantize(image.coef_arrays[0],image.quant_tables[0]))
@@ -84,32 +84,16 @@ def jpeg_rec(image):
         
     return [I,YCbCr]
 
-def bdct(a,n=8):
-    """
-    Applies bdct to block a of size nxn.
-
-    Args:
-        a:
-        n (optional, default=8):
-   
-    Returns:
-        b:
-    """
-    dctm=bdctmtx(n)
-    
-    [v,r,c]=im2vec(a,n)
-    b=vec2im(dctm @ v,0,n,r,c)
-    return b
     
 def floor2(x1):
     """
     Applies floor to vector x1, but if an element is close to an integer, it is lowered by 0.5.
     
     Args:
-        x1:
+        x1: Input vector
 
     Returns:
-        x2:
+        x2: Output floor vector
     """
     tol=1e-12
     x2=np.floor(x1)
@@ -122,10 +106,10 @@ def ceil2(x1):
     Applies ceil to vector x1, but if an element is close to an integer, it is raised by 0.5.
 
     Args:
-        x1:
+        x1: Input vector
 
     Returns:
-        x2:
+        x2: Output ceiling vector
     """
     tol=1e-12
     x2=np.ceil(x1)
@@ -139,15 +123,17 @@ def getJmap(impath, ncomp=1,c1=1,c2=15):
 
     Args:
         impath: Input image path, required to be JPEG with extension .jpg
+        ncomp: index of color component (1 = Y, 2 = Cb, 3 = Cr)
+        c1: first DCT coefficient to consider (1 <= c1 <= 64)
+        c2: last DCT coefficient to consider (1 <= c2 <= 64)
 
     Returns:
-        maskTampered:
-        q1table:
-        alphatable:
+        maskTampered: estimated probability of being tampered for each 8x8 image block. Equivalent of OutputMap
+        q1table: estimated quantization table of primary compression
+        alphatable: mixture parameter for each DCT frequency
 
     Todos:
         * Check returns necessary
-        * Check is maskTampered is equivalent to OutputMap (for naming convention)
     """
     try:
         image=jio.read(impath)

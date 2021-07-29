@@ -10,12 +10,16 @@ Functions
 :   Main driver for GHOST algorithm.
     
     Args:
-        impath:
-        checkDisplacements (0 or 1, optional, default=0):
+        impath: Path to image to be transformed.
+        checkDisplacements (0 or 1, optional, default=0): whether to run comparisons for all 8x8 displacements in order to find the NA-match.
     
     Returns:
         OutputX:
         OutputY:
-        dispImages:
+        dispImages: Equivalent of OutputMap.
         imin:
-        Qualities,Mins:
+        Qualities:
+        Mins:
+        
+    TODO:
+    Find purpose of other outputs, and if they are needed.

@@ -17,10 +17,10 @@ def im2double(im):
     Converts image to type double.
 
     Args:
-        im:
+        im: Input image
 
     Returns: 
-        image as double:
+        image as double: Converts type of im to double. Scales so elements lie from 0 to 1.
     """
     info = np.iinfo(im.dtype) 
     return im.astype(np.double) / info.max 
@@ -234,13 +234,13 @@ def SmapIng(ImgTiles, MaskTiles, WhiteMaskPoints):
 
 def mat2gray(A):
     """
-    Fill me in please.
+    Converts matrix to have values from 0-1.
 
     Args:
-        A:
+        A: Input matrix.
 
     Returns:
-        A/A.max():
+        Gray matrix with values from 0-1.
 
     Todos:
         * Fill this in with proper summary
@@ -827,11 +827,11 @@ def CAGI(impath):
     Main driver for CAGI algorithm.    
 
     Args:
-        impath:
+        impath: 
 
     Returns:
-        Result_CAGI:
-        Result_Inv_CAGI:
+        Result_CAGI: Equivalent to OutputMap
+        Result_Inv_CAGI: Other output of CAGI.
     """        
     # Read image in as double RGB
     BGR=cv2.imread(impath)

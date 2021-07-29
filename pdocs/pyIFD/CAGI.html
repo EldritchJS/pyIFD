@@ -46,10 +46,10 @@ def im2double(im):
     Converts image to type double.
 
     Args:
-        im:
+        im: Input image
 
     Returns: 
-        image as double:
+        image as double: Converts type of im to double. Scales so elements lie from 0 to 1.
     &#34;&#34;&#34;
     info = np.iinfo(im.dtype) 
     return im.astype(np.double) / info.max 
@@ -263,13 +263,13 @@ def SmapIng(ImgTiles, MaskTiles, WhiteMaskPoints):
 
 def mat2gray(A):
     &#34;&#34;&#34;
-    Fill me in please.
+    Converts matrix to have values from 0-1.
 
     Args:
-        A:
+        A: Input matrix.
 
     Returns:
-        A/A.max():
+        Gray matrix with values from 0-1.
 
     Todos:
         * Fill this in with proper summary
@@ -856,11 +856,11 @@ def CAGI(impath):
     Main driver for CAGI algorithm.    
 
     Args:
-        impath:
+        impath: 
 
     Returns:
-        Result_CAGI:
-        Result_Inv_CAGI:
+        Result_CAGI: Equivalent to OutputMap
+        Result_Inv_CAGI: Other output of CAGI.
     &#34;&#34;&#34;        
     # Read image in as double RGB
     BGR=cv2.imread(impath)
@@ -1004,10 +1004,17 @@ def getMasks():
 <div class="desc"><p>Main driver for CAGI algorithm.
 </p>
 <h2 id="args">Args</h2>
-<p>impath:</p>
+<dl>
+<dt><strong><code>impath</code></strong></dt>
+<dd>&nbsp;</dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p>Result_CAGI:
-Result_Inv_CAGI:</p></div>
+<dl>
+<dt><code>Result_CAGI</code></dt>
+<dd>Equivalent to OutputMap</dd>
+<dt><code>Result_Inv_CAGI</code></dt>
+<dd>Other output of CAGI.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1017,11 +1024,11 @@ Result_Inv_CAGI:</p></div>
     Main driver for CAGI algorithm.    
 
     Args:
-        impath:
+        impath: 
 
     Returns:
-        Result_CAGI:
-        Result_Inv_CAGI:
+        Result_CAGI: Equivalent to OutputMap
+        Result_Inv_CAGI: Other output of CAGI.
     &#34;&#34;&#34;        
     # Read image in as double RGB
     BGR=cv2.imread(impath)
@@ -1910,9 +1917,12 @@ bins:</p>
 <dd>
 <div class="desc"><p>Converts image to type double.</p>
 <h2 id="args">Args</h2>
-<p>im:
-Returns:
-image as double:</p></div>
+<dl>
+<dt><strong><code>im</code></strong></dt>
+<dd>Input image</dd>
+</dl>
+<p>Returns:
+image as double: Converts type of im to double. Scales so elements lie from 0 to 1.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1922,10 +1932,10 @@ image as double:</p></div>
     Converts image to type double.
 
     Args:
-        im:
+        im: Input image
 
     Returns: 
-        image as double:
+        image as double: Converts type of im to double. Scales so elements lie from 0 to 1.
     &#34;&#34;&#34;
     info = np.iinfo(im.dtype) 
     return im.astype(np.double) / info.max </code></pre>
@@ -2034,11 +2044,14 @@ blk_idy:</p>
 <span>def <span class="ident">mat2gray</span></span>(<span>A)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Fill me in please.</p>
+<div class="desc"><p>Converts matrix to have values from 0-1.</p>
 <h2 id="args">Args</h2>
-<p>A:</p>
+<dl>
+<dt><strong><code>A</code></strong></dt>
+<dd>Input matrix.</dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p>A/A.max():</p>
+<p>Gray matrix with values from 0-1.</p>
 <h2 id="todos">Todos</h2>
 <ul>
 <li>Fill this in with proper summary</li>
@@ -2049,13 +2062,13 @@ blk_idy:</p>
 </summary>
 <pre><code class="python">def mat2gray(A):
     &#34;&#34;&#34;
-    Fill me in please.
+    Converts matrix to have values from 0-1.
 
     Args:
-        A:
+        A: Input matrix.
 
     Returns:
-        A/A.max():
+        Gray matrix with values from 0-1.
 
     Todos:
         * Fill this in with proper summary

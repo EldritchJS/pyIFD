@@ -40,13 +40,13 @@ def ELA(impath, Quality=90, Multiplier=15, Flatten=True):
     Main driver for ELA algorithm.
     
     Args:
-        impath:
-        Quality (optional, default=90):
-        Multiplier (optional, default=15):
-        Flatten (optional, default=True):
+        impath: Path to image to be transformed.
+        Quality (optional, default=90): the quality in which to recompress the image. (0-100 integer).
+        Multiplier (optional, default=15): value with which to multiply the residual to make it more visible. (Float).
+        Flatten (optional, default=True): Boolean. Describes whether to flatten OutputMap.
 
     Returns:
-        OutputMap:
+        OutputMap: Output of ELA algorithm. 
     &#34;&#34;&#34;
     ImIn=np.double(cv2.imread(impath))
     cv2.imwrite(&#39;tmpResave.jpg&#39;, ImIn, [cv2.IMWRITE_JPEG_QUALITY, Quality])
@@ -75,12 +75,21 @@ def ELA(impath, Quality=90, Multiplier=15, Flatten=True):
 <dd>
 <div class="desc"><p>Main driver for ELA algorithm.</p>
 <h2 id="args">Args</h2>
-<p>impath:
-Quality (optional, default=90):
-Multiplier (optional, default=15):
-Flatten (optional, default=True):</p>
+<dl>
+<dt><strong><code>impath</code></strong></dt>
+<dd>Path to image to be transformed.</dd>
+<dt><strong><code>Quality</code></strong> :&ensp;<code>optional</code>, default=<code>90</code></dt>
+<dd>the quality in which to recompress the image. (0-100 integer).</dd>
+<dt><strong><code>Multiplier</code></strong> :&ensp;<code>optional</code>, default=<code>15</code></dt>
+<dd>value with which to multiply the residual to make it more visible. (Float).</dd>
+<dt><strong><code>Flatten</code></strong> :&ensp;<code>optional</code>, default=<code>True</code></dt>
+<dd>Boolean. Describes whether to flatten OutputMap.</dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p>OutputMap:</p></div>
+<dl>
+<dt><code>OutputMap</code></dt>
+<dd>Output of ELA algorithm.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -90,13 +99,13 @@ Flatten (optional, default=True):</p>
     Main driver for ELA algorithm.
     
     Args:
-        impath:
-        Quality (optional, default=90):
-        Multiplier (optional, default=15):
-        Flatten (optional, default=True):
+        impath: Path to image to be transformed.
+        Quality (optional, default=90): the quality in which to recompress the image. (0-100 integer).
+        Multiplier (optional, default=15): value with which to multiply the residual to make it more visible. (Float).
+        Flatten (optional, default=True): Boolean. Describes whether to flatten OutputMap.
 
     Returns:
-        OutputMap:
+        OutputMap: Output of ELA algorithm. 
     &#34;&#34;&#34;
     ImIn=np.double(cv2.imread(impath))
     cv2.imwrite(&#39;tmpResave.jpg&#39;, ImIn, [cv2.IMWRITE_JPEG_QUALITY, Quality])

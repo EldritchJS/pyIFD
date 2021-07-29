@@ -16,26 +16,6 @@ Functions
         YDCT:
 
     
-`bdct(a, n=8)`
-:   Computes bdct.
-    
-    Args:
-        a:
-        n (optional, default=8): 
-    Returns:
-        b:
-
-    
-`bdctmtx(n)`
-:   Processes matrix using bdct.
-    
-    Args:
-        n:
-    
-    Returns:
-        m:
-
-    
 `detectDQ(impath)`
 :   Main driver for ADQ1 algorithm
     
@@ -64,31 +44,3 @@ Functions
     
     Returns: 
         OutputMap: Heatmap values for detected areas
-
-    
-`im2vec(im, bsize, padsize=0)`
-:   Converts image to vector.
-    
-    Args:
-        im:
-        bsize:
-        padsize (optional, default=0):
-    
-    Returns:
-        v:
-        rows:
-        cols:
-
-    
-`vec2im(v, padsize=[0, 0], bsize=None, rows=None, cols=None)`
-:   Converts vector to image.
-    
-    Args:
-        v:
-        padsize (optional, default=[0,0]):
-        bsize (optional, default=None):
-        rows (optional, default=None):
-        cols (optional, default=None):
-    
-    Returns:
-        im:

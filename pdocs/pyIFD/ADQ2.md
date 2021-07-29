@@ -6,56 +6,24 @@ Functions
 ---------
 
     
-`bdct(a, n=8)`
-:   Applies bdct to block a of size nxn.
-    
-    Args:
-        a:
-        n (optional, default=8):
-    
-    Returns:
-        b:
-
-    
-`bdctmtx(n)`
-:   Generates bdct matrix of size nxn.
-    
-    Args:
-        n:
-    
-    Returns:
-        m:
-
-    
 `ceil2(x1)`
 :   Applies ceil to vector x1, but if an element is close to an integer, it is raised by 0.5.
     
     Args:
-        x1:
+        x1: Input vector
     
     Returns:
-        x2:
-
-    
-`dequantize(qcoef, qtable)`
-:   Dequantizes a coef table given a quant table.
-    
-    Args:
-        qcoef:
-        qtable:
-    
-    Returns:
-        coef:
+        x2: Output ceiling vector
 
     
 `floor2(x1)`
 :   Applies floor to vector x1, but if an element is close to an integer, it is lowered by 0.5.
     
     Args:
-        x1:
+        x1: Input vector
     
     Returns:
-        x2:
+        x2: Output floor vector
 
     
 `getJmap(impath, ncomp=1, c1=1, c2=15)`
@@ -63,62 +31,36 @@ Functions
     
     Args:
         impath: Input image path, required to be JPEG with extension .jpg
+        ncomp: index of color component (1 = Y, 2 = Cb, 3 = Cr)
+        c1: first DCT coefficient to consider (1 <= c1 <= 64)
+        c2: last DCT coefficient to consider (1 <= c2 <= 64)
     
     Returns:
-        maskTampered:
-        q1table:
-        alphatable:
+        maskTampered: estimated probability of being tampered for each 8x8 image block. Equivalent of OutputMap
+        q1table: estimated quantization table of primary compression
+        alphatable: mixture parameter for each DCT frequency
     
     Todos:
         * Check returns necessary
-        * Check is maskTampered is equivalent to OutputMap (for naming convention)
 
     
 `ibdct(a, n=8)`
-:   Generates inverse bdct matrix of size nxn.
+:   Performs an inverse discrete cosine transorm on array a with blocks of size nxn.
     
     Args:
-        a:
-        n (optional, default=8):
+        a: Array to be transformed. (2d array)
+        n (optional, default=8): Size of blocks.
     
     Returns:
-        b:
-
-    
-`im2vec(im, bsize, padsize=0)`
-:   Converts image to vector.
-    
-    Args:
-        im:
-        bsize:
-        padsize (optional, default=0):
-    
-    Returns:
-        v:
-        rows:
-        cols:
+        b: Output after transform. (2d array)
 
     
 `jpeg_rec(image)`
 :   Simulate decompressed JPEG image from JPEG object.
     
     Args:
-        image:
+        image: JPEG object. (jpegio struct).
     
     Returns:
-        I:
-        YCbCr:
-
-    
-`vec2im(v, padsize=[0, 0], bsize=None, rows=None, cols=None)`
-:   Converts vector to image.
-    
-    Args:
-        v:
-        padsize (optional, default)=[0,0]):
-        bsize (optional, default=None):
-        rows (optional, defeault=None):
-        cols (optional, default=None):
-    
-    Returns:
-        im
+        I: Reconstructed BGR image
+        YCbCr: YCbCr image

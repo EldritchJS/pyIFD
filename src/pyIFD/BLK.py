@@ -14,10 +14,10 @@ def BlockValue(blockData):
     Get the per-block feature of blockData.
 
     Args:
-        blockData:
+        blockData: Input 2d array to extract features from.
 
     Returns:
-        b:
+        b: A float containing features of blockData
     """
     Max1=np.max(np.sum(blockData[1:7,1:7],0)) # Inner rows and columns added rowwise
     Min1=np.min(np.sum(blockData[1:7,(0,7)],0)) # First and last columns, inner rows, added rowwise
@@ -32,11 +32,11 @@ def GetBlockView(A, block=(8, 8)):
     Splits A into blocks of size blocks.
 
     Args:
-        A:
+        A: 2d array A to be split up.
         block (optional, default=(8, 8)):
 
     Returns:
-        ast(A, shape=shape, strides=strides):
+        ast(A, shape=shape, strides=strides): 4d array. First two dimensions give the coordinates of the block. Second two dimensions give the block data.
     """
     shape= (int(np.ceil(A.shape[0]/ block[0])), int(np.ceil(A.shape[1]/ block[1])))+ block
     strides= (block[0]* A.strides[0], block[1]* A.strides[1])+ A.strides
@@ -73,16 +73,15 @@ def GetBlockGrid(impath):
         impath: Input image path
 
     Returns:
-        b:
-        eH:
-        HorzMid:
-        eV:
-        VertMid:
-        BlockDiff:
+        b: Main output of BLK. (2d array). This output corresponds to OutputMap
+        eH: 
+        HorzMid: 
+        eV: 
+        VertMid: 
+        BlockDiff: 
 
     Todos:
         * Check if all returns necessary
-        * Check which, if any, corresponds to OutputMap
     """        
     im = Image.open(impath)
     YCbCr = np.double(rgb2ycbcr(im))

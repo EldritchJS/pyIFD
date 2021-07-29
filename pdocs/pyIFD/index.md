@@ -14,3 +14,4 @@ Sub-modules
 * pyIFD.NOI2
 * pyIFD.NOI4
 * pyIFD.NOI5
+* pyIFD.util

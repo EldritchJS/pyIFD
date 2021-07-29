@@ -13,8 +13,8 @@ def conv2(x, y, mode='same'):
     Computes standard 2d convolution for matrices x and y.
 
     Args:
-        x:
-        y:
+        x: 2d matrix.
+        y: 2d matrix.
         mode (optional, default='same'):
 
     Returns:
@@ -27,16 +27,18 @@ def conv2(x, y, mode='same'):
 
 def GetNoiseMaps_hdd( im, filter_type, filter_size, block_rad ):
     """
-    Summary please.
+    Outputs variance estimates for im. Equivalent to GetNoiseMaps_ram
 
     Args:
-        im:
-        filter_type:
-        filter_size:
-        block_rad:
+        im: Image to be processed.
+        filter_type: Type of filter. Must be one of ('haar','dct','rand')
+        filter_size: the size of the support of the filter
+        block_rad: the size of the local blocks
 
     Returns:
-        estV:
+        estV: estimated local noise variance
+    TODO:
+        * Consider removing the ram function path.
     """
     origT=[65.481/255,128.553/255,24.966/255]
     Y=origT[0]*im[:,:,2]+origT[1]*im[:,:,1]+origT[2]*im[:,:,0]+16
@@ -55,16 +57,16 @@ def GetNoiseMaps_hdd( im, filter_type, filter_size, block_rad ):
 
 def GetNoiseMaps_ram( im, filter_type, filter_size, block_rad ):
     """
-    Summary please.
+    Outputs variance estimates for im.
 
     Args:
-        im:
-        filter_type:
-        filter_size:
-        block_rad:
+        im: Image to be processed.
+        filter_type: Type of filter. Must be one of ('haar','dct','rand')
+        filter_size: the size of the support of the filter
+        block_rad: the size of the local blocks
 
     Returns:
-        estV:
+        estV: estimated local noise variance
     """    
     origT=[65.481/255,128.553/255,24.966/255]
     Y=origT[0]*im[:,:,2]+origT[1]*im[:,:,1]+origT[2]*im[:,:,0]+16
@@ -159,10 +161,10 @@ def haar2mtx(n):
     Generates haar filter of size (n,n,n**2).
     
     Args:
-        n:
+        n: Positive integer. 
 
     Returns:
-        mtx:
+        mtx: nxn filter array.
     """
     Level=int(np.log2(n))
     if 2**Level<n:
@@ -275,10 +277,8 @@ def GetNoiseMaps(impath, sizeThreshold=55*(2**5), filter_type='rand', filter_siz
         block_rad (optional, default=8):
 
     Returns:
-        estV:
+        estV: Equivalent to OutputMap
 
-    Todos:
-        * Check if estV is equivalent to OutputMap
     """
     im=cv2.imread(impath)
     size=np.prod(np.shape(im))

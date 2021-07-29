@@ -13,17 +13,17 @@ Functions
         impath: Input image path, required to be JPEG with extension .jpg
     
     Returns:
-        OutputMap:
+        OutputMap: Output of ADQ3 algorithm (2D array).
 
     
 `EstimateJPEGQuality(imIn)`
-:   Estimates the quality of JPEG.
+:   Estimates the quality of JPEG object.
     
     Args:
-        imIn:   Image
+        imIn: jpegio struct
     
     Returns:        
-        Quality: (0-100)
+        Quality: 0-100 integer
 
     
 `ExtractFeatures(im, c1, c2, ncomp, digitBinsToKeep)`
@@ -36,54 +36,15 @@ Functions
          digitBinsToKeep: digits for which to keep their frequency
     
     Returns:
-        np.ndarray.flatten(HistToKeep):
-
-    
-`dequantize(qcoef, qtable)`
-:   Dequantizes a coef table given a quant table.
-    
-    Args:
-        qcoef:
-        qtable:
-    
-    Returns:
-        coef:
-
-    
-`im2vec(im, bsize, padsize=0)`
-:   Converts image to a vector.
-    
-    Args:
-        im:
-        bsize:
-        padsize (optional, default=0):
-    
-    Returns:
-        v:
-        rows:
-        cols:
+         output: Flattened feature vector
 
     
 `svmdecision(Xnew, index)`
 :   Uses given index of svm to classify Xnew.
     
     Args:
-        Xnew:
-        index:
+        Xnew: Array to be classifed
+        index: Index of SVM to use to classify
     
     Returns:
-        f:
-
-    
-`vec2im(v, padsize=[0, 0], bsize=None, rows=None, cols=None)`
-:   Converts vector to an image.
-    
-    Args:
-        v:
-        padsize (optional, default=[0,0]):
-        bsize (optional, default=None):
-        rows (optional, default=None):
-        cols (optional, default=None):
-    
-    Returns:
-        im:
+        f: 2d array of svm decision output.

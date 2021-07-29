@@ -44,15 +44,19 @@ def GHOST(impath, checkDisplacements=0):
     Main driver for GHOST algorithm.
     
     Args:
-        impath:
-        checkDisplacements (0 or 1, optional, default=0):
+        impath: Path to image to be transformed.
+        checkDisplacements (0 or 1, optional, default=0): whether to run comparisons for all 8x8 displacements in order to find the NA-match.
 
     Returns:
         OutputX:
         OutputY:
-        dispImages:
+        dispImages: Equivalent of OutputMap.
         imin:
-        Qualities,Mins:
+        Qualities:
+        Mins:
+        
+    TODO:
+    Find purpose of other outputs, and if they are needed.
     &#34;&#34;&#34;
     imorig=np.double(cv2.imread(impath))
     minQ=51
@@ -114,7 +118,7 @@ def GHOST(impath, checkDisplacements=0):
         imin=np.insert(imin,0,1)
     Qualities=imin*stepQ+minQ-1
     os.remove(&#34;tmpResave.jpg&#34;)
-    return [OutputX,OutputY,dispImages, imin, Qualities,Mins]</code></pre>
+    return [OutputX,OutputY,dispImages, imin, Qualities, Mins]</code></pre>
 </details>
 </section>
 <section>
@@ -130,14 +134,24 @@ def GHOST(impath, checkDisplacements=0):
 <dd>
 <div class="desc"><p>Main driver for GHOST algorithm.</p>
 <h2 id="args">Args</h2>
-<p>impath:
-checkDisplacements (0 or 1, optional, default=0):</p>
+<dl>
+<dt><strong><code>impath</code></strong></dt>
+<dd>Path to image to be transformed.</dd>
+<dt><strong><code>checkDisplacements</code></strong> :&ensp;<code>0</code> or <code>1</code>, optional, default=<code>0</code></dt>
+<dd>whether to run comparisons for all 8x8 displacements in order to find the NA-match.</dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p>OutputX:
-OutputY:
-dispImages:
-imin:
-Qualities,Mins:</p></div>
+<dl>
+<dt>OutputX:</dt>
+<dt>OutputY:</dt>
+<dt><code>dispImages</code></dt>
+<dd>Equivalent of OutputMap.</dd>
+</dl>
+<p>imin:
+Qualities:
+Mins:
+TODO:
+Find purpose of other outputs, and if they are needed.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -147,15 +161,19 @@ Qualities,Mins:</p></div>
     Main driver for GHOST algorithm.
     
     Args:
-        impath:
-        checkDisplacements (0 or 1, optional, default=0):
+        impath: Path to image to be transformed.
+        checkDisplacements (0 or 1, optional, default=0): whether to run comparisons for all 8x8 displacements in order to find the NA-match.
 
     Returns:
         OutputX:
         OutputY:
-        dispImages:
+        dispImages: Equivalent of OutputMap.
         imin:
-        Qualities,Mins:
+        Qualities:
+        Mins:
+        
+    TODO:
+    Find purpose of other outputs, and if they are needed.
     &#34;&#34;&#34;
     imorig=np.double(cv2.imread(impath))
     minQ=51
@@ -217,7 +235,7 @@ Qualities,Mins:</p></div>
         imin=np.insert(imin,0,1)
     Qualities=imin*stepQ+minQ-1
     os.remove(&#34;tmpResave.jpg&#34;)
-    return [OutputX,OutputY,dispImages, imin, Qualities,Mins]</code></pre>
+    return [OutputX,OutputY,dispImages, imin, Qualities, Mins]</code></pre>
 </details>
 </dd>
 </dl>

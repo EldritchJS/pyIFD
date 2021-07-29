@@ -7,7 +7,7 @@ import numpy as np
 import jpegio as jio
 import numpy as np
 import os
-from util import vec2im, im2vec, dequantize
+from pyIFD.util import vec2im, im2vec, dequantize
 
 SupportVector = np.load(os.path.join(os.path.dirname(__file__),'SupportVector.npy'),allow_pickle=True)
 AlphaHat = np.load(os.path.join(os.path.dirname(__file__),'AlphaHat.npy'),allow_pickle=True)
@@ -21,7 +21,7 @@ def BenfordDQ(impath):
         impath: Input image path, required to be JPEG with extension .jpg
 
     Returns:
-        OutputMap:
+        OutputMap: Output of ADQ3 algorithm (2D array).
     """    
     try:
         im=jio.read(impath)
@@ -63,13 +63,13 @@ def BenfordDQ(impath):
 
 def EstimateJPEGQuality(imIn):
     """
-    Estimates the quality of JPEG.
+    Estimates the quality of JPEG object.
 
     Args:
-        imIn:   Image
+        imIn: jpegio struct
 
     Returns:        
-        Quality: (0-100)
+        Quality: 0-100 integer
     """
     if(len(imIn.quant_tables)==1):
         imIn.quant_tables[1]=imIn.quant_tables[0]
@@ -90,7 +90,7 @@ def ExtractFeatures(im,c1,c2,ncomp,digitBinsToKeep):
          digitBinsToKeep: digits for which to keep their frequency
 
     Returns:
-        np.ndarray.flatten(HistToKeep):
+         output: Flattened feature vector
     """
     coeffArray=im.coef_arrays[ncomp-1]
     qtable=im.quant_tables[im.comp_info[ncomp].quant_tbl_no-1]
@@ -126,11 +126,11 @@ def svmdecision(Xnew,index):
     Uses given index of svm to classify Xnew.
     
     Args:
-        Xnew:
-        index:
+        Xnew: Array to be classifed
+        index: Index of SVM to use to classify
 
     Returns:
-        f:
+        f: 2d array of svm decision output.
     """
     f=np.dot(np.tanh(SupportVector[index] @ np.transpose(Xnew)-1),AlphaHat[index])+bias[index]
     return f

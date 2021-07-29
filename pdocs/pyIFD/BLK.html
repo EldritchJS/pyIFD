@@ -43,10 +43,10 @@ def BlockValue(blockData):
     Get the per-block feature of blockData.
 
     Args:
-        blockData:
+        blockData: Input 2d array to extract features from.
 
     Returns:
-        b:
+        b: A float containing features of blockData
     &#34;&#34;&#34;
     Max1=np.max(np.sum(blockData[1:7,1:7],0)) # Inner rows and columns added rowwise
     Min1=np.min(np.sum(blockData[1:7,(0,7)],0)) # First and last columns, inner rows, added rowwise
@@ -61,11 +61,11 @@ def GetBlockView(A, block=(8, 8)):
     Splits A into blocks of size blocks.
 
     Args:
-        A:
+        A: 2d array A to be split up.
         block (optional, default=(8, 8)):
 
     Returns:
-        ast(A, shape=shape, strides=strides):
+        ast(A, shape=shape, strides=strides): 4d array. First two dimensions give the coordinates of the block. Second two dimensions give the block data.
     &#34;&#34;&#34;
     shape= (int(np.ceil(A.shape[0]/ block[0])), int(np.ceil(A.shape[1]/ block[1])))+ block
     strides= (block[0]* A.strides[0], block[1]* A.strides[1])+ A.strides
@@ -102,16 +102,15 @@ def GetBlockGrid(impath):
         impath: Input image path
 
     Returns:
-        b:
-        eH:
-        HorzMid:
-        eV:
-        VertMid:
-        BlockDiff:
+        b: Main output of BLK. (2d array). This output corresponds to OutputMap
+        eH: 
+        HorzMid: 
+        eV: 
+        VertMid: 
+        BlockDiff: 
 
     Todos:
         * Check if all returns necessary
-        * Check which, if any, corresponds to OutputMap
     &#34;&#34;&#34;        
     im = Image.open(impath)
     YCbCr = np.double(rgb2ycbcr(im))
@@ -234,9 +233,15 @@ blk_size (optional, default=(8,8)):</p>
 <dd>
 <div class="desc"><p>Get the per-block feature of blockData.</p>
 <h2 id="args">Args</h2>
-<p>blockData:</p>
+<dl>
+<dt><strong><code>blockData</code></strong></dt>
+<dd>Input 2d array to extract features from.</dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p>b:</p></div>
+<dl>
+<dt><code>b</code></dt>
+<dd>A float containing features of blockData</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -246,10 +251,10 @@ blk_size (optional, default=(8,8)):</p>
     Get the per-block feature of blockData.
 
     Args:
-        blockData:
+        blockData: Input 2d array to extract features from.
 
     Returns:
-        b:
+        b: A float containing features of blockData
     &#34;&#34;&#34;
     Max1=np.max(np.sum(blockData[1:7,1:7],0)) # Inner rows and columns added rowwise
     Min1=np.min(np.sum(blockData[1:7,(0,7)],0)) # First and last columns, inner rows, added rowwise
@@ -271,16 +276,23 @@ blk_size (optional, default=(8,8)):</p>
 <dd>Input image path</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>b:
-eH:
-HorzMid:
-eV:
-VertMid:
-BlockDiff:</p>
+<dl>
+<dt><code>b</code></dt>
+<dd>Main output of BLK. (2d array). This output corresponds to OutputMap</dd>
+<dt><code>eH</code></dt>
+<dd>&nbsp;</dd>
+<dt><code>HorzMid</code></dt>
+<dd>&nbsp;</dd>
+<dt><code>eV</code></dt>
+<dd>&nbsp;</dd>
+<dt><code>VertMid</code></dt>
+<dd>&nbsp;</dd>
+<dt><code>BlockDiff</code></dt>
+<dd>&nbsp;</dd>
+</dl>
 <h2 id="todos">Todos</h2>
 <ul>
 <li>Check if all returns necessary</li>
-<li>Check which, if any, corresponds to OutputMap</li>
 </ul></div>
 <details class="source">
 <summary>
@@ -294,16 +306,15 @@ BlockDiff:</p>
         impath: Input image path
 
     Returns:
-        b:
-        eH:
-        HorzMid:
-        eV:
-        VertMid:
-        BlockDiff:
+        b: Main output of BLK. (2d array). This output corresponds to OutputMap
+        eH: 
+        HorzMid: 
+        eV: 
+        VertMid: 
+        BlockDiff: 
 
     Todos:
         * Check if all returns necessary
-        * Check which, if any, corresponds to OutputMap
     &#34;&#34;&#34;        
     im = Image.open(impath)
     YCbCr = np.double(rgb2ycbcr(im))
@@ -382,10 +393,13 @@ BlockDiff:</p>
 <dd>
 <div class="desc"><p>Splits A into blocks of size blocks.</p>
 <h2 id="args">Args</h2>
-<p>A:
-block (optional, default=(8, 8)):</p>
+<dl>
+<dt><strong><code>A</code></strong></dt>
+<dd>2d array A to be split up.</dd>
+</dl>
+<p>block (optional, default=(8, 8)):</p>
 <h2 id="returns">Returns</h2>
-<p>ast(A, shape=shape, strides=strides):</p></div>
+<p>ast(A, shape=shape, strides=strides): 4d array. First two dimensions give the coordinates of the block. Second two dimensions give the block data.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -395,11 +409,11 @@ block (optional, default=(8, 8)):</p>
     Splits A into blocks of size blocks.
 
     Args:
-        A:
+        A: 2d array A to be split up.
         block (optional, default=(8, 8)):
 
     Returns:
-        ast(A, shape=shape, strides=strides):
+        ast(A, shape=shape, strides=strides): 4d array. First two dimensions give the coordinates of the block. Second two dimensions give the block data.
     &#34;&#34;&#34;
     shape= (int(np.ceil(A.shape[0]/ block[0])), int(np.ceil(A.shape[1]/ block[1])))+ block
     strides= (block[0]* A.strides[0], block[1]* A.strides[1])+ A.strides

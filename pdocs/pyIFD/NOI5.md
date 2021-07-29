@@ -22,20 +22,18 @@ Functions
 :   Main driver for NOI5 algorithm.
     
     Args:
-        impath: input image
+        impath: input image path.
     
     Returns:
-        OutputMap: Output image
-    
-    Todos:
-        * Fix the returns
+        Noise_mix2: OutputMap
+        bwpp: OutputMap (Quantized)
 
     
 `PCANoiseLevelEstimator(image, Bsize)`
 :   Summary please.
     
     Args:
-        image:
+        image: Image to process
         Bsize:
     
     Returns:

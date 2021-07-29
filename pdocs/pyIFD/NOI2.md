@@ -17,36 +17,35 @@ Functions
         block_rad (optional, default=8):
     
     Returns:
-        estV:
-    
-    Todos:
-        * Check if estV is equivalent to OutputMap
+        estV: Equivalent to OutputMap
 
     
 `GetNoiseMaps_hdd(im, filter_type, filter_size, block_rad)`
-:   Summary please.
+:   Outputs variance estimates for im. Equivalent to GetNoiseMaps_ram
     
     Args:
-        im:
-        filter_type:
-        filter_size:
-        block_rad:
+        im: Image to be processed.
+        filter_type: Type of filter. Must be one of ('haar','dct','rand')
+        filter_size: the size of the support of the filter
+        block_rad: the size of the local blocks
     
     Returns:
-        estV:
+        estV: estimated local noise variance
+    TODO:
+        * Consider removing the ram function path.
 
     
 `GetNoiseMaps_ram(im, filter_type, filter_size, block_rad)`
-:   Summary please.
+:   Outputs variance estimates for im.
     
     Args:
-        im:
-        filter_type:
-        filter_size:
-        block_rad:
+        im: Image to be processed.
+        filter_type: Type of filter. Must be one of ('haar','dct','rand')
+        filter_size: the size of the support of the filter
+        block_rad: the size of the local blocks
     
     Returns:
-        estV:
+        estV: estimated local noise variance
 
     
 `block_avg(X, d, pad='zero')`
@@ -65,8 +64,8 @@ Functions
 :   Computes standard 2d convolution for matrices x and y.
     
     Args:
-        x:
-        y:
+        x: 2d matrix.
+        y: 2d matrix.
         mode (optional, default='same'):
     
     Returns:
@@ -91,10 +90,10 @@ Functions
 :   Generates haar filter of size (n,n,n**2).
     
     Args:
-        n:
+        n: Positive integer. 
     
     Returns:
-        mtx:
+        mtx: nxn filter array.
 
     
 `localNoiVarEstimate_hdd(noi, ft, fz, br)`

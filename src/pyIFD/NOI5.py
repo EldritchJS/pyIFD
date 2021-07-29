@@ -66,7 +66,7 @@ def PCANoiseLevelEstimator( image, Bsize ):
     Summary please.
 
     Args:
-        image:
+        image: Image to process
         Bsize:
 
     Returns:
@@ -209,12 +209,12 @@ def PCANoiseLevelEstimator( image, Bsize ):
         Summary please.
 
         Args:
-            sum1:
-            sum2:
-            subset_size:
+            sum1: Matrix one for PCA
+            sum2: Matrix two for PCA
+            subset_size: Vector for subset size
 
         Returns:
-            eigh: 
+            eigh: Eigenvalues.
         """                
         meanval = sum1 / subset_size
         cov_matrix = sum2 / subset_size - meanval * np.transpose(meanval)
@@ -281,13 +281,12 @@ def PCANoise(impath):
     Main driver for NOI5 algorithm.
     
     Args:
-        impath: input image
+        impath: input image path.
     
     Returns:
-        OutputMap: Output image
+        Noise_mix2: OutputMap
+        bwpp: OutputMap (Quantized)
 
-    Todos:
-        * Fix the returns
     """
     B = 64
     I = cv2.cvtColor(cv2.imread(impath), cv2.COLOR_BGR2GRAY).astype("double")

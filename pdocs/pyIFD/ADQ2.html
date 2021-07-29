@@ -32,122 +32,24 @@ This module provides the ADQ2 Algorithm
 &#34;&#34;&#34;
 
 import numpy as np
-import math
 from scipy.signal import medfilt2d
 import matplotlib.pyplot as plt
 import scipy.io as spio
 from skimage.metrics import structural_similarity as comp
 import jpegio as jio
-
-def bdctmtx(n):
-    &#34;&#34;&#34;
-    Generates bdct matrix of size nxn.
-
-    Args:
-        n:
-
-    Returns:
-        m:
-    &#34;&#34;&#34;
-    [c,r]=np.meshgrid(range(8),range(8))
-    [c0,r0]=np.meshgrid(r,r)
-    [c1,r1]=np.meshgrid(c,c)
-    x=np.zeros(np.shape(c))
-    for i in range(n):
-        for j in range(n):
-            x[i,j]=math.sqrt(2/n)*math.cos(math.pi*(2*c[i,j]+1)*r[i,j]/(2*n))
-    x[0,:]=x[0,:]/math.sqrt(2)
-    x=x.flatten(&#39;F&#39;)
-    m=np.zeros(np.shape(r0))
-    for i in range(n**2):
-        for j in range(n**2):
-            m[i,j]=x[r0[i,j]+c0[i,j]*n]*x[r1[i,j]+c1[i,j]*n]
-    return m
-
-def im2vec(im, bsize, padsize=0):
-    &#34;&#34;&#34;
-    Converts image to vector.
-
-    Args:
-        im:
-        bsize:
-        padsize (optional, default=0):
-
-    Returns:
-        v:
-        rows:
-        cols:
-    &#34;&#34;&#34;
-    bsize=bsize+np.zeros((1,2),dtype=int)[0]
-    padsize=padsize+np.zeros((1,2),dtype=int)[0]
-    if(padsize.any()&lt;0):
-        raise Exception(&#34;Pad size must not be negative&#34;)
-    imsize=np.shape(im)
-    y=bsize[0]+padsize[0]
-    x=bsize[1]+padsize[1]
-    rows=math.floor((imsize[0]+padsize[0])/y)
-    cols=math.floor((imsize[1]+padsize[1])/x)
-    t=np.zeros((y*rows,x*cols))
-    imy=y*rows-padsize[0]
-    imx=x*cols-padsize[1]
-    t[:imy,:imx]=im[:imy,:imx]
-    t=np.reshape(t,(y,rows,x,cols),order=&#39;F&#39;)
-    t=np.reshape(np.transpose(t,[0,2,1,3]),(y,x,rows*cols),order=&#39;F&#39;)
-    v=t[:bsize[0],:bsize[1],:rows*cols]
-    v=np.reshape(v,(y*x,rows*cols),order=&#39;F&#39;)
-    return [v,rows,cols]
-
-def vec2im(v,padsize=[0,0],bsize=None,rows=None,cols=None):
-    &#34;&#34;&#34;
-    Converts vector to image.
-
-    Args:
-        v:
-        padsize (optional, default)=[0,0]):
-        bsize (optional, default=None):
-        rows (optional, defeault=None):
-        cols (optional, default=None):
-
-    Returns:
-        im
-    &#34;&#34;&#34;
-    [m,n]=np.shape(v)
-    
-    padsize=padsize+np.zeros((1,2),dtype=int)[0]
-    if(padsize.any()&lt;0):
-        raise Exception(&#34;Pad size must not be negative&#34;)
-    if(bsize==None):
-        bsize=math.floor(math.sqrt(m))
-    bsize=bsize+np.zeros((1,2),dtype=int)[0]
-    
-    if(np.prod(bsize)!=m):
-        raise Exception(&#34;Block size does not match size of input vectors.&#34;)
-    
-    if(rows==None):
-        rows=math.floor(math.sqrt(n))
-    if(cols==None):
-        cols=math.ceil(n/rows)
-    
-    #make image
-    y=bsize[0]+padsize[0]
-    x=bsize[1]+padsize[1]
-    t=np.zeros((y,x,rows*cols))
-    t[:bsize[0],:bsize[1],:n]=np.reshape(v,(bsize[0],bsize[1],n),order=&#39;F&#39;)
-    t=np.reshape(t,(y,x,rows,cols),order=&#39;F&#39;)
-    t=np.reshape(np.transpose(t,[0,2,1,3]),(y*rows,x*cols),order=&#39;F&#39;)
-    im=t[:y*rows-padsize[0],:x*cols-padsize[1]]
-    return im
+import math
+from pyIFD.util import bdctmtx, im2vec, vec2im, dequantize, bdct
 
 def ibdct(a,n=8):
     &#34;&#34;&#34;
-    Generates inverse bdct matrix of size nxn.
+    Performs an inverse discrete cosine transorm on array a with blocks of size nxn.
     
     Args:
-        a:
-        n (optional, default=8):
+        a: Array to be transformed. (2d array)
+        n (optional, default=8): Size of blocks.
 
     Returns:
-        b:
+        b: Output after transform. (2d array)
     &#34;&#34;&#34;
     dctm=bdctmtx(n)
     
@@ -155,37 +57,16 @@ def ibdct(a,n=8):
     b=vec2im(dctm.T @v,0,n,r,c)
     return b
 
-def dequantize(qcoef,qtable):
-    &#34;&#34;&#34;
-    Dequantizes a coef table given a quant table.
-
-    Args:
-        qcoef:
-        qtable:
-
-    Returns:
-        coef:
-    &#34;&#34;&#34;
-    
-    blksz=np.shape(qtable)
-    [v,r,c]=im2vec(qcoef,blksz)
-    
-    flat=np.array(qtable).flatten(&#39;F&#39;)
-    vec=v*np.tile(flat,(np.shape(v)[1],1)).T
-    
-    coef=vec2im(vec,0,blksz,r,c)
-    return coef
-
 def jpeg_rec(image):
     &#34;&#34;&#34;
     Simulate decompressed JPEG image from JPEG object.
 
     Args:
-        image:
+        image: JPEG object. (jpegio struct).
 
     Returns:
-        I:
-        YCbCr:
+        I: Reconstructed BGR image
+        YCbCr: YCbCr image
     &#34;&#34;&#34;
     
     Y=ibdct(dequantize(image.coef_arrays[0],image.quant_tables[0]))
@@ -232,32 +113,16 @@ def jpeg_rec(image):
         
     return [I,YCbCr]
 
-def bdct(a,n=8):
-    &#34;&#34;&#34;
-    Applies bdct to block a of size nxn.
-
-    Args:
-        a:
-        n (optional, default=8):
-   
-    Returns:
-        b:
-    &#34;&#34;&#34;
-    dctm=bdctmtx(n)
-    
-    [v,r,c]=im2vec(a,n)
-    b=vec2im(dctm @ v,0,n,r,c)
-    return b
     
 def floor2(x1):
     &#34;&#34;&#34;
     Applies floor to vector x1, but if an element is close to an integer, it is lowered by 0.5.
     
     Args:
-        x1:
+        x1: Input vector
 
     Returns:
-        x2:
+        x2: Output floor vector
     &#34;&#34;&#34;
     tol=1e-12
     x2=np.floor(x1)
@@ -270,10 +135,10 @@ def ceil2(x1):
     Applies ceil to vector x1, but if an element is close to an integer, it is raised by 0.5.
 
     Args:
-        x1:
+        x1: Input vector
 
     Returns:
-        x2:
+        x2: Output ceiling vector
     &#34;&#34;&#34;
     tol=1e-12
     x2=np.ceil(x1)
@@ -287,15 +152,17 @@ def getJmap(impath, ncomp=1,c1=1,c2=15):
 
     Args:
         impath: Input image path, required to be JPEG with extension .jpg
+        ncomp: index of color component (1 = Y, 2 = Cb, 3 = Cr)
+        c1: first DCT coefficient to consider (1 &lt;= c1 &lt;= 64)
+        c2: last DCT coefficient to consider (1 &lt;= c2 &lt;= 64)
 
     Returns:
-        maskTampered:
-        q1table:
-        alphatable:
+        maskTampered: estimated probability of being tampered for each 8x8 image block. Equivalent of OutputMap
+        q1table: estimated quantization table of primary compression
+        alphatable: mixture parameter for each DCT frequency
 
     Todos:
         * Check returns necessary
-        * Check is maskTampered is equivalent to OutputMap (for naming convention)
     &#34;&#34;&#34;
     try:
         image=jio.read(impath)
@@ -462,86 +329,21 @@ def getJmap(impath, ncomp=1,c1=1,c2=15):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="pyIFD.ADQ2.bdct"><code class="name flex">
-<span>def <span class="ident">bdct</span></span>(<span>a, n=8)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Applies bdct to block a of size nxn.</p>
-<h2 id="args">Args</h2>
-<p>a:
-n (optional, default=8):</p>
-<h2 id="returns">Returns</h2>
-<p>b:</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def bdct(a,n=8):
-    &#34;&#34;&#34;
-    Applies bdct to block a of size nxn.
-
-    Args:
-        a:
-        n (optional, default=8):
-   
-    Returns:
-        b:
-    &#34;&#34;&#34;
-    dctm=bdctmtx(n)
-    
-    [v,r,c]=im2vec(a,n)
-    b=vec2im(dctm @ v,0,n,r,c)
-    return b</code></pre>
-</details>
-</dd>
-<dt id="pyIFD.ADQ2.bdctmtx"><code class="name flex">
-<span>def <span class="ident">bdctmtx</span></span>(<span>n)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Generates bdct matrix of size nxn.</p>
-<h2 id="args">Args</h2>
-<p>n:</p>
-<h2 id="returns">Returns</h2>
-<p>m:</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def bdctmtx(n):
-    &#34;&#34;&#34;
-    Generates bdct matrix of size nxn.
-
-    Args:
-        n:
-
-    Returns:
-        m:
-    &#34;&#34;&#34;
-    [c,r]=np.meshgrid(range(8),range(8))
-    [c0,r0]=np.meshgrid(r,r)
-    [c1,r1]=np.meshgrid(c,c)
-    x=np.zeros(np.shape(c))
-    for i in range(n):
-        for j in range(n):
-            x[i,j]=math.sqrt(2/n)*math.cos(math.pi*(2*c[i,j]+1)*r[i,j]/(2*n))
-    x[0,:]=x[0,:]/math.sqrt(2)
-    x=x.flatten(&#39;F&#39;)
-    m=np.zeros(np.shape(r0))
-    for i in range(n**2):
-        for j in range(n**2):
-            m[i,j]=x[r0[i,j]+c0[i,j]*n]*x[r1[i,j]+c1[i,j]*n]
-    return m</code></pre>
-</details>
-</dd>
 <dt id="pyIFD.ADQ2.ceil2"><code class="name flex">
 <span>def <span class="ident">ceil2</span></span>(<span>x1)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Applies ceil to vector x1, but if an element is close to an integer, it is raised by 0.5.</p>
 <h2 id="args">Args</h2>
-<p>x1:</p>
+<dl>
+<dt><strong><code>x1</code></strong></dt>
+<dd>Input vector</dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p>x2:</p></div>
+<dl>
+<dt><code>x2</code></dt>
+<dd>Output ceiling vector</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -551,10 +353,10 @@ n (optional, default=8):</p>
     Applies ceil to vector x1, but if an element is close to an integer, it is raised by 0.5.
 
     Args:
-        x1:
+        x1: Input vector
 
     Returns:
-        x2:
+        x2: Output ceiling vector
     &#34;&#34;&#34;
     tol=1e-12
     x2=np.ceil(x1)
@@ -563,51 +365,21 @@ n (optional, default=8):</p>
     return x2</code></pre>
 </details>
 </dd>
-<dt id="pyIFD.ADQ2.dequantize"><code class="name flex">
-<span>def <span class="ident">dequantize</span></span>(<span>qcoef, qtable)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Dequantizes a coef table given a quant table.</p>
-<h2 id="args">Args</h2>
-<p>qcoef:
-qtable:</p>
-<h2 id="returns">Returns</h2>
-<p>coef:</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def dequantize(qcoef,qtable):
-    &#34;&#34;&#34;
-    Dequantizes a coef table given a quant table.
-
-    Args:
-        qcoef:
-        qtable:
-
-    Returns:
-        coef:
-    &#34;&#34;&#34;
-    
-    blksz=np.shape(qtable)
-    [v,r,c]=im2vec(qcoef,blksz)
-    
-    flat=np.array(qtable).flatten(&#39;F&#39;)
-    vec=v*np.tile(flat,(np.shape(v)[1],1)).T
-    
-    coef=vec2im(vec,0,blksz,r,c)
-    return coef</code></pre>
-</details>
-</dd>
 <dt id="pyIFD.ADQ2.floor2"><code class="name flex">
 <span>def <span class="ident">floor2</span></span>(<span>x1)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Applies floor to vector x1, but if an element is close to an integer, it is lowered by 0.5.</p>
 <h2 id="args">Args</h2>
-<p>x1:</p>
+<dl>
+<dt><strong><code>x1</code></strong></dt>
+<dd>Input vector</dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p>x2:</p></div>
+<dl>
+<dt><code>x2</code></dt>
+<dd>Output floor vector</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -617,10 +389,10 @@ qtable:</p>
     Applies floor to vector x1, but if an element is close to an integer, it is lowered by 0.5.
     
     Args:
-        x1:
+        x1: Input vector
 
     Returns:
-        x2:
+        x2: Output floor vector
     &#34;&#34;&#34;
     tol=1e-12
     x2=np.floor(x1)
@@ -638,15 +410,25 @@ qtable:</p>
 <dl>
 <dt><strong><code>impath</code></strong></dt>
 <dd>Input image path, required to be JPEG with extension .jpg</dd>
+<dt><strong><code>ncomp</code></strong></dt>
+<dd>index of color component (1 = Y, 2 = Cb, 3 = Cr)</dd>
+<dt><strong><code>c1</code></strong></dt>
+<dd>first DCT coefficient to consider (1 &lt;= c1 &lt;= 64)</dd>
+<dt><strong><code>c2</code></strong></dt>
+<dd>last DCT coefficient to consider (1 &lt;= c2 &lt;= 64)</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>maskTampered:
-q1table:
-alphatable:</p>
+<dl>
+<dt><code>maskTampered</code></dt>
+<dd>estimated probability of being tampered for each 8x8 image block. Equivalent of OutputMap</dd>
+<dt><code>q1table</code></dt>
+<dd>estimated quantization table of primary compression</dd>
+<dt><code>alphatable</code></dt>
+<dd>mixture parameter for each DCT frequency</dd>
+</dl>
 <h2 id="todos">Todos</h2>
 <ul>
 <li>Check returns necessary</li>
-<li>Check is maskTampered is equivalent to OutputMap (for naming convention)</li>
 </ul></div>
 <details class="source">
 <summary>
@@ -658,15 +440,17 @@ alphatable:</p>
 
     Args:
         impath: Input image path, required to be JPEG with extension .jpg
+        ncomp: index of color component (1 = Y, 2 = Cb, 3 = Cr)
+        c1: first DCT coefficient to consider (1 &lt;= c1 &lt;= 64)
+        c2: last DCT coefficient to consider (1 &lt;= c2 &lt;= 64)
 
     Returns:
-        maskTampered:
-        q1table:
-        alphatable:
+        maskTampered: estimated probability of being tampered for each 8x8 image block. Equivalent of OutputMap
+        q1table: estimated quantization table of primary compression
+        alphatable: mixture parameter for each DCT frequency
 
     Todos:
         * Check returns necessary
-        * Check is maskTampered is equivalent to OutputMap (for naming convention)
     &#34;&#34;&#34;
     try:
         image=jio.read(impath)
@@ -830,26 +614,33 @@ alphatable:</p>
 <span>def <span class="ident">ibdct</span></span>(<span>a, n=8)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Generates inverse bdct matrix of size nxn.</p>
+<div class="desc"><p>Performs an inverse discrete cosine transorm on array a with blocks of size nxn.</p>
 <h2 id="args">Args</h2>
-<p>a:
-n (optional, default=8):</p>
+<dl>
+<dt><strong><code>a</code></strong></dt>
+<dd>Array to be transformed. (2d array)</dd>
+<dt><strong><code>n</code></strong> :&ensp;<code>optional</code>, default=<code>8</code></dt>
+<dd>Size of blocks.</dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p>b:</p></div>
+<dl>
+<dt><code>b</code></dt>
+<dd>Output after transform. (2d array)</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def ibdct(a,n=8):
     &#34;&#34;&#34;
-    Generates inverse bdct matrix of size nxn.
+    Performs an inverse discrete cosine transorm on array a with blocks of size nxn.
     
     Args:
-        a:
-        n (optional, default=8):
+        a: Array to be transformed. (2d array)
+        n (optional, default=8): Size of blocks.
 
     Returns:
-        b:
+        b: Output after transform. (2d array)
     &#34;&#34;&#34;
     dctm=bdctmtx(n)
     
@@ -858,67 +649,23 @@ n (optional, default=8):</p>
     return b</code></pre>
 </details>
 </dd>
-<dt id="pyIFD.ADQ2.im2vec"><code class="name flex">
-<span>def <span class="ident">im2vec</span></span>(<span>im, bsize, padsize=0)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Converts image to vector.</p>
-<h2 id="args">Args</h2>
-<p>im:
-bsize:
-padsize (optional, default=0):</p>
-<h2 id="returns">Returns</h2>
-<p>v:
-rows:
-cols:</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def im2vec(im, bsize, padsize=0):
-    &#34;&#34;&#34;
-    Converts image to vector.
-
-    Args:
-        im:
-        bsize:
-        padsize (optional, default=0):
-
-    Returns:
-        v:
-        rows:
-        cols:
-    &#34;&#34;&#34;
-    bsize=bsize+np.zeros((1,2),dtype=int)[0]
-    padsize=padsize+np.zeros((1,2),dtype=int)[0]
-    if(padsize.any()&lt;0):
-        raise Exception(&#34;Pad size must not be negative&#34;)
-    imsize=np.shape(im)
-    y=bsize[0]+padsize[0]
-    x=bsize[1]+padsize[1]
-    rows=math.floor((imsize[0]+padsize[0])/y)
-    cols=math.floor((imsize[1]+padsize[1])/x)
-    t=np.zeros((y*rows,x*cols))
-    imy=y*rows-padsize[0]
-    imx=x*cols-padsize[1]
-    t[:imy,:imx]=im[:imy,:imx]
-    t=np.reshape(t,(y,rows,x,cols),order=&#39;F&#39;)
-    t=np.reshape(np.transpose(t,[0,2,1,3]),(y,x,rows*cols),order=&#39;F&#39;)
-    v=t[:bsize[0],:bsize[1],:rows*cols]
-    v=np.reshape(v,(y*x,rows*cols),order=&#39;F&#39;)
-    return [v,rows,cols]</code></pre>
-</details>
-</dd>
 <dt id="pyIFD.ADQ2.jpeg_rec"><code class="name flex">
 <span>def <span class="ident">jpeg_rec</span></span>(<span>image)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Simulate decompressed JPEG image from JPEG object.</p>
 <h2 id="args">Args</h2>
-<p>image:</p>
+<dl>
+<dt><strong><code>image</code></strong></dt>
+<dd>JPEG object. (jpegio struct).</dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p>I:
-YCbCr:</p></div>
+<dl>
+<dt><code>I</code></dt>
+<dd>Reconstructed BGR image</dd>
+<dt><code>YCbCr</code></dt>
+<dd>YCbCr image</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -928,11 +675,11 @@ YCbCr:</p></div>
     Simulate decompressed JPEG image from JPEG object.
 
     Args:
-        image:
+        image: JPEG object. (jpegio struct).
 
     Returns:
-        I:
-        YCbCr:
+        I: Reconstructed BGR image
+        YCbCr: YCbCr image
     &#34;&#34;&#34;
     
     Y=ibdct(dequantize(image.coef_arrays[0],image.quant_tables[0]))
@@ -980,65 +727,6 @@ YCbCr:</p></div>
     return [I,YCbCr]</code></pre>
 </details>
 </dd>
-<dt id="pyIFD.ADQ2.vec2im"><code class="name flex">
-<span>def <span class="ident">vec2im</span></span>(<span>v, padsize=[0, 0], bsize=None, rows=None, cols=None)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Converts vector to image.</p>
-<h2 id="args">Args</h2>
-<p>v:
-padsize (optional, default)=[0,0]):
-bsize (optional, default=None):
-rows (optional, defeault=None):
-cols (optional, default=None):</p>
-<h2 id="returns">Returns</h2>
-<p>im</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def vec2im(v,padsize=[0,0],bsize=None,rows=None,cols=None):
-    &#34;&#34;&#34;
-    Converts vector to image.
-
-    Args:
-        v:
-        padsize (optional, default)=[0,0]):
-        bsize (optional, default=None):
-        rows (optional, defeault=None):
-        cols (optional, default=None):
-
-    Returns:
-        im
-    &#34;&#34;&#34;
-    [m,n]=np.shape(v)
-    
-    padsize=padsize+np.zeros((1,2),dtype=int)[0]
-    if(padsize.any()&lt;0):
-        raise Exception(&#34;Pad size must not be negative&#34;)
-    if(bsize==None):
-        bsize=math.floor(math.sqrt(m))
-    bsize=bsize+np.zeros((1,2),dtype=int)[0]
-    
-    if(np.prod(bsize)!=m):
-        raise Exception(&#34;Block size does not match size of input vectors.&#34;)
-    
-    if(rows==None):
-        rows=math.floor(math.sqrt(n))
-    if(cols==None):
-        cols=math.ceil(n/rows)
-    
-    #make image
-    y=bsize[0]+padsize[0]
-    x=bsize[1]+padsize[1]
-    t=np.zeros((y,x,rows*cols))
-    t[:bsize[0],:bsize[1],:n]=np.reshape(v,(bsize[0],bsize[1],n),order=&#39;F&#39;)
-    t=np.reshape(t,(y,x,rows,cols),order=&#39;F&#39;)
-    t=np.reshape(np.transpose(t,[0,2,1,3]),(y*rows,x*cols),order=&#39;F&#39;)
-    im=t[:y*rows-padsize[0],:x*cols-padsize[1]]
-    return im</code></pre>
-</details>
-</dd>
 </dl>
 </section>
 <section>
@@ -1056,17 +744,12 @@ cols (optional, default=None):</p>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="two-column">
-<li><code><a title="pyIFD.ADQ2.bdct" href="#pyIFD.ADQ2.bdct">bdct</a></code></li>
-<li><code><a title="pyIFD.ADQ2.bdctmtx" href="#pyIFD.ADQ2.bdctmtx">bdctmtx</a></code></li>
+<ul class="">
 <li><code><a title="pyIFD.ADQ2.ceil2" href="#pyIFD.ADQ2.ceil2">ceil2</a></code></li>
-<li><code><a title="pyIFD.ADQ2.dequantize" href="#pyIFD.ADQ2.dequantize">dequantize</a></code></li>
 <li><code><a title="pyIFD.ADQ2.floor2" href="#pyIFD.ADQ2.floor2">floor2</a></code></li>
 <li><code><a title="pyIFD.ADQ2.getJmap" href="#pyIFD.ADQ2.getJmap">getJmap</a></code></li>
 <li><code><a title="pyIFD.ADQ2.ibdct" href="#pyIFD.ADQ2.ibdct">ibdct</a></code></li>
-<li><code><a title="pyIFD.ADQ2.im2vec" href="#pyIFD.ADQ2.im2vec">im2vec</a></code></li>
 <li><code><a title="pyIFD.ADQ2.jpeg_rec" href="#pyIFD.ADQ2.jpeg_rec">jpeg_rec</a></code></li>
-<li><code><a title="pyIFD.ADQ2.vec2im" href="#pyIFD.ADQ2.vec2im">vec2im</a></code></li>
 </ul>
 </li>
 </ul>
