@@ -6,7 +6,7 @@ import numpy as np
 from scipy.signal import medfilt2d
 import jpegio as jio
 import math
-import opencv as cv2
+import cv2
 from pyIFD.util import bdctmtx, im2vec, vec2im, dequantize, bdct
 
 
