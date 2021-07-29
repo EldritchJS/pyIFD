@@ -33,4 +33,4 @@ def MedFiltForensics(impath, NSize=3, Multiplier=10, Flatten=True):
     if Flatten is True:
         OutputMap = np.mean(OutputMap, 2)
 
-    return OutputMap
+    return OutputMap.astype("uint16")
