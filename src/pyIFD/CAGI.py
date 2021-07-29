@@ -454,12 +454,12 @@ def filtering(smap):
         * Fill this in with proper summary
     """
     blocks = np.shape(smap)[0]
-    step = np.int(np.sqrt(blocks))
+    step = int(np.sqrt(blocks))
     smallAreas = np.zeros((blocksize, blocksize))
-    increment = np.int(step/blocksize)
+    increment = int(step/blocksize)
     for a in range(blocksize):
-        Start = np.int((a+1)*(blocks/blocksize)-(blocks/blocksize)+1)
-        End = np.int((a+1)*(blocks/blocksize))
+        Start = int((a+1)*(blocks/blocksize)-(blocks/blocksize)+1)
+        End = int((a+1)*(blocks/blocksize))
         for x in range(Start, End, step):
             for y in range(increment):
                 z = x+y-1

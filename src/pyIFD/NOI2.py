@@ -3,7 +3,6 @@ This module provides the NOI2 algorithm
 """
 
 import numpy as np
-import numpy.matlib
 import cv2
 from PIL import Image
 from scipy.signal import convolve2d
@@ -256,8 +255,8 @@ def rnd2mtx(n):
         mtx: 3D matrices of dimension (NxNxN^2)
     """
     X = np.random.randn(n, n)
-    X -= np.matlib.repmat(np.mean(X, 0), n, 1)
-    X /= np.matlib.repmat(np.sqrt(np.sum(X**2, 0)), n, 1)
+    X -= np.tile(np.mean(X, 0), (n, 1))
+    X /= np.tile(np.sqrt(np.sum(X**2, 0)), (n, 1))
 
     mtx = np.zeros((n, n, n*n))
     k = 0
