@@ -57,8 +57,8 @@ def BenfordDQ(impath):
             Features /= 64
             Dist = svmdecision(Features, QualityInd-1)
             OutputMap[int(np.ceil((StartX-1)/Step)), int(np.ceil((StartY-1)/Step))] = Dist
-    OutputMap = np.concatenate((np.matlib.repmat(OutputMap[0, :], int(np.ceil(BlockSize / 2 / Step)), 1), OutputMap), axis=0)
-    OutputMap = np.concatenate((np.matlib.repmat(OutputMap[:, 0], int(np.ceil(BlockSize / 2 / Step)), 1).T, OutputMap), axis=1)
+    OutputMap = np.concatenate((np.tile(OutputMap[0, :], (int(np.ceil(BlockSize / 2 / Step)), 1)), OutputMap), axis=0)
+    OutputMap = np.concatenate((np.tile(OutputMap[:, 0], (int(np.ceil(BlockSize / 2 / Step)), 1)).T, OutputMap), axis=1)
     return OutputMap
 
 
