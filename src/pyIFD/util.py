@@ -5,7 +5,8 @@ This file provides utility functions for the ADQ modules.
 import numpy as np
 import math
 
-def vec2im(v,padsize=[0,0],bsize=None,rows=None,cols=None):
+
+def vec2im(v, padsize=[0, 0], bsize=None, rows=None, cols=None):
     """
     Converts vector to image.
 
@@ -19,32 +20,33 @@ def vec2im(v,padsize=[0,0],bsize=None,rows=None,cols=None):
     Returns:
         im: Output image (2d numpy array)
     """
-    [m,n]=np.shape(v)
-    
-    padsize=padsize+np.zeros((1,2),dtype=int)[0]
-    if(padsize.any()<0):
+    [m, n] = np.shape(v)
+
+    padsize = padsize+np.zeros((1, 2), dtype=int)[0]
+    if(padsize.any() < 0):
         raise Exception("Pad size must not be negative")
-    if(bsize==None):
-        bsize=math.floor(math.sqrt(m))
-    bsize=bsize+np.zeros((1,2),dtype=int)[0]
-    
-    if(np.prod(bsize)!=m):
+    if bsize is None:
+        bsize = math.floor(math.sqrt(m))
+    bsize = bsize+np.zeros((1, 2), dtype=int)[0]
+
+    if(np.prod(bsize) != m):
         raise Exception("Block size does not match size of input vectors.")
-    
-    if(rows==None):
-        rows=math.floor(math.sqrt(n))
-    if(cols==None):
-        cols=math.ceil(n/rows)
-    
-    #make image
-    y=bsize[0]+padsize[0]
-    x=bsize[1]+padsize[1]
-    t=np.zeros((y,x,rows*cols))
-    t[:bsize[0],:bsize[1],:n]=np.reshape(v,(bsize[0],bsize[1],n),order='F')
-    t=np.reshape(t,(y,x,rows,cols),order='F')
-    t=np.reshape(np.transpose(t,[0,2,1,3]),(y*rows,x*cols),order='F')
-    im=t[:y*rows-padsize[0],:x*cols-padsize[1]]
+
+    if rows is None:
+        rows = math.floor(math.sqrt(n))
+    if cols is None:
+        cols = math.ceil(n/rows)
+
+    # make image
+    y = bsize[0]+padsize[0]
+    x = bsize[1]+padsize[1]
+    t = np.zeros((y, x, rows*cols))
+    t[:bsize[0], :bsize[1], :n] = np.reshape(v, (bsize[0], bsize[1], n), order='F')
+    t = np.reshape(t, (y, x, rows, cols), order='F')
+    t = np.reshape(np.transpose(t, [0, 2, 1, 3]), (y*rows, x*cols), order='F')
+    im = t[:y*rows-padsize[0], :x*cols-padsize[1]]
     return im
+
 
 def im2vec(im, bsize, padsize=0):
     """
@@ -53,31 +55,32 @@ def im2vec(im, bsize, padsize=0):
     Args:
         im: Input image to be converted to a vector.
         bsize: Size of block of im to be converted to vec. Must be 1x2 non-negative int array.
-        padsize (optional, default=0): Must be non-negative integers in a 1x2 array. Amount of zeros padded on each 
+        padsize (optional, default=0): Must be non-negative integers in a 1x2 array. Amount of zeros padded on each
 
     Returns:
         v: Output vector.
         rows: Number of rows of im after bsize and padsize are applied (before final flattening to vector).
         cols: Number of cols of im after bsize and padsize are applied (before final flattening to vector).
     """
-    bsize=bsize+np.zeros((1,2),dtype=int)[0]
-    padsize=padsize+np.zeros((1,2),dtype=int)[0]
-    if(padsize.any()<0):
+    bsize = bsize+np.zeros((1, 2), dtype=int)[0]
+    padsize = padsize+np.zeros((1, 2), dtype=int)[0]
+    if(padsize.any() < 0):
         raise Exception("Pad size must not be negative")
-    imsize=np.shape(im)
-    y=bsize[0]+padsize[0]
-    x=bsize[1]+padsize[1]
-    rows=math.floor((imsize[0]+padsize[0])/y)
-    cols=math.floor((imsize[1]+padsize[1])/x)
-    t=np.zeros((y*rows,x*cols))
-    imy=y*rows-padsize[0]
-    imx=x*cols-padsize[1]
-    t[:imy,:imx]=im[:imy,:imx]
-    t=np.reshape(t,(y,rows,x,cols),order='F')
-    t=np.reshape(np.transpose(t,[0,2,1,3]),(y,x,rows*cols),order='F')
-    v=t[:bsize[0],:bsize[1],:rows*cols]
-    v=np.reshape(v,(y*x,rows*cols),order='F')
-    return [v,rows,cols]
+    imsize = np.shape(im)
+    y = bsize[0]+padsize[0]
+    x = bsize[1]+padsize[1]
+    rows = math.floor((imsize[0]+padsize[0])/y)
+    cols = math.floor((imsize[1]+padsize[1])/x)
+    t = np.zeros((y*rows, x*cols))
+    imy = y*rows-padsize[0]
+    imx = x*cols-padsize[1]
+    t[:imy, :imx] = im[:imy, :imx]
+    t = np.reshape(t, (y, rows, x, cols), order='F')
+    t = np.reshape(np.transpose(t, [0, 2, 1, 3]), (y, x, rows*cols), order='F')
+    v = t[:bsize[0], :bsize[1], :rows*cols]
+    v = np.reshape(v, (y*x, rows*cols), order='F')
+    return [v, rows, cols]
+
 
 def bdctmtx(n):
     """
@@ -89,22 +92,23 @@ def bdctmtx(n):
     Returns:
         m: nxn array to performs dct with.
     """
-    [c,r]=np.meshgrid(range(8),range(8))
-    [c0,r0]=np.meshgrid(r,r)
-    [c1,r1]=np.meshgrid(c,c)
-    x=np.zeros(np.shape(c))
+    [c, r] = np.meshgrid(range(8), range(8))
+    [c0, r0] = np.meshgrid(r, r)
+    [c1, r1] = np.meshgrid(c, c)
+    x = np.zeros(np.shape(c))
     for i in range(n):
         for j in range(n):
-            x[i,j]=math.sqrt(2/n)*math.cos(math.pi*(2*c[i,j]+1)*r[i,j]/(2*n))
-    x[0,:]=x[0,:]/math.sqrt(2)
-    x=x.flatten('F')
-    m=np.zeros(np.shape(r0))
+            x[i, j] = math.sqrt(2/n)*math.cos(math.pi*(2*c[i, j]+1)*r[i, j]/(2*n))
+    x[0, :] = x[0, :]/math.sqrt(2)
+    x = x.flatten('F')
+    m = np.zeros(np.shape(r0))
     for i in range(n**2):
         for j in range(n**2):
-            m[i,j]=x[r0[i,j]+c0[i,j]*n]*x[r1[i,j]+c1[i,j]*n]
+            m[i, j] = x[r0[i, j]+c0[i, j]*n]*x[r1[i, j]+c1[i, j]*n]
     return m
 
-def bdct(a,n=8):
+
+def bdct(a, n=8):
     """
     Performs dct on array via blocks of size nxn.
 
@@ -114,13 +118,14 @@ def bdct(a,n=8):
     Returns:
         b: Array after dct.
     """
-    dctm=bdctmtx(n)
-    
-    [v,r,c]=im2vec(a,n)
-    b=vec2im(dctm @ v,0,n,r,c)
+    dctm = bdctmtx(n)
+
+    [v, r, c] = im2vec(a, n)
+    b = vec2im(dctm @ v, 0, n, r, c)
     return b
 
-def dequantize(qcoef,qtable):
+
+def dequantize(qcoef, qtable):
     """
     Dequantizes a coef array given a quant table.
     Args:
@@ -129,12 +134,11 @@ def dequantize(qcoef,qtable):
     Returns:
         coef: Dequantized coef array. Same size as qcoef and qtable.
     """
-    
-    blksz=np.shape(qtable)
-    [v,r,c]=im2vec(qcoef,blksz)
-    
-    flat=np.array(qtable).flatten('F')
-    vec=v*np.tile(flat,(np.shape(v)[1],1)).T
-    
-    coef=vec2im(vec,0,blksz,r,c)
+    blksz = np.shape(qtable)
+    [v, r, c] = im2vec(qcoef, blksz)
+
+    flat = np.array(qtable).flatten('F')
+    vec = v*np.tile(flat, (np.shape(v)[1], 1)).T
+
+    coef = vec2im(vec, 0, blksz, r, c)
     return coef
