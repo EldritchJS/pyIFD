@@ -8,6 +8,7 @@ from skimage.transform import resize
 import numpy as np
 import cv2
 import os
+from pyIFD.util import extrema
 
 
 def GHOST(impath, checkDisplacements=0):
@@ -81,11 +82,7 @@ def GHOST(impath, checkDisplacements=0):
 
     OutputX = range(minQ, maxQ+1, stepQ)
     OutputY = Output
-    imin = signal.argrelextrema(OutputY, np.less)[0]+1  # Add one to acct for matlab starting idx counting at 1.
-    if(OutputY[-1] < OutputY[-2]):  # Check last point
-        imin = np.append(imin, len(OutputY))
-    if(OutputY[0] < OutputY[1]):  # Check first point
-        imin = np.insert(imin, 0, 1)
+    imin = extrema(OutputY)
     Qualities = imin*stepQ+minQ-1
     os.remove("tmpResave.jpg")
     return [OutputX, OutputY, dispImages, imin, Qualities, Mins]
