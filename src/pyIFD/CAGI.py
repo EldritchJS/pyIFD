@@ -8,7 +8,6 @@ import numpy as np
 from scipy.ndimage import correlate
 import cv2
 import os
-from pyIFD.util import histc
 
 
 def im2double(im):
@@ -559,6 +558,26 @@ def filteringMethod(smap, ThressSmall, ThressBigV, ThressImg):
     return smap
 
 
+def histc(arr, bins):
+    """
+    Matches histc in matlab. Counts the number of values in arr that fall between the elements in bins.
+
+    Args:
+        arr: Vector to sort into bins
+        bins: bins
+
+    Returns:
+        A: Counts of elements in each bin
+        B: Indices mapping index of arr to which bin it's in.
+     """
+    [A, B] = np.histogram(arr, bins)
+    for i in range(1, bins):
+        count = np.count_nonzero(arr == B[i])
+        A[i] -= count
+        A[i-1] += count
+    return [A, B]
+
+
 def inblockpatterns(image, bins, p, q, blk_idx, blk_idy):
     """
     Fill me in please.
@@ -607,7 +626,7 @@ def inblockpatterns(image, bins, p, q, blk_idx, blk_idy):
             if (BlockScoreAll[i, j] <= 0):
                 BlockScoreAll[i, j] = 0
     norm = a
-    # Currently mismatched hist fcn
+    # Currently mismatched histc fcn
     Hz = histc(Zmat[:, 0], bins)[0]
     Hzn = Hz/(norm+1)
     Hz2 = histc(Zmat[:, 1], bins)[0]
