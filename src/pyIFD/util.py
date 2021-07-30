@@ -166,3 +166,23 @@ def extrema(x):
     minorder = np.argsort(xmin)
     imin = imin[minorder]
     return imin+1
+
+
+def histc(arr, bins):
+    """
+    Matches histc in matlab. Counts the number of values in arr that fall between the elements in bins.
+
+    Args:
+        arr: Vector to sort into bins
+        bins: bins
+
+    Returns:
+        A: Counts of elements in each bin
+        B: Indices mapping index of arr to which bin it's in.
+     """
+    [A, B] = np.histogram(arr, bins)
+    for i in range(1, bins):
+        count = np.count_nonzero(arr == B[i])
+        A[i] -= count
+        A[i-1] += count
+    return [A, B]

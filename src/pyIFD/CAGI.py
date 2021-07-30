@@ -8,6 +8,7 @@ import numpy as np
 from scipy.ndimage import correlate
 import cv2
 import os
+from pyIFD.util import histc
 
 
 def im2double(im):
@@ -558,28 +559,6 @@ def filteringMethod(smap, ThressSmall, ThressBigV, ThressImg):
     return smap
 
 
-def hist_adjust(arr, bins):
-    """
-    Fill me in please.
-
-    Args:
-        arr:
-        bins:
-
-    Returns:
-        [A,B]:
-
-    Todos:
-        * Fill this in with proper summary
-    """
-    [A, B] = np.histogram(arr, bins)
-    for i in range(1, bins):
-        count = np.count_nonzero(arr == B[i])
-        A[i] -= count
-        A[i-1] += count
-    return [A, B]
-
-
 def inblockpatterns(image, bins, p, q, blk_idx, blk_idy):
     """
     Fill me in please.
@@ -629,9 +608,9 @@ def inblockpatterns(image, bins, p, q, blk_idx, blk_idy):
                 BlockScoreAll[i, j] = 0
     norm = a
     # Currently mismatched hist fcn
-    Hz = hist_adjust(Zmat[:, 0], bins)[0]
+    Hz = histc(Zmat[:, 0], bins)[0]
     Hzn = Hz/(norm+1)
-    Hz2 = hist_adjust(Zmat[:, 1], bins)[0]
+    Hz2 = histc(Zmat[:, 1], bins)[0]
     Hz2n = Hz2/(norm+1)
     y2 = int(Hzn.size)
     K = 0
