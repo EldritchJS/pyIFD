@@ -147,7 +147,7 @@ def dequantize(qcoef, qtable):
 
 def extrema(x):
     """
-    Gets the local extrema points from a time series. This includes endpoints if necessary. 
+    Gets the local extrema points from a time series. This includes endpoints if necessary.
     Note that the indices will start counting from 1 to match MatLab.
 
     Args:
@@ -155,12 +155,12 @@ def extrema(x):
 
     Returns:
         imin: indices of XMIN
-    """    
+    """
     x = np.asarray(x)
     imin = signal.argrelextrema(x, np.less)[0]
-    if(x[-1] < x[-2]):#Check last point
+    if(x[-1] < x[-2]):  # Check last point
         imin = np.append(imin, len(x)-1)
-    if(x[0] < x[1]):#Check first point
+    if(x[0] < x[1]):  # Check first point
         imin = np.insert(imin, 0, 0)
     xmin = x[imin]
     minorder = np.argsort(xmin)

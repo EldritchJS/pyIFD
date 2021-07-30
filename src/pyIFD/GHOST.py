@@ -2,7 +2,6 @@
 This module provides the GHOST algorithm
 """
 
-from scipy import signal
 from scipy.signal import fftconvolve
 from skimage.transform import resize
 import numpy as np
