@@ -253,8 +253,8 @@ def validate_algo(infilename, matfilename, algoname, criteria=0.99):
         print('Unknown algorithm: ' + algoname)
 
     return retVal
-#algorithms = ['ADQ1', 'ADQ2', 'ADQ3', 'BLK', 'CAGI', 'ELA', 'GHO', 'NOI1', 'NOI2', 'NOI4', 'NOI5']
-algorithms = ['NOI5']
+#algorithms = ['ADQ1', 'ADQ2', 'ADQ3', 'BLK', 'CAGI', 'DCT', 'ELA', 'GHO', 'NOI1', 'NOI2', 'NOI4', 'NOI5']
+algorithms = ['DCT']
 
 
 def main(argv):
