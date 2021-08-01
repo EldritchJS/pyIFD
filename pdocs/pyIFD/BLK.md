@@ -35,11 +35,11 @@ Functions
     
     Returns:
         b: Main output of BLK. (2d array). This output corresponds to OutputMap
-        eH: 
-        HorzMid: 
-        eV: 
-        VertMid: 
-        BlockDiff: 
+        eH:
+        HorzMid:
+        eV:
+        VertMid:
+        BlockDiff:
     
     Todos:
         * Check if all returns necessary

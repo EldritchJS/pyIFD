@@ -22,12 +22,12 @@ Functions
     Args:
         imIn: jpegio struct
     
-    Returns:        
+    Returns:
         Quality: 0-100 integer
 
     
 `ExtractFeatures(im, c1, c2, ncomp, digitBinsToKeep)`
-:   This function extracts a descriptor feature based on the first-digit distribution of DCT coefficients of an image. It is needed by BenfordDQ. 
+:   This function extracts a descriptor feature based on the first-digit distribution of DCT coefficients of an image. It is needed by BenfordDQ.
     
      Args:
          c1: first DCT coefficient to be taken into account, DC term included

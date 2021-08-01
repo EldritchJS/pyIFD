@@ -20,6 +20,6 @@ Functions
         imin:
         Qualities:
         Mins:
-        
+    
     TODO:
     Find purpose of other outputs, and if they are needed.

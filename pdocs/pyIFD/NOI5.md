@@ -10,8 +10,8 @@ Functions
 :   Sorts data into N bins.
     
     Args:
-        data: data to be sorted 
-        N: number of bins to be sorted into 
+        data: data to be sorted
+        N: number of bins to be sorted into
     
     Returns:
         u: means of the bins

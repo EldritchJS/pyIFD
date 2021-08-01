@@ -35,13 +35,24 @@ Functions
         coef: Dequantized coef array. Same size as qcoef and qtable.
 
     
+`extrema(x)`
+:   Gets the local extrema points from a time series. This includes endpoints if necessary.
+    Note that the indices will start counting from 1 to match MatLab.
+    
+    Args:
+        x: time series vector
+    
+    Returns:
+        imin: indices of XMIN
+
+    
 `im2vec(im, bsize, padsize=0)`
 :   Converts image to vector.
     
     Args:
         im: Input image to be converted to a vector.
         bsize: Size of block of im to be converted to vec. Must be 1x2 non-negative int array.
-        padsize (optional, default=0): Must be non-negative integers in a 1x2 array. Amount of zeros padded on each 
+        padsize (optional, default=0): Must be non-negative integers in a 1x2 array. Amount of zeros padded on each
     
     Returns:
         v: Output vector.

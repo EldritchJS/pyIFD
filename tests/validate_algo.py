@@ -3,6 +3,7 @@ from pyIFD.ADQ2 import getJmap
 from pyIFD.ADQ3 import BenfordDQ
 from pyIFD.BLK import GetBlockGrid
 from pyIFD.CAGI import CAGI
+from pyIFD.DCT import DCT
 from pyIFD.ELA import ELA
 from pyIFD.GHOST import GHOST
 from pyIFD.NOI1 import GetNoiseMap
@@ -118,7 +119,24 @@ def validate_algo(infilename, matfilename, algoname, criteria=0.99):
             retVal = False
         else:
             print('CAGI INVERSE: PASS')
-    
+
+    elif algoname == 'DCT':
+        dcttest = DCT(infilename)
+        dctmat = spio.loadmat(matfilename)
+        sim = 0
+
+        try:
+            sim = comp(dctmat['OutputMap'], dcttest)
+        except ValueError as e:
+            print(e)
+            return retVal
+
+        if(sim < criteria):
+            print('DCT: FAIL Similarity: ' + str(sim))
+        else:
+            print('DCT: PASS')
+            retVal = True
+
     elif algoname == 'ELA':
         elatest = ELA(infilename)
         elamat = spio.loadmat(matfilename)

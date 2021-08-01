@@ -33,8 +33,10 @@ This file provides utility functions for the ADQ modules.
 
 import numpy as np
 import math
+from scipy import signal
 
-def vec2im(v,padsize=[0,0],bsize=None,rows=None,cols=None):
+
+def vec2im(v, padsize=[0, 0], bsize=None, rows=None, cols=None):
     &#34;&#34;&#34;
     Converts vector to image.
 
@@ -48,32 +50,33 @@ def vec2im(v,padsize=[0,0],bsize=None,rows=None,cols=None):
     Returns:
         im: Output image (2d numpy array)
     &#34;&#34;&#34;
-    [m,n]=np.shape(v)
-    
-    padsize=padsize+np.zeros((1,2),dtype=int)[0]
-    if(padsize.any()&lt;0):
+    [m, n] = np.shape(v)
+
+    padsize = padsize+np.zeros((1, 2), dtype=int)[0]
+    if(padsize.any() &lt; 0):
         raise Exception(&#34;Pad size must not be negative&#34;)
-    if(bsize==None):
-        bsize=math.floor(math.sqrt(m))
-    bsize=bsize+np.zeros((1,2),dtype=int)[0]
-    
-    if(np.prod(bsize)!=m):
+    if bsize is None:
+        bsize = math.floor(math.sqrt(m))
+    bsize = bsize+np.zeros((1, 2), dtype=int)[0]
+
+    if(np.prod(bsize) != m):
         raise Exception(&#34;Block size does not match size of input vectors.&#34;)
-    
-    if(rows==None):
-        rows=math.floor(math.sqrt(n))
-    if(cols==None):
-        cols=math.ceil(n/rows)
-    
-    #make image
-    y=bsize[0]+padsize[0]
-    x=bsize[1]+padsize[1]
-    t=np.zeros((y,x,rows*cols))
-    t[:bsize[0],:bsize[1],:n]=np.reshape(v,(bsize[0],bsize[1],n),order=&#39;F&#39;)
-    t=np.reshape(t,(y,x,rows,cols),order=&#39;F&#39;)
-    t=np.reshape(np.transpose(t,[0,2,1,3]),(y*rows,x*cols),order=&#39;F&#39;)
-    im=t[:y*rows-padsize[0],:x*cols-padsize[1]]
+
+    if rows is None:
+        rows = math.floor(math.sqrt(n))
+    if cols is None:
+        cols = math.ceil(n/rows)
+
+    # make image
+    y = bsize[0]+padsize[0]
+    x = bsize[1]+padsize[1]
+    t = np.zeros((y, x, rows*cols))
+    t[:bsize[0], :bsize[1], :n] = np.reshape(v, (bsize[0], bsize[1], n), order=&#39;F&#39;)
+    t = np.reshape(t, (y, x, rows, cols), order=&#39;F&#39;)
+    t = np.reshape(np.transpose(t, [0, 2, 1, 3]), (y*rows, x*cols), order=&#39;F&#39;)
+    im = t[:y*rows-padsize[0], :x*cols-padsize[1]]
     return im
+
 
 def im2vec(im, bsize, padsize=0):
     &#34;&#34;&#34;
@@ -82,31 +85,32 @@ def im2vec(im, bsize, padsize=0):
     Args:
         im: Input image to be converted to a vector.
         bsize: Size of block of im to be converted to vec. Must be 1x2 non-negative int array.
-        padsize (optional, default=0): Must be non-negative integers in a 1x2 array. Amount of zeros padded on each 
+        padsize (optional, default=0): Must be non-negative integers in a 1x2 array. Amount of zeros padded on each
 
     Returns:
         v: Output vector.
         rows: Number of rows of im after bsize and padsize are applied (before final flattening to vector).
         cols: Number of cols of im after bsize and padsize are applied (before final flattening to vector).
     &#34;&#34;&#34;
-    bsize=bsize+np.zeros((1,2),dtype=int)[0]
-    padsize=padsize+np.zeros((1,2),dtype=int)[0]
-    if(padsize.any()&lt;0):
+    bsize = bsize+np.zeros((1, 2), dtype=int)[0]
+    padsize = padsize+np.zeros((1, 2), dtype=int)[0]
+    if(padsize.any() &lt; 0):
         raise Exception(&#34;Pad size must not be negative&#34;)
-    imsize=np.shape(im)
-    y=bsize[0]+padsize[0]
-    x=bsize[1]+padsize[1]
-    rows=math.floor((imsize[0]+padsize[0])/y)
-    cols=math.floor((imsize[1]+padsize[1])/x)
-    t=np.zeros((y*rows,x*cols))
-    imy=y*rows-padsize[0]
-    imx=x*cols-padsize[1]
-    t[:imy,:imx]=im[:imy,:imx]
-    t=np.reshape(t,(y,rows,x,cols),order=&#39;F&#39;)
-    t=np.reshape(np.transpose(t,[0,2,1,3]),(y,x,rows*cols),order=&#39;F&#39;)
-    v=t[:bsize[0],:bsize[1],:rows*cols]
-    v=np.reshape(v,(y*x,rows*cols),order=&#39;F&#39;)
-    return [v,rows,cols]
+    imsize = np.shape(im)
+    y = bsize[0]+padsize[0]
+    x = bsize[1]+padsize[1]
+    rows = math.floor((imsize[0]+padsize[0])/y)
+    cols = math.floor((imsize[1]+padsize[1])/x)
+    t = np.zeros((y*rows, x*cols))
+    imy = y*rows-padsize[0]
+    imx = x*cols-padsize[1]
+    t[:imy, :imx] = im[:imy, :imx]
+    t = np.reshape(t, (y, rows, x, cols), order=&#39;F&#39;)
+    t = np.reshape(np.transpose(t, [0, 2, 1, 3]), (y, x, rows*cols), order=&#39;F&#39;)
+    v = t[:bsize[0], :bsize[1], :rows*cols]
+    v = np.reshape(v, (y*x, rows*cols), order=&#39;F&#39;)
+    return [v, rows, cols]
+
 
 def bdctmtx(n):
     &#34;&#34;&#34;
@@ -118,22 +122,23 @@ def bdctmtx(n):
     Returns:
         m: nxn array to performs dct with.
     &#34;&#34;&#34;
-    [c,r]=np.meshgrid(range(8),range(8))
-    [c0,r0]=np.meshgrid(r,r)
-    [c1,r1]=np.meshgrid(c,c)
-    x=np.zeros(np.shape(c))
+    [c, r] = np.meshgrid(range(8), range(8))
+    [c0, r0] = np.meshgrid(r, r)
+    [c1, r1] = np.meshgrid(c, c)
+    x = np.zeros(np.shape(c))
     for i in range(n):
         for j in range(n):
-            x[i,j]=math.sqrt(2/n)*math.cos(math.pi*(2*c[i,j]+1)*r[i,j]/(2*n))
-    x[0,:]=x[0,:]/math.sqrt(2)
-    x=x.flatten(&#39;F&#39;)
-    m=np.zeros(np.shape(r0))
+            x[i, j] = math.sqrt(2/n)*math.cos(math.pi*(2*c[i, j]+1)*r[i, j]/(2*n))
+    x[0, :] = x[0, :]/math.sqrt(2)
+    x = x.flatten(&#39;F&#39;)
+    m = np.zeros(np.shape(r0))
     for i in range(n**2):
         for j in range(n**2):
-            m[i,j]=x[r0[i,j]+c0[i,j]*n]*x[r1[i,j]+c1[i,j]*n]
+            m[i, j] = x[r0[i, j]+c0[i, j]*n]*x[r1[i, j]+c1[i, j]*n]
     return m
 
-def bdct(a,n=8):
+
+def bdct(a, n=8):
     &#34;&#34;&#34;
     Performs dct on array via blocks of size nxn.
 
@@ -143,13 +148,14 @@ def bdct(a,n=8):
     Returns:
         b: Array after dct.
     &#34;&#34;&#34;
-    dctm=bdctmtx(n)
-    
-    [v,r,c]=im2vec(a,n)
-    b=vec2im(dctm @ v,0,n,r,c)
+    dctm = bdctmtx(n)
+
+    [v, r, c] = im2vec(a, n)
+    b = vec2im(dctm @ v, 0, n, r, c)
     return b
 
-def dequantize(qcoef,qtable):
+
+def dequantize(qcoef, qtable):
     &#34;&#34;&#34;
     Dequantizes a coef array given a quant table.
     Args:
@@ -158,15 +164,37 @@ def dequantize(qcoef,qtable):
     Returns:
         coef: Dequantized coef array. Same size as qcoef and qtable.
     &#34;&#34;&#34;
-    
-    blksz=np.shape(qtable)
-    [v,r,c]=im2vec(qcoef,blksz)
-    
-    flat=np.array(qtable).flatten(&#39;F&#39;)
-    vec=v*np.tile(flat,(np.shape(v)[1],1)).T
-    
-    coef=vec2im(vec,0,blksz,r,c)
-    return coef</code></pre>
+    blksz = np.shape(qtable)
+    [v, r, c] = im2vec(qcoef, blksz)
+
+    flat = np.array(qtable).flatten(&#39;F&#39;)
+    vec = v*np.tile(flat, (np.shape(v)[1], 1)).T
+
+    coef = vec2im(vec, 0, blksz, r, c)
+    return coef
+
+
+def extrema(x):
+    &#34;&#34;&#34;
+    Gets the local extrema points from a time series. This includes endpoints if necessary.
+    Note that the indices will start counting from 1 to match MatLab.
+
+    Args:
+        x: time series vector
+
+    Returns:
+        imin: indices of XMIN
+    &#34;&#34;&#34;
+    x = np.asarray(x)
+    imin = signal.argrelextrema(x, np.less)[0]
+    if(x[-1] &lt; x[-2]):  # Check last point
+        imin = np.append(imin, len(x)-1)
+    if(x[0] &lt; x[1]):  # Check first point
+        imin = np.insert(imin, 0, 0)
+    xmin = x[imin]
+    minorder = np.argsort(xmin)
+    imin = imin[minorder]
+    return imin+1</code></pre>
 </details>
 </section>
 <section>
@@ -197,7 +225,7 @@ def dequantize(qcoef,qtable):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def bdct(a,n=8):
+<pre><code class="python">def bdct(a, n=8):
     &#34;&#34;&#34;
     Performs dct on array via blocks of size nxn.
 
@@ -207,10 +235,10 @@ def dequantize(qcoef,qtable):
     Returns:
         b: Array after dct.
     &#34;&#34;&#34;
-    dctm=bdctmtx(n)
-    
-    [v,r,c]=im2vec(a,n)
-    b=vec2im(dctm @ v,0,n,r,c)
+    dctm = bdctmtx(n)
+
+    [v, r, c] = im2vec(a, n)
+    b = vec2im(dctm @ v, 0, n, r, c)
     return b</code></pre>
 </details>
 </dd>
@@ -243,19 +271,19 @@ def dequantize(qcoef,qtable):
     Returns:
         m: nxn array to performs dct with.
     &#34;&#34;&#34;
-    [c,r]=np.meshgrid(range(8),range(8))
-    [c0,r0]=np.meshgrid(r,r)
-    [c1,r1]=np.meshgrid(c,c)
-    x=np.zeros(np.shape(c))
+    [c, r] = np.meshgrid(range(8), range(8))
+    [c0, r0] = np.meshgrid(r, r)
+    [c1, r1] = np.meshgrid(c, c)
+    x = np.zeros(np.shape(c))
     for i in range(n):
         for j in range(n):
-            x[i,j]=math.sqrt(2/n)*math.cos(math.pi*(2*c[i,j]+1)*r[i,j]/(2*n))
-    x[0,:]=x[0,:]/math.sqrt(2)
-    x=x.flatten(&#39;F&#39;)
-    m=np.zeros(np.shape(r0))
+            x[i, j] = math.sqrt(2/n)*math.cos(math.pi*(2*c[i, j]+1)*r[i, j]/(2*n))
+    x[0, :] = x[0, :]/math.sqrt(2)
+    x = x.flatten(&#39;F&#39;)
+    m = np.zeros(np.shape(r0))
     for i in range(n**2):
         for j in range(n**2):
-            m[i,j]=x[r0[i,j]+c0[i,j]*n]*x[r1[i,j]+c1[i,j]*n]
+            m[i, j] = x[r0[i, j]+c0[i, j]*n]*x[r1[i, j]+c1[i, j]*n]
     return m</code></pre>
 </details>
 </dd>
@@ -280,7 +308,7 @@ def dequantize(qcoef,qtable):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def dequantize(qcoef,qtable):
+<pre><code class="python">def dequantize(qcoef, qtable):
     &#34;&#34;&#34;
     Dequantizes a coef array given a quant table.
     Args:
@@ -289,15 +317,57 @@ def dequantize(qcoef,qtable):
     Returns:
         coef: Dequantized coef array. Same size as qcoef and qtable.
     &#34;&#34;&#34;
-    
-    blksz=np.shape(qtable)
-    [v,r,c]=im2vec(qcoef,blksz)
-    
-    flat=np.array(qtable).flatten(&#39;F&#39;)
-    vec=v*np.tile(flat,(np.shape(v)[1],1)).T
-    
-    coef=vec2im(vec,0,blksz,r,c)
+    blksz = np.shape(qtable)
+    [v, r, c] = im2vec(qcoef, blksz)
+
+    flat = np.array(qtable).flatten(&#39;F&#39;)
+    vec = v*np.tile(flat, (np.shape(v)[1], 1)).T
+
+    coef = vec2im(vec, 0, blksz, r, c)
     return coef</code></pre>
+</details>
+</dd>
+<dt id="pyIFD.util.extrema"><code class="name flex">
+<span>def <span class="ident">extrema</span></span>(<span>x)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the local extrema points from a time series. This includes endpoints if necessary.
+Note that the indices will start counting from 1 to match MatLab.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>x</code></strong></dt>
+<dd>time series vector</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>imin</code></dt>
+<dd>indices of XMIN</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def extrema(x):
+    &#34;&#34;&#34;
+    Gets the local extrema points from a time series. This includes endpoints if necessary.
+    Note that the indices will start counting from 1 to match MatLab.
+
+    Args:
+        x: time series vector
+
+    Returns:
+        imin: indices of XMIN
+    &#34;&#34;&#34;
+    x = np.asarray(x)
+    imin = signal.argrelextrema(x, np.less)[0]
+    if(x[-1] &lt; x[-2]):  # Check last point
+        imin = np.append(imin, len(x)-1)
+    if(x[0] &lt; x[1]):  # Check first point
+        imin = np.insert(imin, 0, 0)
+    xmin = x[imin]
+    minorder = np.argsort(xmin)
+    imin = imin[minorder]
+    return imin+1</code></pre>
 </details>
 </dd>
 <dt id="pyIFD.util.im2vec"><code class="name flex">
@@ -312,7 +382,7 @@ def dequantize(qcoef,qtable):
 <dt><strong><code>bsize</code></strong></dt>
 <dd>Size of block of im to be converted to vec. Must be 1x2 non-negative int array.</dd>
 <dt><strong><code>padsize</code></strong> :&ensp;<code>optional</code>, default=<code>0</code></dt>
-<dd>Must be non-negative integers in a 1x2 array. Amount of zeros padded on each </dd>
+<dd>Must be non-negative integers in a 1x2 array. Amount of zeros padded on each</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -334,31 +404,31 @@ def dequantize(qcoef,qtable):
     Args:
         im: Input image to be converted to a vector.
         bsize: Size of block of im to be converted to vec. Must be 1x2 non-negative int array.
-        padsize (optional, default=0): Must be non-negative integers in a 1x2 array. Amount of zeros padded on each 
+        padsize (optional, default=0): Must be non-negative integers in a 1x2 array. Amount of zeros padded on each
 
     Returns:
         v: Output vector.
         rows: Number of rows of im after bsize and padsize are applied (before final flattening to vector).
         cols: Number of cols of im after bsize and padsize are applied (before final flattening to vector).
     &#34;&#34;&#34;
-    bsize=bsize+np.zeros((1,2),dtype=int)[0]
-    padsize=padsize+np.zeros((1,2),dtype=int)[0]
-    if(padsize.any()&lt;0):
+    bsize = bsize+np.zeros((1, 2), dtype=int)[0]
+    padsize = padsize+np.zeros((1, 2), dtype=int)[0]
+    if(padsize.any() &lt; 0):
         raise Exception(&#34;Pad size must not be negative&#34;)
-    imsize=np.shape(im)
-    y=bsize[0]+padsize[0]
-    x=bsize[1]+padsize[1]
-    rows=math.floor((imsize[0]+padsize[0])/y)
-    cols=math.floor((imsize[1]+padsize[1])/x)
-    t=np.zeros((y*rows,x*cols))
-    imy=y*rows-padsize[0]
-    imx=x*cols-padsize[1]
-    t[:imy,:imx]=im[:imy,:imx]
-    t=np.reshape(t,(y,rows,x,cols),order=&#39;F&#39;)
-    t=np.reshape(np.transpose(t,[0,2,1,3]),(y,x,rows*cols),order=&#39;F&#39;)
-    v=t[:bsize[0],:bsize[1],:rows*cols]
-    v=np.reshape(v,(y*x,rows*cols),order=&#39;F&#39;)
-    return [v,rows,cols]</code></pre>
+    imsize = np.shape(im)
+    y = bsize[0]+padsize[0]
+    x = bsize[1]+padsize[1]
+    rows = math.floor((imsize[0]+padsize[0])/y)
+    cols = math.floor((imsize[1]+padsize[1])/x)
+    t = np.zeros((y*rows, x*cols))
+    imy = y*rows-padsize[0]
+    imx = x*cols-padsize[1]
+    t[:imy, :imx] = im[:imy, :imx]
+    t = np.reshape(t, (y, rows, x, cols), order=&#39;F&#39;)
+    t = np.reshape(np.transpose(t, [0, 2, 1, 3]), (y, x, rows*cols), order=&#39;F&#39;)
+    v = t[:bsize[0], :bsize[1], :rows*cols]
+    v = np.reshape(v, (y*x, rows*cols), order=&#39;F&#39;)
+    return [v, rows, cols]</code></pre>
 </details>
 </dd>
 <dt id="pyIFD.util.vec2im"><code class="name flex">
@@ -388,7 +458,7 @@ def dequantize(qcoef,qtable):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def vec2im(v,padsize=[0,0],bsize=None,rows=None,cols=None):
+<pre><code class="python">def vec2im(v, padsize=[0, 0], bsize=None, rows=None, cols=None):
     &#34;&#34;&#34;
     Converts vector to image.
 
@@ -402,31 +472,31 @@ def dequantize(qcoef,qtable):
     Returns:
         im: Output image (2d numpy array)
     &#34;&#34;&#34;
-    [m,n]=np.shape(v)
-    
-    padsize=padsize+np.zeros((1,2),dtype=int)[0]
-    if(padsize.any()&lt;0):
+    [m, n] = np.shape(v)
+
+    padsize = padsize+np.zeros((1, 2), dtype=int)[0]
+    if(padsize.any() &lt; 0):
         raise Exception(&#34;Pad size must not be negative&#34;)
-    if(bsize==None):
-        bsize=math.floor(math.sqrt(m))
-    bsize=bsize+np.zeros((1,2),dtype=int)[0]
-    
-    if(np.prod(bsize)!=m):
+    if bsize is None:
+        bsize = math.floor(math.sqrt(m))
+    bsize = bsize+np.zeros((1, 2), dtype=int)[0]
+
+    if(np.prod(bsize) != m):
         raise Exception(&#34;Block size does not match size of input vectors.&#34;)
-    
-    if(rows==None):
-        rows=math.floor(math.sqrt(n))
-    if(cols==None):
-        cols=math.ceil(n/rows)
-    
-    #make image
-    y=bsize[0]+padsize[0]
-    x=bsize[1]+padsize[1]
-    t=np.zeros((y,x,rows*cols))
-    t[:bsize[0],:bsize[1],:n]=np.reshape(v,(bsize[0],bsize[1],n),order=&#39;F&#39;)
-    t=np.reshape(t,(y,x,rows,cols),order=&#39;F&#39;)
-    t=np.reshape(np.transpose(t,[0,2,1,3]),(y*rows,x*cols),order=&#39;F&#39;)
-    im=t[:y*rows-padsize[0],:x*cols-padsize[1]]
+
+    if rows is None:
+        rows = math.floor(math.sqrt(n))
+    if cols is None:
+        cols = math.ceil(n/rows)
+
+    # make image
+    y = bsize[0]+padsize[0]
+    x = bsize[1]+padsize[1]
+    t = np.zeros((y, x, rows*cols))
+    t[:bsize[0], :bsize[1], :n] = np.reshape(v, (bsize[0], bsize[1], n), order=&#39;F&#39;)
+    t = np.reshape(t, (y, x, rows, cols), order=&#39;F&#39;)
+    t = np.reshape(np.transpose(t, [0, 2, 1, 3]), (y*rows, x*cols), order=&#39;F&#39;)
+    im = t[:y*rows-padsize[0], :x*cols-padsize[1]]
     return im</code></pre>
 </details>
 </dd>
@@ -447,10 +517,11 @@ def dequantize(qcoef,qtable):
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="pyIFD.util.bdct" href="#pyIFD.util.bdct">bdct</a></code></li>
 <li><code><a title="pyIFD.util.bdctmtx" href="#pyIFD.util.bdctmtx">bdctmtx</a></code></li>
 <li><code><a title="pyIFD.util.dequantize" href="#pyIFD.util.dequantize">dequantize</a></code></li>
+<li><code><a title="pyIFD.util.extrema" href="#pyIFD.util.extrema">extrema</a></code></li>
 <li><code><a title="pyIFD.util.im2vec" href="#pyIFD.util.im2vec">im2vec</a></code></li>
 <li><code><a title="pyIFD.util.vec2im" href="#pyIFD.util.vec2im">vec2im</a></code></li>
 </ul>

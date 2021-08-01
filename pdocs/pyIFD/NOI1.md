@@ -7,7 +7,7 @@ Functions
 
     
 `GetNoiseMap(impath, BlockSize=8)`
-:   Main driver for NOI1 algorithm. 
+:   Main driver for NOI1 algorithm.
     
     Args:
         impath: Path to the image to be processed.

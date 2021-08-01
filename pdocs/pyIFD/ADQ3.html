@@ -31,16 +31,16 @@
 This module provides the ADQ3 algorithm
 &#34;&#34;&#34;
 
-from numpy.matlib import repmat
 import numpy as np
 import jpegio as jio
-import numpy as np
 import os
-from pyIFD.util import vec2im, im2vec, dequantize
+from pyIFD.util import dequantize
 
-SupportVector = np.load(os.path.join(os.path.dirname(__file__),&#39;SupportVector.npy&#39;),allow_pickle=True)
-AlphaHat = np.load(os.path.join(os.path.dirname(__file__),&#39;AlphaHat.npy&#39;),allow_pickle=True)
-bias = np.array([ 0.10431149, -0.25288239, -0.2689174 ,  0.39425104, -1.11269764, -1.15730589, -1.18658372, -0.9444815 , -3.46445309, -2.9434976 ])
+
+SupportVector = np.load(os.path.join(os.path.dirname(__file__), &#39;SupportVector.npy&#39;), allow_pickle=True)
+AlphaHat = np.load(os.path.join(os.path.dirname(__file__), &#39;AlphaHat.npy&#39;), allow_pickle=True)
+bias = np.array([0.10431149, -0.25288239, -0.2689174, 0.39425104, -1.11269764, -1.15730589, -1.18658372, -0.9444815, -3.46445309, -2.9434976])
+
 
 def BenfordDQ(impath):
     &#34;&#34;&#34;
@@ -51,44 +51,45 @@ def BenfordDQ(impath):
 
     Returns:
         OutputMap: Output of ADQ3 algorithm (2D array).
-    &#34;&#34;&#34;    
+    &#34;&#34;&#34;
     try:
-        im=jio.read(impath)
-    except:
+        im = jio.read(impath)
+    except Exception as e:
+        print(&#39;Exception in JPEGIO read: &#39; + str(e))
         return
-    Quality=EstimateJPEGQuality(im)
-    QualityInd=int(np.round((Quality-50)/5+1))
-    if QualityInd&gt;10:
-        QualityInd=10
-    elif QualityInd&lt;1:
-        QualityInd=1
-    c1=2
-    c2=10
-    ncomp=1
-    digitBinsToKeep=[2,5,7]
-    block=im
-    qtable=im.quant_tables[im.comp_info[ncomp].quant_tbl_no-1]
-    YCoef=im.coef_arrays[ncomp-1]
-    Step=8
-    BlockSize=64
-    maxX=np.shape(YCoef)[0]+1-BlockSize
-    maxY=np.shape(YCoef)[1]+1-BlockSize
-    OutputMap=np.zeros((int(np.ceil(maxX-1)/Step+1),int(np.ceil(maxY-1)/Step+1)))
-    if np.shape(im.coef_arrays[0])[0]&lt;BlockSize:
+    Quality = EstimateJPEGQuality(im)
+    QualityInd = int(np.round((Quality-50)/5+1))
+    if QualityInd &gt; 10:
+        QualityInd = 10
+    elif QualityInd &lt; 1:
+        QualityInd = 1
+    c1 = 2
+    c2 = 10
+    ncomp = 1
+    digitBinsToKeep = [2, 5, 7]
+    block = im
+    YCoef = im.coef_arrays[ncomp-1]
+    Step = 8
+    BlockSize = 64
+    maxX = np.shape(YCoef)[0]+1-BlockSize
+    maxY = np.shape(YCoef)[1]+1-BlockSize
+    OutputMap = np.zeros((int(np.ceil(maxX-1)/Step+1), int(np.ceil(maxY-1)/Step+1)))
+    if np.shape(im.coef_arrays[0])[0] &lt; BlockSize:
         return 0
-    
-    for X in range(1,np.shape(YCoef)[0]+1,Step):
-        StartX=min(X,np.shape(YCoef)[0]-BlockSize+1)
-        for Y in range(1,np.shape(YCoef)[1]+1,Step):
-            StartY=min(Y,np.shape(YCoef)[1]-BlockSize+1)
-            block.coef_arrays[ncomp-1]=YCoef[StartX-1:StartX+BlockSize-1,StartY-1:StartY+BlockSize-1]
-            Features=ExtractFeatures(block,c1,c2,ncomp,digitBinsToKeep)
-            Features/=64
-            Dist=svmdecision(Features,QualityInd-1) #SVMStruct[QualityInd-1][0][0])
-            OutputMap[int(np.ceil((StartX-1)/Step)),int(np.ceil((StartY-1)/Step))]=Dist
-    OutputMap=np.concatenate((repmat(OutputMap[0,:],int(np.ceil(BlockSize/2/Step)),1),OutputMap),axis=0)
-    OutputMap=np.concatenate((repmat(OutputMap[:,0],int(np.ceil(BlockSize/2/Step)),1).T,OutputMap),axis=1)
+
+    for X in range(1, np.shape(YCoef)[0]+1, Step):
+        StartX = min(X, np.shape(YCoef)[0]-BlockSize+1)
+        for Y in range(1, np.shape(YCoef)[1]+1, Step):
+            StartY = min(Y, np.shape(YCoef)[1]-BlockSize+1)
+            block.coef_arrays[ncomp-1] = YCoef[StartX-1:StartX+BlockSize-1, StartY-1:StartY+BlockSize-1]
+            Features = ExtractFeatures(block, c1, c2, ncomp, digitBinsToKeep)
+            Features /= 64
+            Dist = svmdecision(Features, QualityInd-1)
+            OutputMap[int(np.ceil((StartX-1)/Step)), int(np.ceil((StartY-1)/Step))] = Dist
+    OutputMap = np.concatenate((np.tile(OutputMap[0, :], (int(np.ceil(BlockSize / 2 / Step)), 1)), OutputMap), axis=0)
+    OutputMap = np.concatenate((np.tile(OutputMap[:, 0], (int(np.ceil(BlockSize / 2 / Step)), 1)).T, OutputMap), axis=1)
     return OutputMap
+
 
 def EstimateJPEGQuality(imIn):
     &#34;&#34;&#34;
@@ -97,21 +98,22 @@ def EstimateJPEGQuality(imIn):
     Args:
         imIn: jpegio struct
 
-    Returns:        
+    Returns:
         Quality: 0-100 integer
     &#34;&#34;&#34;
-    if(len(imIn.quant_tables)==1):
-        imIn.quant_tables[1]=imIn.quant_tables[0]
-    YQuality=100-(np.sum(imIn.quant_tables[0])-imIn.quant_tables[0][0][0])/63
-    CrCbQuality=100-(np.sum(imIn.quant_tables[1])-imIn.quant_tables[0][0][0])/63
-    Diff=abs(YQuality-CrCbQuality)*0.98
-    Quality=(YQuality+2*CrCbQuality)/3+Diff
+    if(len(imIn.quant_tables) == 1):
+        imIn.quant_tables[1] = imIn.quant_tables[0]
+    YQuality = 100-(np.sum(imIn.quant_tables[0])-imIn.quant_tables[0][0][0])/63
+    CrCbQuality = 100-(np.sum(imIn.quant_tables[1])-imIn.quant_tables[0][0][0])/63
+    Diff = abs(YQuality-CrCbQuality)*0.98
+    Quality = (YQuality+2*CrCbQuality)/3+Diff
     return Quality
 
-def ExtractFeatures(im,c1,c2,ncomp,digitBinsToKeep):
+
+def ExtractFeatures(im, c1, c2, ncomp, digitBinsToKeep):
     &#34;&#34;&#34;
-    This function extracts a descriptor feature based on the first-digit distribution of DCT coefficients of an image. It is needed by BenfordDQ. 
-    
+    This function extracts a descriptor feature based on the first-digit distribution of DCT coefficients of an image. It is needed by BenfordDQ.
+
      Args:
          c1: first DCT coefficient to be taken into account, DC term included
          c2: final DCT coefficient to be taken into account, DC term included
@@ -121,39 +123,40 @@ def ExtractFeatures(im,c1,c2,ncomp,digitBinsToKeep):
     Returns:
          output: Flattened feature vector
     &#34;&#34;&#34;
-    coeffArray=im.coef_arrays[ncomp-1]
-    qtable=im.quant_tables[im.comp_info[ncomp].quant_tbl_no-1]
-    Y=dequantize(coeffArray,qtable)
-    coeff=[1, 9, 2, 3, 10, 17, 25, 18, 11, 4, 5, 12, 19, 26, 33, 41, 34, 27, 20, 13, 6, 7, 14, 21, 28, 35, 42, 49, 57, 50, 43, 36, 29, 22, 15, 8, 16, 23, 30, 37, 44, 51, 58, 59, 52, 45, 38, 31, 24, 32, 39, 46, 53, 60, 61, 54, 47, 40, 48, 55, 62, 63, 56, 64]
-    sizeCA=np.shape(coeffArray)
-    digitHist=np.zeros((c2-c1+1,10))
-    for index in range(c1,c2+1):
-        coeffFreq=np.zeros((int(np.size(coeffArray)/64),))
-        coe=coeff[index-1]
-        k=1
-        start=coe%8
-        if start==0:
-            start=8
-        for l in range(start,sizeCA[1]+1,8):
-            for i in range(int(np.ceil(coe/8)),sizeCA[0],8):
-                coeffFreq[k-1]=Y[i-1,l-1]
-                k+=1
-        NumOfDigits=(np.floor(np.log10(abs(coeffFreq)+0.5))+1)
-        tmp=[10**(i-1) for i in np.array(NumOfDigits)]
-        FirstDigit=np.floor(np.divide(abs(coeffFreq),tmp)).astype(&#34;uint8&#34;)
-        
-        binHist=list(np.arange(0.5,9.5,1))
-        binHist.insert(0,-float(&#39;Inf&#39;))
+    coeffArray = im.coef_arrays[ncomp-1]
+    qtable = im.quant_tables[im.comp_info[ncomp].quant_tbl_no-1]
+    Y = dequantize(coeffArray, qtable)
+    coeff = [1, 9, 2, 3, 10, 17, 25, 18, 11, 4, 5, 12, 19, 26, 33, 41, 34, 27, 20, 13, 6, 7, 14, 21, 28, 35, 42, 49, 57, 50, 43, 36, 29, 22, 15, 8, 16,
+             23, 30, 37, 44, 51, 58, 59, 52, 45, 38, 31, 24, 32, 39, 46, 53, 60, 61, 54, 47, 40, 48, 55, 62, 63, 56, 64]
+    sizeCA = np.shape(coeffArray)
+    digitHist = np.zeros((c2-c1+1, 10))
+    for index in range(c1, c2+1):
+        coeffFreq = np.zeros((int(np.size(coeffArray)/64), ))
+        coe = coeff[index-1]
+        k = 1
+        start = coe % 8
+        if start == 0:
+            start = 8
+        for j in range(start, sizeCA[1]+1, 8):
+            for i in range(int(np.ceil(coe/8)), sizeCA[0], 8):
+                coeffFreq[k-1] = Y[i-1, j-1]
+                k += 1
+        NumOfDigits = (np.floor(np.log10(abs(coeffFreq) + 0.5)) + 1)
+        tmp = [10**(i-1) for i in np.array(NumOfDigits)]
+        FirstDigit = np.floor(np.divide(abs(coeffFreq), tmp)).astype(&#34;uint8&#34;)
+
+        binHist = list(np.arange(0.5, 9.5, 1))
+        binHist.insert(0, -float(&#39;Inf&#39;))
         binHist.append(float(&#39;Inf&#39;))
-        digitHist[index-c1,:]=np.histogram(FirstDigit,binHist)[0]
-    HistToKeep=digitHist[:,digitBinsToKeep]
+        digitHist[index-c1, :] = np.histogram(FirstDigit, binHist)[0]
+    HistToKeep = digitHist[:, digitBinsToKeep]
     return np.ndarray.flatten(HistToKeep)
 
 
-def svmdecision(Xnew,index):
+def svmdecision(Xnew, index):
     &#34;&#34;&#34;
     Uses given index of svm to classify Xnew.
-    
+
     Args:
         Xnew: Array to be classifed
         index: Index of SVM to use to classify
@@ -161,9 +164,8 @@ def svmdecision(Xnew,index):
     Returns:
         f: 2d array of svm decision output.
     &#34;&#34;&#34;
-    f=np.dot(np.tanh(SupportVector[index] @ np.transpose(Xnew)-1),AlphaHat[index])+bias[index]
-    return f
-    </code></pre>
+    f = np.dot(np.tanh(SupportVector[index] @ np.transpose(Xnew)-1), AlphaHat[index]) + bias[index]
+    return f</code></pre>
 </details>
 </section>
 <section>
@@ -201,43 +203,43 @@ def svmdecision(Xnew,index):
 
     Returns:
         OutputMap: Output of ADQ3 algorithm (2D array).
-    &#34;&#34;&#34;    
+    &#34;&#34;&#34;
     try:
-        im=jio.read(impath)
-    except:
+        im = jio.read(impath)
+    except Exception as e:
+        print(&#39;Exception in JPEGIO read: &#39; + str(e))
         return
-    Quality=EstimateJPEGQuality(im)
-    QualityInd=int(np.round((Quality-50)/5+1))
-    if QualityInd&gt;10:
-        QualityInd=10
-    elif QualityInd&lt;1:
-        QualityInd=1
-    c1=2
-    c2=10
-    ncomp=1
-    digitBinsToKeep=[2,5,7]
-    block=im
-    qtable=im.quant_tables[im.comp_info[ncomp].quant_tbl_no-1]
-    YCoef=im.coef_arrays[ncomp-1]
-    Step=8
-    BlockSize=64
-    maxX=np.shape(YCoef)[0]+1-BlockSize
-    maxY=np.shape(YCoef)[1]+1-BlockSize
-    OutputMap=np.zeros((int(np.ceil(maxX-1)/Step+1),int(np.ceil(maxY-1)/Step+1)))
-    if np.shape(im.coef_arrays[0])[0]&lt;BlockSize:
+    Quality = EstimateJPEGQuality(im)
+    QualityInd = int(np.round((Quality-50)/5+1))
+    if QualityInd &gt; 10:
+        QualityInd = 10
+    elif QualityInd &lt; 1:
+        QualityInd = 1
+    c1 = 2
+    c2 = 10
+    ncomp = 1
+    digitBinsToKeep = [2, 5, 7]
+    block = im
+    YCoef = im.coef_arrays[ncomp-1]
+    Step = 8
+    BlockSize = 64
+    maxX = np.shape(YCoef)[0]+1-BlockSize
+    maxY = np.shape(YCoef)[1]+1-BlockSize
+    OutputMap = np.zeros((int(np.ceil(maxX-1)/Step+1), int(np.ceil(maxY-1)/Step+1)))
+    if np.shape(im.coef_arrays[0])[0] &lt; BlockSize:
         return 0
-    
-    for X in range(1,np.shape(YCoef)[0]+1,Step):
-        StartX=min(X,np.shape(YCoef)[0]-BlockSize+1)
-        for Y in range(1,np.shape(YCoef)[1]+1,Step):
-            StartY=min(Y,np.shape(YCoef)[1]-BlockSize+1)
-            block.coef_arrays[ncomp-1]=YCoef[StartX-1:StartX+BlockSize-1,StartY-1:StartY+BlockSize-1]
-            Features=ExtractFeatures(block,c1,c2,ncomp,digitBinsToKeep)
-            Features/=64
-            Dist=svmdecision(Features,QualityInd-1) #SVMStruct[QualityInd-1][0][0])
-            OutputMap[int(np.ceil((StartX-1)/Step)),int(np.ceil((StartY-1)/Step))]=Dist
-    OutputMap=np.concatenate((repmat(OutputMap[0,:],int(np.ceil(BlockSize/2/Step)),1),OutputMap),axis=0)
-    OutputMap=np.concatenate((repmat(OutputMap[:,0],int(np.ceil(BlockSize/2/Step)),1).T,OutputMap),axis=1)
+
+    for X in range(1, np.shape(YCoef)[0]+1, Step):
+        StartX = min(X, np.shape(YCoef)[0]-BlockSize+1)
+        for Y in range(1, np.shape(YCoef)[1]+1, Step):
+            StartY = min(Y, np.shape(YCoef)[1]-BlockSize+1)
+            block.coef_arrays[ncomp-1] = YCoef[StartX-1:StartX+BlockSize-1, StartY-1:StartY+BlockSize-1]
+            Features = ExtractFeatures(block, c1, c2, ncomp, digitBinsToKeep)
+            Features /= 64
+            Dist = svmdecision(Features, QualityInd-1)
+            OutputMap[int(np.ceil((StartX-1)/Step)), int(np.ceil((StartY-1)/Step))] = Dist
+    OutputMap = np.concatenate((np.tile(OutputMap[0, :], (int(np.ceil(BlockSize / 2 / Step)), 1)), OutputMap), axis=0)
+    OutputMap = np.concatenate((np.tile(OutputMap[:, 0], (int(np.ceil(BlockSize / 2 / Step)), 1)).T, OutputMap), axis=1)
     return OutputMap</code></pre>
 </details>
 </dd>
@@ -251,9 +253,11 @@ def svmdecision(Xnew,index):
 <dt><strong><code>imIn</code></strong></dt>
 <dd>jpegio struct</dd>
 </dl>
-<p>Returns:
-<br>
-Quality: 0-100 integer</p></div>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Quality</code></dt>
+<dd>0-100 integer</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -265,15 +269,15 @@ Quality: 0-100 integer</p></div>
     Args:
         imIn: jpegio struct
 
-    Returns:        
+    Returns:
         Quality: 0-100 integer
     &#34;&#34;&#34;
-    if(len(imIn.quant_tables)==1):
-        imIn.quant_tables[1]=imIn.quant_tables[0]
-    YQuality=100-(np.sum(imIn.quant_tables[0])-imIn.quant_tables[0][0][0])/63
-    CrCbQuality=100-(np.sum(imIn.quant_tables[1])-imIn.quant_tables[0][0][0])/63
-    Diff=abs(YQuality-CrCbQuality)*0.98
-    Quality=(YQuality+2*CrCbQuality)/3+Diff
+    if(len(imIn.quant_tables) == 1):
+        imIn.quant_tables[1] = imIn.quant_tables[0]
+    YQuality = 100-(np.sum(imIn.quant_tables[0])-imIn.quant_tables[0][0][0])/63
+    CrCbQuality = 100-(np.sum(imIn.quant_tables[1])-imIn.quant_tables[0][0][0])/63
+    Diff = abs(YQuality-CrCbQuality)*0.98
+    Quality = (YQuality+2*CrCbQuality)/3+Diff
     return Quality</code></pre>
 </details>
 </dd>
@@ -281,7 +285,7 @@ Quality: 0-100 integer</p></div>
 <span>def <span class="ident">ExtractFeatures</span></span>(<span>im, c1, c2, ncomp, digitBinsToKeep)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This function extracts a descriptor feature based on the first-digit distribution of DCT coefficients of an image. It is needed by BenfordDQ. </p>
+<div class="desc"><p>This function extracts a descriptor feature based on the first-digit distribution of DCT coefficients of an image. It is needed by BenfordDQ.</p>
 <p>Args:
 c1: first DCT coefficient to be taken into account, DC term included
 c2: final DCT coefficient to be taken into account, DC term included
@@ -296,10 +300,10 @@ digitBinsToKeep: digits for which to keep their frequency</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def ExtractFeatures(im,c1,c2,ncomp,digitBinsToKeep):
+<pre><code class="python">def ExtractFeatures(im, c1, c2, ncomp, digitBinsToKeep):
     &#34;&#34;&#34;
-    This function extracts a descriptor feature based on the first-digit distribution of DCT coefficients of an image. It is needed by BenfordDQ. 
-    
+    This function extracts a descriptor feature based on the first-digit distribution of DCT coefficients of an image. It is needed by BenfordDQ.
+
      Args:
          c1: first DCT coefficient to be taken into account, DC term included
          c2: final DCT coefficient to be taken into account, DC term included
@@ -309,32 +313,33 @@ digitBinsToKeep: digits for which to keep their frequency</p>
     Returns:
          output: Flattened feature vector
     &#34;&#34;&#34;
-    coeffArray=im.coef_arrays[ncomp-1]
-    qtable=im.quant_tables[im.comp_info[ncomp].quant_tbl_no-1]
-    Y=dequantize(coeffArray,qtable)
-    coeff=[1, 9, 2, 3, 10, 17, 25, 18, 11, 4, 5, 12, 19, 26, 33, 41, 34, 27, 20, 13, 6, 7, 14, 21, 28, 35, 42, 49, 57, 50, 43, 36, 29, 22, 15, 8, 16, 23, 30, 37, 44, 51, 58, 59, 52, 45, 38, 31, 24, 32, 39, 46, 53, 60, 61, 54, 47, 40, 48, 55, 62, 63, 56, 64]
-    sizeCA=np.shape(coeffArray)
-    digitHist=np.zeros((c2-c1+1,10))
-    for index in range(c1,c2+1):
-        coeffFreq=np.zeros((int(np.size(coeffArray)/64),))
-        coe=coeff[index-1]
-        k=1
-        start=coe%8
-        if start==0:
-            start=8
-        for l in range(start,sizeCA[1]+1,8):
-            for i in range(int(np.ceil(coe/8)),sizeCA[0],8):
-                coeffFreq[k-1]=Y[i-1,l-1]
-                k+=1
-        NumOfDigits=(np.floor(np.log10(abs(coeffFreq)+0.5))+1)
-        tmp=[10**(i-1) for i in np.array(NumOfDigits)]
-        FirstDigit=np.floor(np.divide(abs(coeffFreq),tmp)).astype(&#34;uint8&#34;)
-        
-        binHist=list(np.arange(0.5,9.5,1))
-        binHist.insert(0,-float(&#39;Inf&#39;))
+    coeffArray = im.coef_arrays[ncomp-1]
+    qtable = im.quant_tables[im.comp_info[ncomp].quant_tbl_no-1]
+    Y = dequantize(coeffArray, qtable)
+    coeff = [1, 9, 2, 3, 10, 17, 25, 18, 11, 4, 5, 12, 19, 26, 33, 41, 34, 27, 20, 13, 6, 7, 14, 21, 28, 35, 42, 49, 57, 50, 43, 36, 29, 22, 15, 8, 16,
+             23, 30, 37, 44, 51, 58, 59, 52, 45, 38, 31, 24, 32, 39, 46, 53, 60, 61, 54, 47, 40, 48, 55, 62, 63, 56, 64]
+    sizeCA = np.shape(coeffArray)
+    digitHist = np.zeros((c2-c1+1, 10))
+    for index in range(c1, c2+1):
+        coeffFreq = np.zeros((int(np.size(coeffArray)/64), ))
+        coe = coeff[index-1]
+        k = 1
+        start = coe % 8
+        if start == 0:
+            start = 8
+        for j in range(start, sizeCA[1]+1, 8):
+            for i in range(int(np.ceil(coe/8)), sizeCA[0], 8):
+                coeffFreq[k-1] = Y[i-1, j-1]
+                k += 1
+        NumOfDigits = (np.floor(np.log10(abs(coeffFreq) + 0.5)) + 1)
+        tmp = [10**(i-1) for i in np.array(NumOfDigits)]
+        FirstDigit = np.floor(np.divide(abs(coeffFreq), tmp)).astype(&#34;uint8&#34;)
+
+        binHist = list(np.arange(0.5, 9.5, 1))
+        binHist.insert(0, -float(&#39;Inf&#39;))
         binHist.append(float(&#39;Inf&#39;))
-        digitHist[index-c1,:]=np.histogram(FirstDigit,binHist)[0]
-    HistToKeep=digitHist[:,digitBinsToKeep]
+        digitHist[index-c1, :] = np.histogram(FirstDigit, binHist)[0]
+    HistToKeep = digitHist[:, digitBinsToKeep]
     return np.ndarray.flatten(HistToKeep)</code></pre>
 </details>
 </dd>
@@ -359,10 +364,10 @@ digitBinsToKeep: digits for which to keep their frequency</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def svmdecision(Xnew,index):
+<pre><code class="python">def svmdecision(Xnew, index):
     &#34;&#34;&#34;
     Uses given index of svm to classify Xnew.
-    
+
     Args:
         Xnew: Array to be classifed
         index: Index of SVM to use to classify
@@ -370,7 +375,7 @@ digitBinsToKeep: digits for which to keep their frequency</p>
     Returns:
         f: 2d array of svm decision output.
     &#34;&#34;&#34;
-    f=np.dot(np.tanh(SupportVector[index] @ np.transpose(Xnew)-1),AlphaHat[index])+bias[index]
+    f = np.dot(np.tanh(SupportVector[index] @ np.transpose(Xnew)-1), AlphaHat[index]) + bias[index]
     return f</code></pre>
 </details>
 </dd>

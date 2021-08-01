@@ -32,10 +32,10 @@ This module provides the NOI2 algorithm
 &#34;&#34;&#34;
 
 import numpy as np
-import numpy.matlib
 import cv2
 from PIL import Image
 from scipy.signal import convolve2d
+
 
 def conv2(x, y, mode=&#39;same&#39;):
     &#34;&#34;&#34;
@@ -54,7 +54,8 @@ def conv2(x, y, mode=&#39;same&#39;):
     &#34;&#34;&#34;
     return np.rot90(convolve2d(np.rot90(x, 2), np.rot90(y, 2), mode=mode), 2)
 
-def GetNoiseMaps_hdd( im, filter_type, filter_size, block_rad ):
+
+def GetNoiseMaps_hdd(im, filter_type, filter_size, block_rad):
     &#34;&#34;&#34;
     Outputs variance estimates for im. Equivalent to GetNoiseMaps_ram
 
@@ -69,22 +70,22 @@ def GetNoiseMaps_hdd( im, filter_type, filter_size, block_rad ):
     TODO:
         * Consider removing the ram function path.
     &#34;&#34;&#34;
-    origT=[65.481/255,128.553/255,24.966/255]
-    Y=origT[0]*im[:,:,2]+origT[1]*im[:,:,1]+origT[2]*im[:,:,0]+16
-    im=np.round(Y)
-    
-    flt = np.ones((filter_size,1))
+    origT = [65.481/255, 128.553/255, 24.966/255]
+    Y = origT[0]*im[:, :, 2]+origT[1]*im[:, :, 1]+origT[2]*im[:, :, 0]+16
+    im = np.round(Y)
+
+    flt = np.ones((filter_size, 1))
     flt = (flt*np.transpose(flt))/(filter_size**2)
-    noiIm = conv2(im,flt,&#39;same&#39;) 
-    
+    noiIm = conv2(im, flt, &#39;same&#39;)
+
     estV_tmp = localNoiVarEstimate_hdd(noiIm, filter_type, filter_size, block_rad)
-    estVSize=tuple(np.round((np.array(np.shape(estV_tmp))+0.1)/4))
-    estV = np.array(Image.fromarray(estV_tmp).resize(np.flip(estVSize).astype(int),resample=Image.BOX))     
-    estV[estV&lt;=0.001]=np.mean(estV)
+    estVSize = tuple(np.round((np.array(np.shape(estV_tmp))+0.1)/4))
+    estV = np.array(Image.fromarray(estV_tmp).resize(np.flip(estVSize).astype(int), resample=Image.BOX))
+    estV[estV &lt;= 0.001] = np.mean(estV)
     return estV
 
 
-def GetNoiseMaps_ram( im, filter_type, filter_size, block_rad ):
+def GetNoiseMaps_ram(im, filter_type, filter_size, block_rad):
     &#34;&#34;&#34;
     Outputs variance estimates for im.
 
@@ -96,24 +97,23 @@ def GetNoiseMaps_ram( im, filter_type, filter_size, block_rad ):
 
     Returns:
         estV: estimated local noise variance
-    &#34;&#34;&#34;    
-    origT=[65.481/255,128.553/255,24.966/255]
-    Y=origT[0]*im[:,:,2]+origT[1]*im[:,:,1]+origT[2]*im[:,:,0]+16
-    im=np.round(Y)
-    
-    flt = np.ones((filter_size,1))
-    flt = (flt*np.transpose(flt))/(filter_size**2)
-    noiIm = conv2(im,flt,&#39;same&#39;)
-    
-    estV_tmp = localNoiVarEstimate_hdd(noiIm, filter_type, filter_size, block_rad)
-    
-    estV = imresize(single(estV_tmp),np.round(np.size(estV_tmp)/4),&#39;method&#39;,&#39;box&#39;)  
+    &#34;&#34;&#34;
+    origT = [65.481/255, 128.553/255, 24.966/255]
+    Y = origT[0]*im[:, :, 2]+origT[1]*im[:, :, 1]+origT[2]*im[:, :, 0]+16
+    im = np.round(Y)
 
-    estV[estV&lt;=0.001]=np.mean(estV)
+    flt = np.ones((filter_size, 1))
+    flt = (flt*np.transpose(flt))/(filter_size**2)
+    noiIm = conv2(im, flt, &#39;same&#39;)
+
+    estV_tmp = localNoiVarEstimate_hdd(noiIm, filter_type, filter_size, block_rad)
+    estV = np.imresize(estV_tmp, np.round(np.size(estV_tmp)/4), &#39;method&#39;, &#39;box&#39;)
+    estV[estV &lt;= 0.001] = np.mean(estV)
 
     return estV
 
-def block_avg(X,d,pad=&#39;zero&#39;): 
+
+def block_avg(X, d, pad=&#39;zero&#39;):
     &#34;&#34;&#34;
     Computes the avg of elements for all overlapping dxd windows in data X, where d = 2*rad+1.
 
@@ -125,105 +125,107 @@ def block_avg(X,d,pad=&#39;zero&#39;):
     Returns:
         Y: sum of elements for all overlapping dxd windows
     &#34;&#34;&#34;
-    [nx,ny,ns] = np.shape(X)
-    if d &lt; 0 or d != np.floor(d) or d &gt;= min(nx,ny):
+    [nx, ny, ns] = np.shape(X)
+    if d &lt; 0 or d != np.floor(d) or d &gt;= min(nx, ny):
         return
-    wd = 2*d+1 # size of the sliding window
 
-    Y = np.zeros((nx+wd,ny+wd,ns),&#39;single&#39;)
-    Y[d+1:nx+d+1,d+1:ny+d+1,:] = X 
+    wd = 2*d+1  # size of the sliding window
+
+    Y = np.zeros((nx+wd, ny+wd, ns), &#39;single&#39;)
+    Y[d+1:nx+d+1, d+1:ny+d+1, :] = X
 
     # padding boundary
     if pad[0:2] != &#39;ze&#39;:
+        # padding by mirroring
         if pad[0:2] == &#39;mi&#39;:
-    # padding by mirroring
-        # mirroring top
-            Y[1:d+1,:,:] = np.flip(Y[d+2:wd+1,:,:],axis=0)
+            # mirroring top
+            Y[1:d+1, :, :] = np.flip(Y[d+2:wd+1, :, :], axis=0)
             # mirroring bottom
-            Y[nx+d+1:,:,:] = np.flip(Y[nx:nx+d,:,:],axis=0)
+            Y[nx+d+1:, :, :] = np.flip(Y[nx:nx+d, :, :], axis=0)
             # mirroring left
-            Y[:,1:d+1,:] = np.flip(Y[:,d+2:wd+1,:],axis=1)
+            Y[:, 1:d+1, :] = np.flip(Y[:, d+2:wd+1, :], axis=1)
             # mirroring right
-            Y[:,ny+d+1:,:] = np.flip(Y[:,ny:ny+d,:],axis=1)
+            Y[:, ny+d+1:, :] = np.flip(Y[:, ny:ny+d, :], axis=1)
         else:
             return
-    
+
     # forming integral image
-    Y = np.cumsum(np.cumsum(Y,0),1)
+    Y = np.cumsum(np.cumsum(Y, 0), 1)
 
     # computing block sums
-    Y = Y[wd:,wd:,:]+Y[:-wd,:-wd,:] - Y[wd:,:-wd,:]-Y[:-wd,wd:,:]
-    Y /=(wd*wd)
-    return Y 
+    Y = Y[wd:, wd:, :]+Y[:-wd, :-wd, :] - Y[wd:, :-wd, :]-Y[:-wd, wd:, :]
+    Y /= (wd*wd)
+    return Y
 
-def dct2mtx(n,order): 
+
+def dct2mtx(n, order):
     &#34;&#34;&#34;
     Generates matrices corresponding to 2D-DCT transform.
 
     Args:
         N: size of 2D-DCT basis (N x N)
         ord: order of the obtained DCT basis
-    
+
     Returns:
         mtx: 3D matrices of dimension (NxNxN^2)
     &#34;&#34;&#34;
-    (cc,rr) = np.meshgrid(range(n),range(n))
+    (cc, rr) = np.meshgrid(range(n), range(n))
 
     c = np.sqrt(2 / n) * np.cos(np.pi * (2*cc + 1) * rr / (2 * n))
-    c[0,:] = c[0,:] / np.sqrt(2)
-    if order[:2]==&#39;gr&#39;:
-        order = np.reshape(range(n**2),(n,n),order=&#39;F&#39;)
-    elif order[:2]==&#39;sn&#39;: # not exactly snake code,but close
+    c[0, :] = c[0, :] / np.sqrt(2)
+    if order[:2] == &#39;gr&#39;:
+        order = np.reshape(range(n**2), (n, n), order=&#39;F&#39;)
+    elif order[:2] == &#39;sn&#39;:  # not exactly snake code,but close
         temp = cc+rr
         idx = np.argsort(np.ndarray.flatten(temp))
-        order = np.reshape(idx,(n,n),order=&#39;F&#39;)
+        order = np.reshape(idx, (n, n), order=&#39;F&#39;)
 
-    mtx = np.zeros((n,n,n*n))
+    mtx = np.zeros((n, n, n*n))
     for i in range(n):
         for j in range(n):
-            mtx[:,:,order[i,j]] = np.outer(c[i,:],c[j,:])
+            mtx[:, :, order[i, j]] = np.outer(c[i, :], c[j, :])
 
     return mtx
 
-def haar2mtx(n): 
+
+def haar2mtx(n):
     &#34;&#34;&#34;
     Generates haar filter of size (n,n,n**2).
-    
+
     Args:
-        n: Positive integer. 
+        n: Positive integer.
 
     Returns:
         mtx: nxn filter array.
     &#34;&#34;&#34;
-    Level=int(np.log2(n))
-    if 2**Level&lt;n:
+    Level = int(np.log2(n))
+    if 2**Level &lt; n:
         print(&#34;input parameter has to be the power of 2&#34;)
         return
 
-    #Initialization
-    c=np.ones((1,1))
-    NC=1/np.sqrt(2) #normalization constant
-    LP=[1, 1]
-    HP=[1, -1]
+    # Initialization
+    c = np.ones((1, 1))
+    NC = 1/np.sqrt(2)  # normalization constant
+    LP = [1, 1]
+    HP = [1, -1]
 
-    # iteration from H=[1] 
-    for i in range(0,Level):
-        c = NC*np.concatenate((np.kron(c,LP),np.kron(np.eye(np.shape(c)[0],np.shape(c)[1]),HP)))
+    # iteration from H=[1]
+    for i in range(0, Level):
+        c = NC*np.concatenate((np.kron(c, LP), np.kron(np.eye(np.shape(c)[0], np.shape(c)[1]), HP)))
 
-    mtx = np.zeros((n,n,n*n))
+    mtx = np.zeros((n, n, n*n))
     k = 0
     for i in range(n):
         for j in range(n):
-            mtx[:,:,k] = np.outer(c[i,:],c[j,:])
-            k+=1
+            mtx[:, :, k] = np.outer(c[i, :], c[j, :])
+            k += 1
     return mtx
 
 
-
-def localNoiVarEstimate_hdd(noi,ft,fz,br):
+def localNoiVarEstimate_hdd(noi, ft, fz, br):
     &#34;&#34;&#34;
     Computes local noise variance estimation using kurtosis.
-    
+
     Args:
         noisyIm: input noisy image
         filter_type: the type of band-pass filter used supported types, &#34;dct&#34;, &#34;haar&#34;, &#34;rand&#34;
@@ -234,7 +236,7 @@ def localNoiVarEstimate_hdd(noi,ft,fz,br):
         estVar: estimated local noise variance
      &#34;&#34;&#34;
     if ft == &#39;dct&#39;:
-        fltrs = dct2mtx(fz,&#39;snake&#39;)
+        fltrs = dct2mtx(fz, &#39;snake&#39;)
     elif ft == &#39;haar&#39;:
         fltrs = haar2mtx(fz)
     elif ft == &#39;rand&#39;:
@@ -242,36 +244,36 @@ def localNoiVarEstimate_hdd(noi,ft,fz,br):
     else:
         return 0
     # decompose into channels
-    ch = np.zeros([np.shape(noi)[0],np.shape(noi)[1],fz*fz-1],&#39;single&#39;)
-    for k in range(1,fz**2):
-        ch[:,:,k-1] = conv2(noi,fltrs[:,:,k],&#39;same&#39;)
+    ch = np.zeros([np.shape(noi)[0], np.shape(noi)[1], fz*fz-1], &#39;single&#39;)
+    for k in range(1, fz**2):
+        ch[:, :, k-1] = conv2(noi, fltrs[:, :, k], &#39;same&#39;)
     # collect raw moments
-    blksz = (2*br+1)*(2*br+1)
-    mu1 = block_avg(ch,br,&#39;mi&#39;)
-    mu2 = block_avg(ch**2,br,&#39;mi&#39;);
-    mu3 = block_avg(ch**3,br,&#39;mi&#39;);
-    mu4 = block_avg(ch**4,br,&#39;mi&#39;);
-    Factor34=mu4 - 4*mu1*mu3;
+    mu1 = block_avg(ch, br, &#39;mi&#39;)
+    mu2 = block_avg(ch**2, br, &#39;mi&#39;)
+    mu3 = block_avg(ch**3, br, &#39;mi&#39;)
+    mu4 = block_avg(ch**4, br, &#39;mi&#39;)
+    Factor34 = mu4 - 4*mu1*mu3
     noiV = mu2 - mu1**2
-    with np.errstate(invalid=&#39;ignore&#39;,divide=&#39;ignore&#39;,over=&#39;ignore&#39;):
+    with np.errstate(invalid=&#39;ignore&#39;, divide=&#39;ignore&#39;, over=&#39;ignore&#39;):
         noiK = (Factor34 + 6*mu1**2*mu2 - 3*mu1**4)/(noiV**2)-3
-        noiK[noiK&lt;0]=0
-        a = np.mean(np.sqrt(noiK),2)
-        b = np.mean(1/noiV,2)
-        c = np.mean(1/noiV**2,2)
-        d = np.mean(np.sqrt(noiK)/noiV,2)
+        noiK[noiK &lt; 0] = 0
+        a = np.mean(np.sqrt(noiK), 2)
+        b = np.mean(1/noiV, 2)
+        c = np.mean(1/noiV**2, 2)
+        d = np.mean(np.sqrt(noiK)/noiV, 2)
 
         sqrtK = (a*c - b*d)/(c-b*b)
-        V=(1-a/sqrtK)/b
-        V=V.astype(&#34;single&#34;)
-    
-        idx = sqrtK&lt;np.median(sqrtK)
+        V = (1-a/sqrtK)/b
+        V = V.astype(&#34;single&#34;)
+
+        idx = sqrtK &lt; np.median(sqrtK)
         V[idx] = 1/b[idx]
-        idx = V&lt;0
+        idx = V &lt; 0
         V[idx] = 1/b[idx]
     return V
 
-def rnd2mtx(n): 
+
+def rnd2mtx(n):
     &#34;&#34;&#34;
      Generates matrices corresponding to random orthnormal transform.
 
@@ -281,26 +283,26 @@ def rnd2mtx(n):
      Returns:
         mtx: 3D matrices of dimension (NxNxN^2)
     &#34;&#34;&#34;
-    X=np.random.randn(n,n)
-    X -= np.matlib.repmat(np.mean(X,0),n,1)
-    X /=np.matlib.repmat(np.sqrt(np.sum(X**2,0)),n,1)
+    X = np.random.randn(n, n)
+    X -= np.tile(np.mean(X, 0), (n, 1))
+    X /= np.tile(np.sqrt(np.sum(X**2, 0)), (n, 1))
 
-    mtx = np.zeros((n,n,n*n))
-    k = 0 
+    mtx = np.zeros((n, n, n*n))
+    k = 0
     for i in range(n):
         for j in range(n):
-            mtx[:,:,k] = np.outer(X[:,i],np.transpose(X[:,j]))
-            k+=1
+            mtx[:, :, k] = np.outer(X[:, i], np.transpose(X[:, j]))
+            k += 1
     return mtx
 
 
 def GetNoiseMaps(impath, sizeThreshold=55*(2**5), filter_type=&#39;rand&#39;, filter_size=4, block_rad=8):
     &#34;&#34;&#34;
-    Main driver for NOI2 algorithm. 
+    Main driver for NOI2 algorithm.
 
     Args:
         impath:
-        sizeThreshold (optional, default=55*25): 
+        sizeThreshold (optional, default=55*25):
         filter_type (optional, default=&#39;rand&#39;):
         filter_size (optional, default=4):
         block_rad (optional, default=8):
@@ -309,13 +311,13 @@ def GetNoiseMaps(impath, sizeThreshold=55*(2**5), filter_type=&#39;rand&#39;, fi
         estV: Equivalent to OutputMap
 
     &#34;&#34;&#34;
-    im=cv2.imread(impath)
-    size=np.prod(np.shape(im))
-    if size&gt;sizeThreshold:
-        estV = GetNoiseMaps_hdd( im, filter_type, filter_size, block_rad )
+    im = cv2.imread(impath)
+    size = np.prod(np.shape(im))
+    if size &gt; sizeThreshold:
+        estV = GetNoiseMaps_hdd(im, filter_type, filter_size, block_rad)
     else:
-        estV = GetNoiseMaps_ram( im, filter_type, filter_size, block_rad )
-    estV=np.nan_to_num(estV,posinf=0,neginf=0)
+        estV = GetNoiseMaps_ram(im, filter_type, filter_size, block_rad)
+    estV = np.nan_to_num(estV, posinf=0, neginf=0)
     return estV</code></pre>
 </details>
 </section>
@@ -330,7 +332,7 @@ def GetNoiseMaps(impath, sizeThreshold=55*(2**5), filter_type=&#39;rand&#39;, fi
 <span>def <span class="ident">GetNoiseMaps</span></span>(<span>impath, sizeThreshold=1760, filter_type='rand', filter_size=4, block_rad=8)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Main driver for NOI2 algorithm. </p>
+<div class="desc"><p>Main driver for NOI2 algorithm.</p>
 <h2 id="args">Args</h2>
 <p>impath:
 sizeThreshold (optional, default=55*25):
@@ -348,11 +350,11 @@ block_rad (optional, default=8):</p>
 </summary>
 <pre><code class="python">def GetNoiseMaps(impath, sizeThreshold=55*(2**5), filter_type=&#39;rand&#39;, filter_size=4, block_rad=8):
     &#34;&#34;&#34;
-    Main driver for NOI2 algorithm. 
+    Main driver for NOI2 algorithm.
 
     Args:
         impath:
-        sizeThreshold (optional, default=55*25): 
+        sizeThreshold (optional, default=55*25):
         filter_type (optional, default=&#39;rand&#39;):
         filter_size (optional, default=4):
         block_rad (optional, default=8):
@@ -361,13 +363,13 @@ block_rad (optional, default=8):</p>
         estV: Equivalent to OutputMap
 
     &#34;&#34;&#34;
-    im=cv2.imread(impath)
-    size=np.prod(np.shape(im))
-    if size&gt;sizeThreshold:
-        estV = GetNoiseMaps_hdd( im, filter_type, filter_size, block_rad )
+    im = cv2.imread(impath)
+    size = np.prod(np.shape(im))
+    if size &gt; sizeThreshold:
+        estV = GetNoiseMaps_hdd(im, filter_type, filter_size, block_rad)
     else:
-        estV = GetNoiseMaps_ram( im, filter_type, filter_size, block_rad )
-    estV=np.nan_to_num(estV,posinf=0,neginf=0)
+        estV = GetNoiseMaps_ram(im, filter_type, filter_size, block_rad)
+    estV = np.nan_to_num(estV, posinf=0, neginf=0)
     return estV</code></pre>
 </details>
 </dd>
@@ -400,7 +402,7 @@ block_rad (optional, default=8):</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def GetNoiseMaps_hdd( im, filter_type, filter_size, block_rad ):
+<pre><code class="python">def GetNoiseMaps_hdd(im, filter_type, filter_size, block_rad):
     &#34;&#34;&#34;
     Outputs variance estimates for im. Equivalent to GetNoiseMaps_ram
 
@@ -415,18 +417,18 @@ block_rad (optional, default=8):</p>
     TODO:
         * Consider removing the ram function path.
     &#34;&#34;&#34;
-    origT=[65.481/255,128.553/255,24.966/255]
-    Y=origT[0]*im[:,:,2]+origT[1]*im[:,:,1]+origT[2]*im[:,:,0]+16
-    im=np.round(Y)
-    
-    flt = np.ones((filter_size,1))
+    origT = [65.481/255, 128.553/255, 24.966/255]
+    Y = origT[0]*im[:, :, 2]+origT[1]*im[:, :, 1]+origT[2]*im[:, :, 0]+16
+    im = np.round(Y)
+
+    flt = np.ones((filter_size, 1))
     flt = (flt*np.transpose(flt))/(filter_size**2)
-    noiIm = conv2(im,flt,&#39;same&#39;) 
-    
+    noiIm = conv2(im, flt, &#39;same&#39;)
+
     estV_tmp = localNoiVarEstimate_hdd(noiIm, filter_type, filter_size, block_rad)
-    estVSize=tuple(np.round((np.array(np.shape(estV_tmp))+0.1)/4))
-    estV = np.array(Image.fromarray(estV_tmp).resize(np.flip(estVSize).astype(int),resample=Image.BOX))     
-    estV[estV&lt;=0.001]=np.mean(estV)
+    estVSize = tuple(np.round((np.array(np.shape(estV_tmp))+0.1)/4))
+    estV = np.array(Image.fromarray(estV_tmp).resize(np.flip(estVSize).astype(int), resample=Image.BOX))
+    estV[estV &lt;= 0.001] = np.mean(estV)
     return estV</code></pre>
 </details>
 </dd>
@@ -455,7 +457,7 @@ block_rad (optional, default=8):</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def GetNoiseMaps_ram( im, filter_type, filter_size, block_rad ):
+<pre><code class="python">def GetNoiseMaps_ram(im, filter_type, filter_size, block_rad):
     &#34;&#34;&#34;
     Outputs variance estimates for im.
 
@@ -467,20 +469,18 @@ block_rad (optional, default=8):</p>
 
     Returns:
         estV: estimated local noise variance
-    &#34;&#34;&#34;    
-    origT=[65.481/255,128.553/255,24.966/255]
-    Y=origT[0]*im[:,:,2]+origT[1]*im[:,:,1]+origT[2]*im[:,:,0]+16
-    im=np.round(Y)
-    
-    flt = np.ones((filter_size,1))
-    flt = (flt*np.transpose(flt))/(filter_size**2)
-    noiIm = conv2(im,flt,&#39;same&#39;)
-    
-    estV_tmp = localNoiVarEstimate_hdd(noiIm, filter_type, filter_size, block_rad)
-    
-    estV = imresize(single(estV_tmp),np.round(np.size(estV_tmp)/4),&#39;method&#39;,&#39;box&#39;)  
+    &#34;&#34;&#34;
+    origT = [65.481/255, 128.553/255, 24.966/255]
+    Y = origT[0]*im[:, :, 2]+origT[1]*im[:, :, 1]+origT[2]*im[:, :, 0]+16
+    im = np.round(Y)
 
-    estV[estV&lt;=0.001]=np.mean(estV)
+    flt = np.ones((filter_size, 1))
+    flt = (flt*np.transpose(flt))/(filter_size**2)
+    noiIm = conv2(im, flt, &#39;same&#39;)
+
+    estV_tmp = localNoiVarEstimate_hdd(noiIm, filter_type, filter_size, block_rad)
+    estV = np.imresize(estV_tmp, np.round(np.size(estV_tmp)/4), &#39;method&#39;, &#39;box&#39;)
+    estV[estV &lt;= 0.001] = np.mean(estV)
 
     return estV</code></pre>
 </details>
@@ -507,7 +507,7 @@ block_rad (optional, default=8):</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def block_avg(X,d,pad=&#39;zero&#39;): 
+<pre><code class="python">def block_avg(X, d, pad=&#39;zero&#39;):
     &#34;&#34;&#34;
     Computes the avg of elements for all overlapping dxd windows in data X, where d = 2*rad+1.
 
@@ -519,36 +519,37 @@ block_rad (optional, default=8):</p>
     Returns:
         Y: sum of elements for all overlapping dxd windows
     &#34;&#34;&#34;
-    [nx,ny,ns] = np.shape(X)
-    if d &lt; 0 or d != np.floor(d) or d &gt;= min(nx,ny):
+    [nx, ny, ns] = np.shape(X)
+    if d &lt; 0 or d != np.floor(d) or d &gt;= min(nx, ny):
         return
-    wd = 2*d+1 # size of the sliding window
 
-    Y = np.zeros((nx+wd,ny+wd,ns),&#39;single&#39;)
-    Y[d+1:nx+d+1,d+1:ny+d+1,:] = X 
+    wd = 2*d+1  # size of the sliding window
+
+    Y = np.zeros((nx+wd, ny+wd, ns), &#39;single&#39;)
+    Y[d+1:nx+d+1, d+1:ny+d+1, :] = X
 
     # padding boundary
     if pad[0:2] != &#39;ze&#39;:
+        # padding by mirroring
         if pad[0:2] == &#39;mi&#39;:
-    # padding by mirroring
-        # mirroring top
-            Y[1:d+1,:,:] = np.flip(Y[d+2:wd+1,:,:],axis=0)
+            # mirroring top
+            Y[1:d+1, :, :] = np.flip(Y[d+2:wd+1, :, :], axis=0)
             # mirroring bottom
-            Y[nx+d+1:,:,:] = np.flip(Y[nx:nx+d,:,:],axis=0)
+            Y[nx+d+1:, :, :] = np.flip(Y[nx:nx+d, :, :], axis=0)
             # mirroring left
-            Y[:,1:d+1,:] = np.flip(Y[:,d+2:wd+1,:],axis=1)
+            Y[:, 1:d+1, :] = np.flip(Y[:, d+2:wd+1, :], axis=1)
             # mirroring right
-            Y[:,ny+d+1:,:] = np.flip(Y[:,ny:ny+d,:],axis=1)
+            Y[:, ny+d+1:, :] = np.flip(Y[:, ny:ny+d, :], axis=1)
         else:
             return
-    
+
     # forming integral image
-    Y = np.cumsum(np.cumsum(Y,0),1)
+    Y = np.cumsum(np.cumsum(Y, 0), 1)
 
     # computing block sums
-    Y = Y[wd:,wd:,:]+Y[:-wd,:-wd,:] - Y[wd:,:-wd,:]-Y[:-wd,wd:,:]
-    Y /=(wd*wd)
-    return Y </code></pre>
+    Y = Y[wd:, wd:, :]+Y[:-wd, :-wd, :] - Y[wd:, :-wd, :]-Y[:-wd, wd:, :]
+    Y /= (wd*wd)
+    return Y</code></pre>
 </details>
 </dd>
 <dt id="pyIFD.NOI2.conv2"><code class="name flex">
@@ -613,32 +614,32 @@ block_rad (optional, default=8):</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def dct2mtx(n,order): 
+<pre><code class="python">def dct2mtx(n, order):
     &#34;&#34;&#34;
     Generates matrices corresponding to 2D-DCT transform.
 
     Args:
         N: size of 2D-DCT basis (N x N)
         ord: order of the obtained DCT basis
-    
+
     Returns:
         mtx: 3D matrices of dimension (NxNxN^2)
     &#34;&#34;&#34;
-    (cc,rr) = np.meshgrid(range(n),range(n))
+    (cc, rr) = np.meshgrid(range(n), range(n))
 
     c = np.sqrt(2 / n) * np.cos(np.pi * (2*cc + 1) * rr / (2 * n))
-    c[0,:] = c[0,:] / np.sqrt(2)
-    if order[:2]==&#39;gr&#39;:
-        order = np.reshape(range(n**2),(n,n),order=&#39;F&#39;)
-    elif order[:2]==&#39;sn&#39;: # not exactly snake code,but close
+    c[0, :] = c[0, :] / np.sqrt(2)
+    if order[:2] == &#39;gr&#39;:
+        order = np.reshape(range(n**2), (n, n), order=&#39;F&#39;)
+    elif order[:2] == &#39;sn&#39;:  # not exactly snake code,but close
         temp = cc+rr
         idx = np.argsort(np.ndarray.flatten(temp))
-        order = np.reshape(idx,(n,n),order=&#39;F&#39;)
+        order = np.reshape(idx, (n, n), order=&#39;F&#39;)
 
-    mtx = np.zeros((n,n,n*n))
+    mtx = np.zeros((n, n, n*n))
     for i in range(n):
         for j in range(n):
-            mtx[:,:,order[i,j]] = np.outer(c[i,:],c[j,:])
+            mtx[:, :, order[i, j]] = np.outer(c[i, :], c[j, :])
 
     return mtx</code></pre>
 </details>
@@ -651,7 +652,7 @@ block_rad (optional, default=8):</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>n</code></strong></dt>
-<dd>Positive integer. </dd>
+<dd>Positive integer.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -662,37 +663,37 @@ block_rad (optional, default=8):</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def haar2mtx(n): 
+<pre><code class="python">def haar2mtx(n):
     &#34;&#34;&#34;
     Generates haar filter of size (n,n,n**2).
-    
+
     Args:
-        n: Positive integer. 
+        n: Positive integer.
 
     Returns:
         mtx: nxn filter array.
     &#34;&#34;&#34;
-    Level=int(np.log2(n))
-    if 2**Level&lt;n:
+    Level = int(np.log2(n))
+    if 2**Level &lt; n:
         print(&#34;input parameter has to be the power of 2&#34;)
         return
 
-    #Initialization
-    c=np.ones((1,1))
-    NC=1/np.sqrt(2) #normalization constant
-    LP=[1, 1]
-    HP=[1, -1]
+    # Initialization
+    c = np.ones((1, 1))
+    NC = 1/np.sqrt(2)  # normalization constant
+    LP = [1, 1]
+    HP = [1, -1]
 
-    # iteration from H=[1] 
-    for i in range(0,Level):
-        c = NC*np.concatenate((np.kron(c,LP),np.kron(np.eye(np.shape(c)[0],np.shape(c)[1]),HP)))
+    # iteration from H=[1]
+    for i in range(0, Level):
+        c = NC*np.concatenate((np.kron(c, LP), np.kron(np.eye(np.shape(c)[0], np.shape(c)[1]), HP)))
 
-    mtx = np.zeros((n,n,n*n))
+    mtx = np.zeros((n, n, n*n))
     k = 0
     for i in range(n):
         for j in range(n):
-            mtx[:,:,k] = np.outer(c[i,:],c[j,:])
-            k+=1
+            mtx[:, :, k] = np.outer(c[i, :], c[j, :])
+            k += 1
     return mtx</code></pre>
 </details>
 </dd>
@@ -721,10 +722,10 @@ block_rad (optional, default=8):</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def localNoiVarEstimate_hdd(noi,ft,fz,br):
+<pre><code class="python">def localNoiVarEstimate_hdd(noi, ft, fz, br):
     &#34;&#34;&#34;
     Computes local noise variance estimation using kurtosis.
-    
+
     Args:
         noisyIm: input noisy image
         filter_type: the type of band-pass filter used supported types, &#34;dct&#34;, &#34;haar&#34;, &#34;rand&#34;
@@ -735,7 +736,7 @@ block_rad (optional, default=8):</p>
         estVar: estimated local noise variance
      &#34;&#34;&#34;
     if ft == &#39;dct&#39;:
-        fltrs = dct2mtx(fz,&#39;snake&#39;)
+        fltrs = dct2mtx(fz, &#39;snake&#39;)
     elif ft == &#39;haar&#39;:
         fltrs = haar2mtx(fz)
     elif ft == &#39;rand&#39;:
@@ -743,32 +744,31 @@ block_rad (optional, default=8):</p>
     else:
         return 0
     # decompose into channels
-    ch = np.zeros([np.shape(noi)[0],np.shape(noi)[1],fz*fz-1],&#39;single&#39;)
-    for k in range(1,fz**2):
-        ch[:,:,k-1] = conv2(noi,fltrs[:,:,k],&#39;same&#39;)
+    ch = np.zeros([np.shape(noi)[0], np.shape(noi)[1], fz*fz-1], &#39;single&#39;)
+    for k in range(1, fz**2):
+        ch[:, :, k-1] = conv2(noi, fltrs[:, :, k], &#39;same&#39;)
     # collect raw moments
-    blksz = (2*br+1)*(2*br+1)
-    mu1 = block_avg(ch,br,&#39;mi&#39;)
-    mu2 = block_avg(ch**2,br,&#39;mi&#39;);
-    mu3 = block_avg(ch**3,br,&#39;mi&#39;);
-    mu4 = block_avg(ch**4,br,&#39;mi&#39;);
-    Factor34=mu4 - 4*mu1*mu3;
+    mu1 = block_avg(ch, br, &#39;mi&#39;)
+    mu2 = block_avg(ch**2, br, &#39;mi&#39;)
+    mu3 = block_avg(ch**3, br, &#39;mi&#39;)
+    mu4 = block_avg(ch**4, br, &#39;mi&#39;)
+    Factor34 = mu4 - 4*mu1*mu3
     noiV = mu2 - mu1**2
-    with np.errstate(invalid=&#39;ignore&#39;,divide=&#39;ignore&#39;,over=&#39;ignore&#39;):
+    with np.errstate(invalid=&#39;ignore&#39;, divide=&#39;ignore&#39;, over=&#39;ignore&#39;):
         noiK = (Factor34 + 6*mu1**2*mu2 - 3*mu1**4)/(noiV**2)-3
-        noiK[noiK&lt;0]=0
-        a = np.mean(np.sqrt(noiK),2)
-        b = np.mean(1/noiV,2)
-        c = np.mean(1/noiV**2,2)
-        d = np.mean(np.sqrt(noiK)/noiV,2)
+        noiK[noiK &lt; 0] = 0
+        a = np.mean(np.sqrt(noiK), 2)
+        b = np.mean(1/noiV, 2)
+        c = np.mean(1/noiV**2, 2)
+        d = np.mean(np.sqrt(noiK)/noiV, 2)
 
         sqrtK = (a*c - b*d)/(c-b*b)
-        V=(1-a/sqrtK)/b
-        V=V.astype(&#34;single&#34;)
-    
-        idx = sqrtK&lt;np.median(sqrtK)
+        V = (1-a/sqrtK)/b
+        V = V.astype(&#34;single&#34;)
+
+        idx = sqrtK &lt; np.median(sqrtK)
         V[idx] = 1/b[idx]
-        idx = V&lt;0
+        idx = V &lt; 0
         V[idx] = 1/b[idx]
     return V</code></pre>
 </details>
@@ -792,7 +792,7 @@ block_rad (optional, default=8):</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def rnd2mtx(n): 
+<pre><code class="python">def rnd2mtx(n):
     &#34;&#34;&#34;
      Generates matrices corresponding to random orthnormal transform.
 
@@ -802,16 +802,16 @@ block_rad (optional, default=8):</p>
      Returns:
         mtx: 3D matrices of dimension (NxNxN^2)
     &#34;&#34;&#34;
-    X=np.random.randn(n,n)
-    X -= np.matlib.repmat(np.mean(X,0),n,1)
-    X /=np.matlib.repmat(np.sqrt(np.sum(X**2,0)),n,1)
+    X = np.random.randn(n, n)
+    X -= np.tile(np.mean(X, 0), (n, 1))
+    X /= np.tile(np.sqrt(np.sum(X**2, 0)), (n, 1))
 
-    mtx = np.zeros((n,n,n*n))
-    k = 0 
+    mtx = np.zeros((n, n, n*n))
+    k = 0
     for i in range(n):
         for j in range(n):
-            mtx[:,:,k] = np.outer(X[:,i],np.transpose(X[:,j]))
-            k+=1
+            mtx[:, :, k] = np.outer(X[:, i], np.transpose(X[:, j]))
+            k += 1
     return mtx</code></pre>
 </details>
 </dd>

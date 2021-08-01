@@ -8,6 +8,7 @@ Sub-modules
 * pyIFD.ADQ3
 * pyIFD.BLK
 * pyIFD.CAGI
+* pyIFD.DCT
 * pyIFD.ELA
 * pyIFD.GHOST
 * pyIFD.NOI1

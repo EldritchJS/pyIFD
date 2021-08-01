@@ -62,5 +62,5 @@ Functions
         image: JPEG object. (jpegio struct).
     
     Returns:
-        I: Reconstructed BGR image
+        IRecon: Reconstructed BGR image
         YCbCr: YCbCr image

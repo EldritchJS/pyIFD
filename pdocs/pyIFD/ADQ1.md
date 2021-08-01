@@ -42,5 +42,5 @@ Functions
     Args:
         im:
     
-    Returns: 
+    Returns:
         OutputMap: Heatmap values for detected areas

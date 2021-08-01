@@ -7,10 +7,10 @@ Functions
 
     
 `CAGI(impath)`
-:   Main driver for CAGI algorithm.    
+:   Main driver for CAGI algorithm.
     
     Args:
-        impath: 
+        impath:
     
     Returns:
         Result_CAGI: Equivalent to OutputMap
@@ -95,7 +95,7 @@ Functions
         * Fill this in with proper summary
 
     
-`characterizeblocks(MeanContent2, MeanStrongEdge, V_im, blk_idx, blk_idy, MeanInSpace, diff_Mean_Best_scaled, diff_Mean_Best_scaledInv, sgrid, PossiblePoints, kx, ky)`
+`characterizeblocks(MeanContent2, MeanStrongEdge, V_im, blk_idx, blk_idy, MeanInSpace, diff_Mean_Best_scaled, dmbsi, sgrid, PossiblePoints, kx, ky)`
 :   Fill me in please.
     
     Args:
@@ -106,7 +106,7 @@ Functions
         blk_idy:
         MeanInSpace:
         diff_Mean_Best_scaled:
-        diff_Mean_Best_scaledInv:
+        diff_Mean_Best_scaledInv (dmbsi):
         sgrid:
         PossiblePoints:
         kx:
@@ -129,7 +129,7 @@ Functions
     Returns:
         meansmallAreas:
         meanbigAreas:
-        meanImg: 
+        meanImg:
     
     Todos:
         * Fill this in with proper summary
@@ -182,7 +182,7 @@ Functions
     Args:
         im: Input image
     
-    Returns: 
+    Returns:
         image as double: Converts type of im to double. Scales so elements lie from 0 to 1.
 
     
@@ -200,7 +200,7 @@ Functions
     Returns:
         K:
         Correct:
-        BlockScoreAll: 
+        BlockScoreAll:
     
     Todos:
         * Fill this in with proper summary

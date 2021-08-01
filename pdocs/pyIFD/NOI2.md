@@ -7,11 +7,11 @@ Functions
 
     
 `GetNoiseMaps(impath, sizeThreshold=1760, filter_type='rand', filter_size=4, block_rad=8)`
-:   Main driver for NOI2 algorithm. 
+:   Main driver for NOI2 algorithm.
     
     Args:
         impath:
-        sizeThreshold (optional, default=55*25): 
+        sizeThreshold (optional, default=55*25):
         filter_type (optional, default='rand'):
         filter_size (optional, default=4):
         block_rad (optional, default=8):
@@ -90,7 +90,7 @@ Functions
 :   Generates haar filter of size (n,n,n**2).
     
     Args:
-        n: Positive integer. 
+        n: Positive integer.
     
     Returns:
         mtx: nxn filter array.

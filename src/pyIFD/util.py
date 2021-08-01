@@ -4,6 +4,7 @@ This file provides utility functions for the ADQ modules.
 
 import numpy as np
 import math
+from scipy import signal
 
 
 def vec2im(v, padsize=[0, 0], bsize=None, rows=None, cols=None):
@@ -142,3 +143,26 @@ def dequantize(qcoef, qtable):
 
     coef = vec2im(vec, 0, blksz, r, c)
     return coef
+
+
+def extrema(x):
+    """
+    Gets the local extrema points from a time series. This includes endpoints if necessary.
+    Note that the indices will start counting from 1 to match MatLab.
+
+    Args:
+        x: time series vector
+
+    Returns:
+        imin: indices of XMIN
+    """
+    x = np.asarray(x)
+    imin = signal.argrelextrema(x, np.less)[0]
+    if(x[-1] < x[-2]):  # Check last point
+        imin = np.append(imin, len(x)-1)
+    if(x[0] < x[1]):  # Check first point
+        imin = np.insert(imin, 0, 0)
+    xmin = x[imin]
+    minorder = np.argsort(xmin)
+    imin = imin[minorder]
+    return imin+1

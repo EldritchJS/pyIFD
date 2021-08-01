@@ -1,5 +1,6 @@
 Module pyIFD.NOI4
 =================
+This module provides the NOI4 algorithm
 
 Functions
 ---------
