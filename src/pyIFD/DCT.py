@@ -36,7 +36,7 @@ def hist3d(arr, bins):
 
 def DCT(impath):
     """
-    Main driver for DCT algorithm
+    Main driver for DCT algorithm.
 
     Args:
         impath: Input image path

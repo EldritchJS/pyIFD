@@ -33,6 +33,10 @@ def test_gho():
     assert validate_algo('tests/data/168_image.jpg', 'tests/data/168_GHO.mat', 'GHO', 0.9) is True
 
 
+def test_nadq():
+    assert validate_algo('tests/data/168_image.jpg', 'tests/data/168_NADQ.mat', 'NADQ', 0.9) is True
+
+
 def test_noi1():
     assert validate_algo('tests/data/168_image.jpg', 'tests/data/168_NOI1.mat', 'NOI1', 0.9) is True
 

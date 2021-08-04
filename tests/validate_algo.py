@@ -6,6 +6,7 @@ from pyIFD.CAGI import CAGI
 from pyIFD.DCT import DCT
 from pyIFD.ELA import ELA
 from pyIFD.GHOST import GHOST
+from pyIFD.NADQ import NADQ
 from pyIFD.NOI1 import GetNoiseMap
 from pyIFD.NOI2 import GetNoiseMaps 
 from pyIFD.NOI4 import MedFiltForensics
@@ -174,6 +175,23 @@ def validate_algo(infilename, matfilename, algoname, criteria=0.99):
             print('GHOST: FAIL Similarity: ' + str(sim))
         else:
             print('GHOST: PASS')
+            retVal = True
+
+    elif algoname == 'NADQ':
+        nadqtest = NADQ(infilename)
+        nadqmat = spio.loadmat(matfilename)
+        sim = 0
+
+        try:
+            sim = comp(nadqmat['OutputMap'], nadqtest)
+        except ValueError as e:
+            print(e)
+            return retVal
+
+        if(sim < criteria):
+            print('NADQ: FAIL Similarity: ' + str(sim))
+        else:
+            print('NADQ: PASS')
             retVal = True
 
     elif algoname == 'NOI1':

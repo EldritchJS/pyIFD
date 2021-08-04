@@ -1,9 +1,10 @@
 """
-This file provides utility functions for the ADQ modules.
+This file provides utility functions for pyIFD modules.
 """
 
 import numpy as np
 import math
+import cv2
 from scipy import signal
 
 
@@ -166,3 +167,74 @@ def extrema(x):
     minorder = np.argsort(xmin)
     imin = imin[minorder]
     return imin+1
+
+
+def ibdct(a, n=8):
+    """
+    Performs an inverse discrete cosine transorm on array a with blocks of size nxn.
+    Args:
+        a: Array to be transformed. (2d array)
+        n (optional, default=8): Size of blocks.
+    Returns:
+        b: Output after transform. (2d array)
+    """
+    dctm = bdctmtx(n)
+
+    [v, r, c] = im2vec(a, n)
+    b = vec2im(dctm.T @ v, 0, n, r, c)
+    return b
+
+
+def jpeg_rec(image):
+    """
+    Simulate decompressed JPEG image from JPEG object.
+    Args:
+        image: JPEG object. (jpegio struct).
+    Returns:
+        IRecon: Reconstructed BGR image
+        YCbCr: YCbCr image
+    """
+
+    Y = ibdct(dequantize(image.coef_arrays[0], image.quant_tables[0]))
+    Y += 128
+
+    if(image.image_components == 3):
+        if(len(image.quant_tables) == 1):
+            image.quant_tables[1] = image.quant_tables[0]
+            image.quant_tables[2] = image.quant_tables[0]
+
+        Cb = ibdct(dequantize(image.coef_arrays[1], image.quant_tables[1]))
+        Cr = ibdct(dequantize(image.coef_arrays[2], image.quant_tables[1]))
+
+        [r, c] = np.shape(Y)
+        [rC, cC] = np.shape(Cb)
+
+        if(math.ceil(r/rC) == 2) and (math.ceil(c/cC) == 2):  # 4:2:0
+            kronMat = np.ones((2, 2))
+        elif(math.ceil(r/rC) == 1) and (math.ceil(c/cC) == 4):  # 4:1:1
+            kronMat = np.ones((1, 4))
+        elif(math.ceil(r/rC) == 1) and (math.ceil(c/cC) == 2):  # 4:2:2
+            kronMat = np.ones((1, 4))
+        elif(math.ceil(r/rC) == 1) and (math.ceil(c/cC) == 1):  # 4:4:4
+            kronMat = np.ones((1, 1))
+        elif(math.ceil(r/rC) == 2) and (math.ceil(c/cC) == 1):  # 4:4:0
+            kronMat = np.ones((2, 1))
+        else:
+            raise Exception("Subsampling method not recognized: "+str(np.shape(Y))+" "+str(np.shape(Cr)))
+
+        Cb = np.kron(Cb, kronMat)+128
+        Cr = np.kron(Cr, kronMat)+128
+
+        Cb = Cb[:r, :c]
+        Cr = Cr[:r, :c]
+
+        IRecon = np.zeros((r, c, 3))
+        IRecon[:, :, 0] = (Y+1.402*(Cr-128))
+        IRecon[:, :, 1] = (Y-0.34414*(Cb-128)-0.71414*(Cr-128))
+        IRecon[:, :, 2] = (Y+1.772*(Cb-128))
+        YCbCr = np.concatenate((Y, Cb, Cr), axis=1)
+    else:
+        IRecon = np.tile(Y, [1, 1, 3])
+        YCbCr = cv2.cvtColor(IRecon, cv2.COLOR_BGR2YCR_CB)
+
+    return [IRecon, YCbCr]
