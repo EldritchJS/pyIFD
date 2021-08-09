@@ -21,6 +21,14 @@ def test_cagi():
     assert validate_algo('tests/data/168_image.jpg', 'tests/data/168_CAGI.mat', 'CAGI', 0.9) is True
 
 
+def test_cfa1():
+    assert validate_algo('tests/data/168_image.jpg', 'tests/data/168_CFA1.mat', 'CFA1', 0.9) is True
+
+
+def test_cfa2():
+    assert validate_algo('tests/data/168_image.jpg', 'tests/data/168_CFA2.mat', 'CFA2', 0.9) is True
+
+
 def test_dct():
     assert validate_algo('tests/data/168_image.jpg', 'tests/data/168_DCT.mat', 'DCT', 0.9) is True
 

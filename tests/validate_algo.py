@@ -3,6 +3,8 @@ from pyIFD.ADQ2 import getJmap
 from pyIFD.ADQ3 import BenfordDQ
 from pyIFD.BLK import GetBlockGrid
 from pyIFD.CAGI import CAGI
+from pyIFD.CFA1 import CFA1
+from pyIFD.CFA2 import CFA2
 from pyIFD.DCT import DCT
 from pyIFD.ELA import ELA
 from pyIFD.GHOST import GHOST
@@ -120,6 +122,41 @@ def validate_algo(infilename, matfilename, algoname, criteria=0.99):
             retVal = False
         else:
             print('CAGI INVERSE: PASS')
+
+    elif algoname == 'CFA1':
+        cfa1test = CFA1(infilename)
+        cfa1mat = spio.loadmat(matfilename)
+        sim = 0
+
+        try:
+            sim = comp(cfa1mat['OutputMap'], cfa1test)
+        except ValueError as e:
+            print(e)
+            return retVal
+
+        if(sim < criteria):
+            print('CFA1: FAIL Similarity: ' + str(sim))
+        else:
+            print('CFA1: PASS')
+            retVal = True
+
+
+    elif algoname == 'CFA2':
+        cfa2test = CFA2(infilename)
+        cfa2mat = spio.loadmat(matfilename)
+        sim = 0
+
+        try:
+            sim = comp(cfa2mat['OutputMap'], cfa2test)
+        except ValueError as e:
+            print(e)
+            return retVal
+
+        if(sim < criteria):
+            print('CFA2: FAIL Similarity: ' + str(sim))
+        else:
+            print('CFA2: PASS')
+            retVal = True
 
     elif algoname == 'DCT':
         dcttest = DCT(infilename)
@@ -271,7 +308,7 @@ def validate_algo(infilename, matfilename, algoname, criteria=0.99):
         print('Unknown algorithm: ' + algoname)
 
     return retVal
-#algorithms = ['ADQ1', 'ADQ2', 'ADQ3', 'BLK', 'CAGI', 'DCT', 'ELA', 'GHO', 'NOI1', 'NOI2', 'NOI4', 'NOI5']
+#algorithms = ['ADQ1', 'ADQ2', 'ADQ3', 'BLK', 'CAGI', 'CFA1', 'CFA2', 'DCT', 'ELA', 'GHO', 'NADQ', 'NOI1', 'NOI2', 'NOI4', 'NOI5']
 algorithms = ['DCT']
 
 
