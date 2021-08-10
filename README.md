@@ -4,7 +4,7 @@
 
 
 ### Generating documentation
-`pdoc3 --force --html -o ./pdocs ./src/pyIFD`
+`pdoc3 --force -o ./pdocs ./src/pyIFD`
 
 ### Running tests
 `pytest`

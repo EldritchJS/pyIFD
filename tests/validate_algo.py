@@ -18,7 +18,8 @@ import scipy.io as spio
 from skimage.metrics import structural_similarity as comp
 import sys
 import os
-
+import argparse
+import logging
 
 def validate_algo(infilename, matfilename, algoname, criteria=0.99):
 
@@ -308,24 +309,89 @@ def validate_algo(infilename, matfilename, algoname, criteria=0.99):
         print('Unknown algorithm: ' + algoname)
 
     return retVal
-#algorithms = ['ADQ1', 'ADQ2', 'ADQ3', 'BLK', 'CAGI', 'CFA1', 'CFA2', 'DCT', 'ELA', 'GHO', 'NADQ', 'NOI1', 'NOI2', 'NOI4', 'NOI5']
-algorithms = ['DCT']
 
 
-def main(argv):
-    for root, dirs, files in os.walk(sys.argv[1]):
-        dirs.sort()
-        for basefilename in sorted(files):
-            imagefilename = os.path.join(root,basefilename)
-            splitimage = os.path.splitext(basefilename)
-            if(splitimage[1] == '.jpg'):
-                matfiledir = sys.argv[2] + '/' + splitimage[0]
-                for algorithm in algorithms:
-                    matfilename = matfiledir + '/' + splitimage[0] + '_' + algorithm + '.mat'
-                    print('Validating image ' + basefilename + ' for algorithm ' + algorithm)
-                    validate_algo(imagefilename, matfilename, algorithm)
+def main(args):
+    if args.rootdircorrect is True:
+        for root, dirs, files in os.walk(args.imagefilesrootdir):
+            dirs.sort()
+            for basefilename in sorted(files):
+                imagefilename = os.path.join(root,basefilename)
+                splitimage = os.path.splitext(basefilename)
+                if(splitimage[1] == '.jpg'):
+                    matfiledir = args.groundtruthfilesrootdir + '/' + splitimage[0]
+                    for algorithm in args.algorithms:
+                        matfilename = matfiledir + '/' + splitimage[0] + '_' + algorithm + '.mat'
+                        print('Validating image ' + basefilename + ' for algorithm ' + algorithm)
+                        validate_algo(imagefilename, matfilename, algorithm)
+    elif args.singlefilecorrect is True:
+        basefilename = os.path.splitext(os.path.realpath(args.imagefilename))[0].split('_')[0]
+        for algorithm in args.algorithms:
+            print('Validating image ' + args.imagefilename + ' for algorithm ' + algorithm)
+            groundtruthfilename = basefilename + '_' + algorithm + '.mat'
+            validate_algo(args.imagefilename, groundtruthfilename, algorithm, args.simcriteria)
 
-# Usage: validate_algo.py <IMAGE FILE BASE DIRECTORY> <MATLAB FILE BASE DIRECTORY> 
 
-if __name__ == "__main__":
-    main(sys.argv[1:])
+def get_arg(env, default):
+    return os.getenv(env) if os.getenv(env, "") != "" else default
+
+
+def parse_args(parser):
+    args = parser.parse_args()
+    args.algorithms = get_arg('PYIFD_ALGORITHMS', args.algorithms).split(',')
+    args.imagefilename = get_arg('PYIFD_IMAGE_FILENAME', args.imagefilename)
+    args.imagefilesrootdir = get_arg('PYIFD_IMAGE_ROOTDIR', args.imagefilesrootdir)
+    args.groundtruthfilesrootdir = get_arg('PYIFD_GROUND_TRUTH_ROOTDIR', args.groundtruthfilesrootdir)
+    args.simcriteria = float(get_arg('PYIFD_SIM_CRITERIA', args.simcriteria))
+    
+    args.singlefilecorrect = args.imagefilename is not None
+    args.rootdircorrect = (args.imagefilesrootdir is not None) and (args.groundtruthfilesrootdir is not None)
+    
+    if args.singlefilecorrect and args.rootdircorrect:
+        logging.warning('Both single file and image/ground truth rootdirs defined. Defaulting to rootdirs')
+    elif (args.singlefilecorrect or args.rootdircorrect) is not True:
+        logging.error('Either imagefilename must be defined or imagefilesrootdir and groundtruthfilesrootdir must be defined')
+        args = None
+
+    return args
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+    logging.info('Starting pyIFD validation')
+    parser = argparse.ArgumentParser(description='Get algorithm list, image filename/root dir, ground truth filename/root dir, for each algorithm process each image and compare with ground truth')
+    parser.add_argument(
+        '--algorithms',
+        help='Comma separated list of algorithms to run, env variable PYIFD_ALGORITHMS',
+        default='All')
+
+    parser.add_argument(
+        '--imagefilename',
+        help='Input image filename, env variable PYIFD_IMAGE_FILENAME',
+        default=None)
+
+    parser.add_argument(
+        '--groundtruthfilename',
+        help='Input image ground truth filename, env variable PYIFD_GROUND_TRUTH_FILENAME',
+        default=None)
+            
+    parser.add_argument(
+        '--imagefilesrootdir',
+        help='Input images root dir which will be searched for images, processing each, env variable PYIFD_IMAGE_ROOTDIR',
+        default=None)
+
+    parser.add_argument(
+        '--groundtruthfilesrootdir',
+        help='Input image ground truth root dir, env variable PYIFD_GROUND_TRUTH_ROOTDIR',
+        default=None)
+
+    parser.add_argument(
+        '--simcriteria',
+        help='Algorithm similarity criteria, env variable PYIFD_SIM_CRITERIA',
+        default=0.99)
+
+    cmdline_args = parse_args(parser)
+    if cmdline_args is not None:
+        logging.info('Starting validation')
+        main(cmdline_args)
+    logging.info('Exiting validation')
