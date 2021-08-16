@@ -29,7 +29,7 @@ def BlockValue(blockData, blk_size):
     """
 
     if np.shape(blockData) != blk_size:
-	blockData=np.pad(blockData, ((0,8-np.shape(blockData)[0]),(0,8-np.shape(blockData)[1])), 'constant', constant_values=(1,1))
+        blockData=np.pad(blockData, ((0,8-np.shape(blockData)[0]),(0,8-np.shape(blockData)[1])), 'constant', constant_values=(1,1))
     Max1 = np.max(np.sum(blockData[1:7, 1:7], 0))  # Inner rows and columns added rowwise
     Min1 = np.min(np.sum(blockData[1:7, (0, 7)], 0))  # First and last columns, inner rows, added rowwise
     Max2 = np.max(np.sum(blockData[1:7, 1:7], 1))  # Inner rows and columns added columnwise
