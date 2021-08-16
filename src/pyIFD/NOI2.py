@@ -1,5 +1,11 @@
 """
 This module provides the NOI2 algorithm
+
+Noise-variance-inconsistency detector, solution 2.
+
+Lyu, Siwei, Xunyu Pan, and Xing Zhang. "Exposing region splicing forgeries
+with blind local noise estimation." International Journal of Computer Vision
+110, no. 2 (2014): 202-221.
 """
 
 import numpy as np

@@ -1,5 +1,12 @@
 """
 This module provides the ADQ3 algorithm
+
+Aligned-double-JPEG-compression-based detector, solution 3.
+
+Amerini, Irene, Rudy Becarelli, Roberto Caldelli, and Andrea Del Mastio.
+"Splicing forgeries localization through the use of first digit features."
+In Information Forensics and Security (WIFS), 2014 IEEE International
+Workshop on, pp. 143-148. IEEE, 2014.
 """
 
 import numpy as np

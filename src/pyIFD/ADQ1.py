@@ -1,5 +1,11 @@
 """
-This module provides the ADQ1 algorithm
+This module provides the ADQ1 module.
+
+Aligned-double-JPEG-compression-based detector, solution 1.
+
+Lin, Zhouchen, Junfeng He, Xiaoou Tang, and Chi-Keung Tang. "Fast, automatic
+and fine-grained tampered JPEG image detection via DCT coefficient analysis."
+Pattern Recognition 42, no. 11 (2009): 2492-2501.
 """
 
 import numpy as np

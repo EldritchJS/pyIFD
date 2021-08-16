@@ -1,6 +1,13 @@
 """
 This module provides the NADQ algorithm
+
+Aligned- and Non-aligned-double-JPEG-compression-based detector.
+
+T.Bianchi, A.Piva, "Image Forgery Localization via Block-Grained
+Analysis of JPEG Artifacts",  IEEE Transactions on Information Forensics &
+Security, vol. 7,  no. 3,  June 2012,  pp. 1003 - 1017.
 """
+
 from pyIFD.util import ibdct, jpeg_rec, bdct, dequantize, ibdct
 from scipy.signal import convolve2d
 from scipy.ndimage import correlate

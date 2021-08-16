@@ -1,5 +1,11 @@
 """
 This module provides the BLK algorithm
+
+JPEG-block-artifact-based detector, solution 1.
+
+Li, Weihai, Yuan Yuan, and Nenghai Yu. "Passive detection of doctored JPEG
+image via block artifact grid extraction." Signal Processing 89, no. 9 (2009):
+1821-1829.
 """
 
 import numpy as np

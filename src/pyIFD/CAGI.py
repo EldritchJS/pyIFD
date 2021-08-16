@@ -1,5 +1,9 @@
 """
 This module provides the CAGI algorithm
+
+JPEG-grid-alignment-abnormality-based detector.
+
+Iakovidou, Chryssanthi, Markos Zampoglou, Symeon Papadopoulos, and Yiannis Kompatsiaris. "Content-aware detection of JPEG grid inconsistencies for intuitive image forensics." Journal of Visual Communication and Image Representation 54 (2018): 155-170.
 """
 
 from PIL import Image

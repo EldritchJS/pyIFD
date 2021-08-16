@@ -1,5 +1,11 @@
 """
 This module provides the NOI5 algorithm
+
+Noise-variance-inconsistency detector, solution 5 (leveraging Principal Component Analysis).
+
+H. Zeng, Y. Zhan, X. Kang, X. Lin, Image splicing localization using PCA-based
+noise level estimation, Multimedia Tools & Applications, 2017.76(4):4783
+http://www.escience.cn/people/Zenghui/index.html
 """
 
 import numpy as np

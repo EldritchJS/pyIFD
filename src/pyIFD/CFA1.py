@@ -1,3 +1,14 @@
+"""
+This module provides the CFA1 Algorithm
+
+Color-filter-array-artifact-based detector, solution 1.
+
+P. Ferrara, T. Bianchi, A. De Rosa and P. Piva,
+"Image Forgery Localization via Fine-Grained Analysis of CFA Artifacts",
+IEEE Transactions on Information Forensics & Security, vol. 7,  no. 5,
+ Oct. 2012 (published online June 2012),  pp. 1566-1577.
+"""
+
 import cv2
 import numpy as np
 from pyIFD.CFA2 import CFATamperDetection_F1
