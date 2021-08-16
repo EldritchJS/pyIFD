@@ -3,6 +3,7 @@ This module provides the CFA2 algorithm
 
 Color-filter-array-artifact-based detector, solution 2.
 
+Based on code from:
 Dirik, Ahmet Emir, and Nasir D. Memon. "Image tamper detection based on
 demosaicing artifacts." In ICIP, pp. 1497-1500. 2009.
 """

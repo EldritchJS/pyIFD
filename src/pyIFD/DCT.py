@@ -3,6 +3,7 @@ This module provides the DCT algorithm
 
 JPEG-block-artifact-based detector, solution 2 (leveraging Discrete Cosine Transforms).
 
+Based on code from:
 Ye, Shuiming, Qibin Sun, and Ee-Chien Chang. "Detecting digital image forgeries
 by measuring inconsistencies of blocking artifact." In Multimedia and Expo, 2007
 IEEE International Conference on, pp. 12-15. IEEE, 2007.

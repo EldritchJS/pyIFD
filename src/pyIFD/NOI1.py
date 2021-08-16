@@ -3,6 +3,7 @@ This module provides the NOI1 algorithm
 
 Noise-variance-inconsistency detector, solution 1.
 
+Based on code from:
 Mahdian, Babak, and Stanislav Saic. "Using noise inconsistencies for blind
 image forensics." Image and Vision Computing 27, no. 10 (2009): 1497-1503.
 """

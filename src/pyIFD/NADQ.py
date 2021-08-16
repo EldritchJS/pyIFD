@@ -3,6 +3,7 @@ This module provides the NADQ algorithm
 
 Aligned- and Non-aligned-double-JPEG-compression-based detector.
 
+Based on code from:
 T.Bianchi, A.Piva, "Image Forgery Localization via Block-Grained
 Analysis of JPEG Artifacts",  IEEE Transactions on Information Forensics &
 Security, vol. 7,  no. 3,  June 2012,  pp. 1003 - 1017.

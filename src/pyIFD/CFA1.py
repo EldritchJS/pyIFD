@@ -3,6 +3,7 @@ This module provides the CFA1 Algorithm
 
 Color-filter-array-artifact-based detector, solution 1.
 
+Based on code from:
 P. Ferrara, T. Bianchi, A. De Rosa and P. Piva,
 "Image Forgery Localization via Fine-Grained Analysis of CFA Artifacts",
 IEEE Transactions on Information Forensics & Security, vol. 7,  no. 5,

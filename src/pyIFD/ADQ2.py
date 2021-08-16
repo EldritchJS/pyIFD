@@ -3,6 +3,7 @@ This module provides the ADQ2 Algorithm
 
 Aligned-double-JPEG-compression-based detector, solution 2.
 
+Based on code from:
 T. Bianchi, A. De Rosa, and A. Piva, "IMPROVED DCT COEFFICIENT ANALYSIS
 FOR FORGERY LOCALIZATION IN JPEG IMAGES", ICASSP 2011, Prague, Czech Republic,
 2011, pp. 2444-2447.

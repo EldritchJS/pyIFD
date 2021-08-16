@@ -3,6 +3,7 @@ This module provides the GHOST algorithm
 
 JPEG-block-artifact-based detector, solution 3 (leveraging JPEG ghosts).
 
+Based on code from:
 Farid, Hany. "Exposing digital forgeries from JPEG ghosts." Information Forensics
 and Security, IEEE Transactions on 4, no. 1 (2009): 154-160.
 """

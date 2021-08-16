@@ -3,6 +3,7 @@ This module provides the NOI4 algorithm
 
 Noise-variance-inconsistency detector, solution 4 (leveraging median filters).
 
+Based on code from:
 https://29a.ch/2015/08/21/noise-analysis-for-image-forensics
 """
 

@@ -3,6 +3,7 @@ This module provides the BLK algorithm
 
 JPEG-block-artifact-based detector, solution 1.
 
+Based on code from:
 Li, Weihai, Yuan Yuan, and Nenghai Yu. "Passive detection of doctored JPEG
 image via block artifact grid extraction." Signal Processing 89, no. 9 (2009):
 1821-1829.
@@ -16,7 +17,7 @@ from PIL import Image
 from numpy.lib.stride_tricks import as_strided as ast
 
 
-def BlockValue(blockData):
+def BlockValue(blockData, blk_size):
     """
     Get the per-block feature of blockData.
 
@@ -26,6 +27,9 @@ def BlockValue(blockData):
     Returns:
         b: A float containing features of blockData
     """
+
+    if np.shape(blockData) != blk_size:
+	blockData=np.pad(blockData, ((0,8-np.shape(blockData)[0]),(0,8-np.shape(blockData)[1])), 'constant', constant_values=(1,1))
     Max1 = np.max(np.sum(blockData[1:7, 1:7], 0))  # Inner rows and columns added rowwise
     Min1 = np.min(np.sum(blockData[1:7, (0, 7)], 0))  # First and last columns, inner rows, added rowwise
     Max2 = np.max(np.sum(blockData[1:7, 1:7], 1))  # Inner rows and columns added columnwise
@@ -67,7 +71,7 @@ def ApplyFunction(M, blk_size=(8, 8)):
 
     for x in range(Blocks.shape[0]):
         for y in range(Blocks.shape[1]):
-            OutputMap[x, y] = BlockValue(Blocks[x, y])
+            OutputMap[x, y] = BlockValue(Blocks[x, y], blk_size)
     return OutputMap
 
 
