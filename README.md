@@ -1,6 +1,6 @@
 ### Authors
 
-The University of Notre Dame Computer Vision Research Laboratory (https://cvrl.nd.edu/) and Red Hat
+The University of Notre Dame Computer Vision Research Laboratory and Red Hat Artificial Intelligence Center of Excellence
 
 
 ### Installation
