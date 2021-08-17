@@ -3,9 +3,11 @@ This module provides the GHOST algorithm
 
 JPEG-block-artifact-based detector, solution 3 (leveraging JPEG ghosts).
 
+Algorithm attribution:
+Farid, Hany. "Exposing digital forgeries from JPEG ghosts." Information Forensics and Security, IEEE Transactions on 4, no. 1 (2009): 154-160.
+
 Based on code from:
-Farid, Hany. "Exposing digital forgeries from JPEG ghosts." Information Forensics
-and Security, IEEE Transactions on 4, no. 1 (2009): 154-160.
+Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluation of splicing localization algorithms for web images. Multimedia Tools and Applications, 76(4), 4801–4834.
 """
 
 from scipy import signal

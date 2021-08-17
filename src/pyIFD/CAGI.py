@@ -3,8 +3,11 @@ This module provides the CAGI algorithm
 
 JPEG-grid-alignment-abnormality-based detector.
 
-Based on code from:
+Algorithm attribution:
 Iakovidou, Chryssanthi, Markos Zampoglou, Symeon Papadopoulos, and Yiannis Kompatsiaris. "Content-aware detection of JPEG grid inconsistencies for intuitive image forensics." Journal of Visual Communication and Image Representation 54 (2018): 155-170.
+
+Based on code from:
+Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluation of splicing localization algorithms for web images. Multimedia Tools and Applications, 76(4), 4801–4834.
 """
 
 from PIL import Image

@@ -3,8 +3,11 @@ This module provides the NOI4 algorithm
 
 Noise-variance-inconsistency detector, solution 4 (leveraging median filters).
 
-Based on code from:
+Algorith attribution:
 https://29a.ch/2015/08/21/noise-analysis-for-image-forensics
+
+Based on code from:
+Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluation of splicing localization algorithms for web images. Multimedia Tools and Applications, 76(4), 4801–4834.
 """
 
 import numpy as np

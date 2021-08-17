@@ -3,10 +3,13 @@ This module provides the ADQ2 Algorithm
 
 Aligned-double-JPEG-compression-based detector, solution 2.
 
-Based on code from:
+Algorithm attribution:
 T. Bianchi, A. De Rosa, and A. Piva, "IMPROVED DCT COEFFICIENT ANALYSIS
 FOR FORGERY LOCALIZATION IN JPEG IMAGES", ICASSP 2011, Prague, Czech Republic,
 2011, pp. 2444-2447.
+
+Based on code from:
+Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluation of splicing localization algorithms for web images. Multimedia Tools and Applications, 76(4), 4801–4834.    
 """
 
 import numpy as np

@@ -3,9 +3,12 @@ This module provides the CFA2 algorithm
 
 Color-filter-array-artifact-based detector, solution 2.
 
-Based on code from:
+Algorithm attribution:
 Dirik, Ahmet Emir, and Nasir D. Memon. "Image tamper detection based on
 demosaicing artifacts." In ICIP, pp. 1497-1500. 2009.
+
+Based on code from:
+Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluation of splicing localization algorithms for web images. Multimedia Tools and Applications, 76(4), 4801–4834.
 """
 
 import numpy as np
