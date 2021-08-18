@@ -13,7 +13,6 @@ Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluati
 """
 
 import numpy as np
-from skimage.color import rgb2ycbcr
 from scipy.ndimage import median_filter
 from scipy.ndimage import convolve
 from PIL import Image
@@ -96,9 +95,8 @@ def GetBlockGrid(impath):
     Todos:
         * Check if all returns necessary
     """
-    im = np.single(cv2.imread(impath))
-    YCbCr = np.double(cv2.cvtColor(im, cv2.COLOR_BGR2YCR_CB))
-    Y = YCbCr[:, :, 0]
+    im = np.double(cv2.imread(impath))
+    Y = 0.299*im[:, :, 0]+0.587*im[:, :, 1]+0.114*im[:, :, 2]
 
     # This thresh is used to remove extremely strong edges:
     # block edges are definitely going to be weak

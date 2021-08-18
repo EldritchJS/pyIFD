@@ -12,7 +12,6 @@ Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluati
 """
 
 import numpy as np
-import numpy.matlib
 from scipy.ndimage import correlate
 from numpy.lib.stride_tricks import as_strided as ast
 import cv2
