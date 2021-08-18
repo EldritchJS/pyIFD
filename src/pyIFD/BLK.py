@@ -95,8 +95,9 @@ def GetBlockGrid(impath):
     Todos:
         * Check if all returns necessary
     """
-    im = np.double(cv2.imread(impath))
-    Y = 0.299*im[:, :, 0]+0.587*im[:, :, 1]+0.114*im[:, :, 2]
+    im = np.single(cv2.imread(impath))
+    YCbCr = np.double(cv2.cvtColor(im, cv2.COLOR_BGR2YCR_CB))
+    Y = YCbCr[:, :, 0]
 
     # This thresh is used to remove extremely strong edges:
     # block edges are definitely going to be weak

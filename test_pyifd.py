@@ -14,7 +14,7 @@ def test_adq3():
 
 
 def test_blk():
-    assert validate_algo('tests/data/168_image.jpg', 'tests/data/168_BLK.mat', 'BLK', 0.9) is True
+    assert validate_algo('tests/data/168_image.jpg', 'tests/data/168_BLK.mat', 'BLK', 0.85) is True
 
 
 def test_cagi():
