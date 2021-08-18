@@ -3,10 +3,13 @@ This module provides the DCT algorithm
 
 JPEG-block-artifact-based detector, solution 2 (leveraging Discrete Cosine Transforms).
 
-Based on code from:
+Algorithm attribution:
 Ye, Shuiming, Qibin Sun, and Ee-Chien Chang. "Detecting digital image forgeries
 by measuring inconsistencies of blocking artifact." In Multimedia and Expo, 2007
 IEEE International Conference on, pp. 12-15. IEEE, 2007.
+
+Based on code from:
+Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluation of splicing localization algorithms for web images. Multimedia Tools and Applications, 76(4), 4801–4834.
 """
 
 import numpy as np

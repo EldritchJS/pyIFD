@@ -3,10 +3,13 @@ This module provides the NOI5 algorithm
 
 Noise-variance-inconsistency detector, solution 5 (leveraging Principal Component Analysis).
 
-Based on code from:
+Algorithm attribution:
 H. Zeng, Y. Zhan, X. Kang, X. Lin, Image splicing localization using PCA-based
 noise level estimation, Multimedia Tools & Applications, 2017.76(4):4783
 http://www.escience.cn/people/Zenghui/index.html
+
+Based on code from:
+Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluation of splicing localization algorithms for web images. Multimedia Tools and Applications, 76(4), 4801–4834.
 """
 
 import numpy as np

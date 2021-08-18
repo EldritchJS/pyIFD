@@ -3,10 +3,14 @@ This module provides the ADQ1 module.
 
 Aligned-double-JPEG-compression-based detector, solution 1.
 
-Based on code from:
+Algorithm attribution:
 Lin, Zhouchen, Junfeng He, Xiaoou Tang, and Chi-Keung Tang. "Fast, automatic
 and fine-grained tampered JPEG image detection via DCT coefficient analysis."
 Pattern Recognition 42, no. 11 (2009): 2492-2501.
+
+
+Based on code from:
+Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluation of splicing localization algorithms for web images. Multimedia Tools and Applications, 76(4), 4801–4834.
 """
 
 import numpy as np

@@ -3,9 +3,12 @@ This module provides the NOI1 algorithm
 
 Noise-variance-inconsistency detector, solution 1.
 
-Based on code from:
+Algorithm attribution:
 Mahdian, Babak, and Stanislav Saic. "Using noise inconsistencies for blind
 image forensics." Image and Vision Computing 27, no. 10 (2009): 1497-1503.
+
+Based on code from:
+Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluation of splicing localization algorithms for web images. Multimedia Tools and Applications, 76(4), 4801–4834.
 """
 
 import numpy as np

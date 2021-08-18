@@ -3,10 +3,13 @@ This module provides the NOI2 algorithm
 
 Noise-variance-inconsistency detector, solution 2.
 
-Based on code from:
+Algorithm attribution:
 Lyu, Siwei, Xunyu Pan, and Xing Zhang. "Exposing region splicing forgeries
 with blind local noise estimation." International Journal of Computer Vision
 110, no. 2 (2014): 202-221.
+
+Based on code from:
+Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluation of splicing localization algorithms for web images. Multimedia Tools and Applications, 76(4), 4801–4834.
 """
 
 import numpy as np

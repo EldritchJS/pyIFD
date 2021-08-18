@@ -3,10 +3,13 @@ This module provides the NADQ algorithm
 
 Aligned- and Non-aligned-double-JPEG-compression-based detector.
 
-Based on code from:
+Algorithm attribution:
 T.Bianchi, A.Piva, "Image Forgery Localization via Block-Grained
 Analysis of JPEG Artifacts",  IEEE Transactions on Information Forensics &
 Security, vol. 7,  no. 3,  June 2012,  pp. 1003 - 1017.
+
+Based on code from:
+Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluation of splicing localization algorithms for web images. Multimedia Tools and Applications, 76(4), 4801–4834.
 """
 
 from pyIFD.util import ibdct, jpeg_rec, bdct, dequantize, ibdct
