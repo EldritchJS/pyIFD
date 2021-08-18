@@ -15,6 +15,7 @@ from scipy.ndimage import median_filter
 from scipy.ndimage import convolve
 from PIL import Image
 from numpy.lib.stride_tricks import as_strided as ast
+import cv2
 
 
 def BlockValue(blockData, blk_size):
@@ -27,7 +28,6 @@ def BlockValue(blockData, blk_size):
     Returns:
         b: A float containing features of blockData
     """
-
     if np.shape(blockData) != blk_size:
         blockData=np.pad(blockData, ((0,8-np.shape(blockData)[0]),(0,8-np.shape(blockData)[1])), 'constant', constant_values=(1,1))
     Max1 = np.max(np.sum(blockData[1:7, 1:7], 0))  # Inner rows and columns added rowwise
@@ -50,7 +50,7 @@ def GetBlockView(A, block=(8, 8)):
     Returns:
         ast(A, shape=shape, strides=strides): 4d array. First two dimensions give the coordinates of the block. Second two dimensions give the block data.
     """
-    shape = (int(np.ceil(A.shape[0] / block[0])), int(np.ceil(A.shape[1] / block[1]))) + block
+    shape = (int(np.floor(A.shape[0] / block[0])), int(np.floor(A.shape[1] / block[1]))) + block
     strides = (block[0]*A.strides[0], block[1]*A.strides[1]) + A.strides
     return ast(A, shape=shape, strides=strides)
 
@@ -66,9 +66,9 @@ def ApplyFunction(M, blk_size=(8, 8)):
     Returns:
         OutputMap:
     """
-    Blocks = GetBlockView(M, block=blk_size)
-    OutputMap = np.zeros((Blocks.shape[0], Blocks.shape[1]))
-
+    Blocks=np.ones((int(np.ceil(np.shape(M)[0]/blk_size[0])), int(np.ceil(np.shape(M)[1]/blk_size[1])), blk_size[0], blk_size[1]))
+    Blocks[:int(np.floor(np.shape(M)[0]/blk_size[0])), :int(np.floor(np.shape(M)[1]/blk_size[1])), :, :] = GetBlockView(M, block=blk_size)
+    OutputMap = np.zeros(np.shape(Blocks)[:2])
     for x in range(Blocks.shape[0]):
         for y in range(Blocks.shape[1]):
             OutputMap[x, y] = BlockValue(Blocks[x, y], blk_size)
@@ -93,10 +93,9 @@ def GetBlockGrid(impath):
     Todos:
         * Check if all returns necessary
     """
-    im = Image.open(impath)
-    YCbCr = np.double(rgb2ycbcr(im))
+    im = np.single(cv2.imread(impath))
+    YCbCr = np.double(cv2.cvtColor(im, cv2.COLOR_BGR2YCR_CB))
     Y = YCbCr[:, :, 0]
-    Y -= 15.937254901960785
 
     # This thresh is used to remove extremely strong edges:
     # block edges are definitely going to be weak
@@ -157,7 +156,6 @@ def GetBlockGrid(impath):
     VertMid = np.median(VertMid, 2)
 
     BlockDiff = HorzMid+VertMid
-
     b = ApplyFunction(BlockDiff, (8, 8))
 
     return [b, eH, HorzMid, eV, VertMid, BlockDiff]

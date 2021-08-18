@@ -11,8 +11,8 @@ IEEE International Conference on, pp. 12-15. IEEE, 2007.
 
 import numpy as np
 import jpegio as jio
-from pyIFD.util import dequantize, extrema
-
+from pyIFD.util import dequantize, extrema, bdct
+import cv2
 
 def matlab_style_gauss2D(shape=(3, 3), sigma=0.5):
     """
@@ -57,11 +57,11 @@ def DCT(impath):
             print('JPEGIO exception: ' + str(e))
             return
     else:
-        print('Only .jpg supported')
+       OutputMap = GetDCTArtifact(cv2.imread(impath), png=True)
     return OutputMap
 
 
-def GetDCTArtifact(im):
+def GetDCTArtifact(im, png=False):
     """
     Determines DCT artifacts.
 
@@ -78,11 +78,20 @@ def GetDCTArtifact(im):
     # Depending on whether im was created using jpeg_read (and thus is a struct)
     # or CleanUpImage(/imread), run a different code block for DCT block
     # extraction
+    if png:
+        im = np.double(im)
+        Y=0.299*im[:, :, 0]+0.587*im[:, :, 1]+0.114*im[:, :, 2]
+        Y = Y[:int(np.floor(np.shape(Y)[0]/8)*8), :int(np.floor(np.shape(Y)[1]/8)*8)]
+        Y -= 128
 
-    Q = im.quant_tables[0]
-    YDCT = im.coef_arrays[0]
-    YDCT = dequantize(YDCT, Q)
-    imSize = np.shape(YDCT)
+        YDCT=np.round(bdct(Y,8))
+        imSize=np.shape(Y)
+    else:
+        Q = im.quant_tables[0]
+        YDCT = im.coef_arrays[0]
+        YDCT = dequantize(YDCT, Q)
+        imSize = np.shape(YDCT)
+
     YDCT_Block = np.reshape(YDCT, (8, round(imSize[0]/8), 8, round(imSize[1]/8)), order='F')
     YDCT_Block = np.transpose(YDCT_Block, [0, 2, 1, 3])
     YDCT_Block = np.reshape(YDCT_Block, (8, 8, round(imSize[0]*imSize[1]/64)), order='F')

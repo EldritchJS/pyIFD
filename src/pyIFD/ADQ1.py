@@ -13,6 +13,7 @@ import numpy as np
 import jpegio as jio
 from scipy.signal import medfilt2d
 from pyIFD.util import bdct
+import matplotlib.image as mpimg
 
 
 def ExtractYDCT(im):
@@ -138,7 +139,7 @@ def detectDQ_JPEG(im):
             P_tampered[:, :, coeffIndex] = P_t/(P_u+P_t)
             P_untampered[:, :, coeffIndex] = P_u/(P_u+P_t)
         else:
-            P_tampered[:, :, coeffIndex] = np.ones((int(np.ceil(np.size(coeffArray, 0)/8)), int(np.ceil(np.size(coeffArray, 1)/8))))*0.5
+            P_tampered[:, :, coeffIndex] = np.ones((int(np.ceil(np.shape(coeffArray)[0]/8)), int(np.ceil(np.shape(coeffArray)[1]/8))))*0.5
             P_untampered[:, :, coeffIndex] = 1-P_tampered[:, :, coeffIndex]
     P_tampered_Overall = np.prod(P_tampered, axis=2)/(np.prod(P_tampered, axis=2)+np.prod(P_untampered, axis=2))
     P_tampered_Overall[np.isnan(P_tampered_Overall)] = 0
@@ -292,7 +293,7 @@ def detectDQ_NonJPEG(im):
             P_tampered[:, :, coeffIndex] = P_t/(P_u+P_t)
             P_untampered[:, :, coeffIndex] = P_u/(P_u+P_t)
         else:
-            P_tampered[:, :, coeffIndex] = np.ones((int(np.ceil(np.size(coeffArray, 1)/8)), int(np.ceil(np.size(coeffArray, 2)/8))))*0.5
+            P_tampered[:, :, coeffIndex] = np.ones((int(np.ceil(np.shape(coeffArray)[0]/8)), int(np.ceil(np.shape(coeffArray)[1]/8))))*0.5
             P_untampered[:, :, coeffIndex] = 1-P_tampered[:, :, coeffIndex]
     P_tampered_Overall = np.prod(P_tampered, axis=2)/(np.prod(P_tampered, axis=2)+np.prod(P_untampered, axis=2))
     P_tampered_Overall[np.isnan(P_tampered_Overall)] = 0
@@ -342,8 +343,7 @@ def detectDQ(impath):
             print('JPEGIO exception: ' + str(e))
             return
     else:
-        print('Only .jpg supported')
-        #    im = mpimg.imread(impath)
-        #    im = np.round(im*255)
-        #    OutputMap = detectDQ_NonJPEG(im)
+           im = mpimg.imread(impath)
+           im = np.round(im*255)
+           OutputMap = detectDQ_NonJPEG(im)
     return OutputMap

@@ -12,6 +12,7 @@ import numpy as np
 from skimage.color import rgb2ycbcr
 from PIL import Image
 from pywt import dwt2
+import cv2
 
 
 def GetNoiseMap(impath, BlockSize=8):
@@ -25,8 +26,8 @@ def GetNoiseMap(impath, BlockSize=8):
     Returns:
         OutputMap:
     """
-    im = Image.open(impath)
-    YCbCr = np.double(rgb2ycbcr(im))
+    im = cv2.imread(impath)
+    YCbCr = np.double(cv2.cvtColor(im, cv2.COLOR_BGR2YCR_CB))
     Y = np.round(YCbCr[:, :, 0])
 
     (cA1, (cH, cV, cD)) = dwt2(Y, 'db8')  # 2d discrete wavelet transform
