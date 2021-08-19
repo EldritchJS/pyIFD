@@ -1,4 +1,4 @@
-## PyIFD - Python-based Image Forgery Detection Toolkit
+## pyIFD - Python-based Image Forgery Detection Toolkit
 As photo-editing tools become more ubiquitous and easier to use, it becomes equally important to detect these manipulations.
 This is especially key when the edits are malicious.
 While toolkits for this purpose exist [1], they are often not well maintained nor easy to integrate and use, besides being written in proprietary programming language.
@@ -11,20 +11,20 @@ New techniques of image forgery detection will soon be added to it.
 
 ### Algorithms
 The toolkit consists of a number of different algorithms (click on each to be taken to a usage page and description).
-- [ADQ1](pdocs/ADQ1.md)
-- [ADQ2](pdocs/ADQ2.md)
-- [ADQ3](pdocs/ADQ3.md)
-- [BLK](pdocs/BLK.md)
-- [CAGI](pdocs/CAGI.md)
-- [CFA1](pdocs/CFA1.md)
-- [DCT](pdocs/DCT.md)
-- [ELA](pdocs/ELA.md)
-- [GHOST](pdocs/GHOST.md)
-- [NADQ](pdocs/NADQ.md)
-- [NOI1](pdocs/NOI1.md)
-- [NOI2](pdocs/NOI2.md)
-- [NOI4](pdocs/NOI4.md)
-- [NOI5](pdocs/NOI5.md)
+- [ADQ1](pdocs/pyIFD/ADQ1.md)
+- [ADQ2](pdocs/pyIFD/ADQ2.md)
+- [ADQ3](pdocs/pyIFD/ADQ3.md)
+- [BLK](pdocs/pyIFD/BLK.md)
+- [CAGI](pdocs/pyIFD/CAGI.md)
+- [CFA1](pdocs/pyIFD/CFA1.md)
+- [DCT](pdocs/pyIFD/DCT.md)
+- [ELA](pdocs/pyIFD/ELA.md)
+- [GHOST](pdocs/pyIFD/GHOST.md)
+- [NADQ](pdocs/pyIFD/NADQ.md)
+- [NOI1](pdocs/pyIFD/NOI1.md)
+- [NOI2](pdocs/pyIFD/NOI2.md)
+- [NOI4](pdocs/pyIFD/NOI4.md)
+- [NOI5](pdocs/pyIFD/NOI5.md)
 
 ### References
 - [ALL](https://link.springer.com/content/pdf/10.1007/s11042-016-3795-2.pdf)
