@@ -147,10 +147,14 @@ def getJmap(impath, ncomp=1, c1=1, c2=15):
     Todos:
         * Check returns necessary
     """
-    try:
-        image = jio.read(impath)
-    except Exception as e:
-        print('JPEGIO exception: ' + str(e))
+    if impath[-4:] == ".jpg":
+        try:
+            image = jio.read(impath)
+        except Exception as e:
+            print('JPEGIO exception: ' + str(e))
+            return
+    else:
+        print("Only .jpg accepted")
         return
     ncomp -= 1  # indexing
     coeffArray = image.coef_arrays[ncomp]

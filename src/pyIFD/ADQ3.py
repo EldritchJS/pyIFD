@@ -34,10 +34,14 @@ def BenfordDQ(impath):
     Returns:
         OutputMap: Output of ADQ3 algorithm (2D array).
     """
-    try:
-        im = jio.read(impath)
-    except Exception as e:
-        print('Exception in JPEGIO read: ' + str(e))
+    if impath[-4:] == '.jpg':
+        try:
+            im = jio.read(impath)
+        except Exception as e:
+            print('Exception in JPEGIO read: ' + str(e))
+            return
+    else:
+        print("Only .jpg accepted.")
         return
     Quality = EstimateJPEGQuality(im)
     QualityInd = int(np.round((Quality-50)/5+1))
