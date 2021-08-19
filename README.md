@@ -1,4 +1,4 @@
-## PyIFD - Python-based Image Forgery Detection Toolkit
+## pyIFD - Python-based Image Forgery Detection Toolkit
 As photo-editing tools become more ubiquitous and easier to use, it becomes equally important to detect these manipulations.
 This is especially key when the edits are malicious.
 While toolkits for this purpose exist [1], they are often not well maintained nor easy to integrate and use, besides being written in proprietary programming language.
