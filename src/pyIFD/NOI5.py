@@ -117,39 +117,58 @@ def PCANoiseLevelEstimator(image, Bsize):
         return y
 
     # ==========================================================================
-    def ComputeBlockInfo(image):
+    def ComputeBlockInfo( image ):
         """
         Summary please.
-
         Args:
             image:
-
         Returns:
-            block_info:
+            block_info
         """
-        block_info = np.zeros((np.shape(image)[0]*np.shape(image)[1], 3))
-        block_count = 0
+        sums=np.zeros((np.shape(image)[0]-M1,np.shape(image)[1]))
+        block_info = np.zeros((np.shape(image)[0]*np.shape(image)[1],3))
+        image2=image**2
+        sums2=np.zeros(np.shape(sums))
+        clipped=np.zeros(np.shape(sums))
+        for x in range(np.shape(image)[0]-M2):
+            for y in range(np.shape(image)[1]):
 
-        for y in range(1, np.shape(image)[0] - M2+1):
-            for x in range(1, np.shape(image)[1] - M1+1):
-                sum1 = 0.0
-                sum2 = 0.0
-                clipped_pixel_count = 0
+                if x == 0:
+                    sums[0,y] = np.sum(image[:M2,y])
+                    sums2[0,y] = np.sum(image2[:M2,y])
+                    clipped[0,y]= np.count_nonzero((image[:M2,y]==0) | (image[:M2,y]==255))
+                else:
+                    sums[x,y] = sums[x-1,y]-image[x-1,y]+image[x+M2-1, y]
+                    sums2[x, y] = sums2[x-1, y] - image2[x-1,y]+image2[x+M2-1, y]
+                    clipped[x, y] = clipped[x-1, y]
+                    if image[x-1, y] in [0,255]:
+                        clipped[x,y]-=1
+                    if image[x+M2-1, y] in [0,255]:
+                        clipped[x,y]+=1
 
-                for by in range(y-1, y + M2 - 1):
-                    for bx in range(x-1, x + M1 - 1):
-                        val = image[by, bx]
-                        sum1 += val
-                        sum2 += val**2
-
-                        if val == 0 or val == 255:
-                            clipped_pixel_count += 1
-                if clipped_pixel_count <= MaxClippedPixelCount:
-                    block_info[block_count, 0] = (sum2 - sum1*sum1/M) / M
-                    block_info[block_count, 1] = x
-                    block_info[block_count, 2] = y
-                    block_count += 1
-        block_info = np.delete(block_info, slice(block_count, np.shape(image)[0]*np.shape(image)[1]), 0)
+        prevsum1=-1
+        prevsum2=-1
+        prevclipped=-1
+        block_count=0
+        for y in range(np.shape(image)[1]-M1):
+            for x in range(np.shape(image)[0]-M2):        
+                if x == 0:
+                    sum1=np.sum(sums[y,:M2])
+                    sum2=np.sum(sums2[y,:M2])
+                    clipped_pixel_count=np.sum(clipped[y,:M2])
+                else:
+                    sum1=prevsum1-sums[y,x-1]+sums[y,x+M2-1]
+                    sum2=prevsum2-sums2[y,x-1]+sums2[y,x+M2-1]
+                    clipped_pixel_count=prevclipped-clipped[y,x-1]+clipped[y,x+M2-1]
+                prevsum1=sum1
+                prevsum2=sum2
+                prevclipped=clipped_pixel_count
+                if clipped_pixel_count <= MaxClippedPixelCount:  
+                    block_info[block_count,0] = (sum2 - sum1*sum1/M) / M
+                    block_info[block_count,1] = x+1
+                    block_info[block_count,2] = y+1
+                    block_count += 1 
+        block_info=np.delete(block_info,slice(block_count,np.shape(image)[0]*np.shape(image)[1]),0)
         return block_info
 
     # ==========================================================================
@@ -308,7 +327,7 @@ def PCANoise(impath):
     B = 64
     imin = cv2.cvtColor(cv2.imread(impath), cv2.COLOR_BGR2GRAY).astype("double")
     [M, N] = np.shape(imin)
-    imin = imin[:int(np.floor(M/B)*B), :int(np.floor(N/B)*B)]
+    imin = np.array(imin[:int(np.floor(M/B)*B), :int(np.floor(N/B)*B)])
     [M, N] = np.shape(imin)
     irange = int(np.floor(M/B))
     jrange = int(np.floor(N/B))
