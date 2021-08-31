@@ -18,7 +18,6 @@ import jpegio as jio
 import os
 from pyIFD.util import dequantize
 
-
 SupportVector = np.load(os.path.join(os.path.dirname(__file__), 'SupportVector.npy'), allow_pickle=True)
 AlphaHat = np.load(os.path.join(os.path.dirname(__file__), 'AlphaHat.npy'), allow_pickle=True)
 bias = np.array([0.10431149, -0.25288239, -0.2689174, 0.39425104, -1.11269764, -1.15730589, -1.18658372, -0.9444815, -3.46445309, -2.9434976])
@@ -62,7 +61,6 @@ def BenfordDQ(impath):
     OutputMap = np.zeros((int(np.ceil(maxX-1)/Step+1), int(np.ceil(maxY-1)/Step+1)))
     if np.shape(im.coef_arrays[0])[0] < BlockSize:
         return 0
-
     for X in range(1, np.shape(YCoef)[0]+1, Step):
         StartX = min(X, np.shape(YCoef)[0]-BlockSize+1)
         for Y in range(1, np.shape(YCoef)[1]+1, Step):
@@ -117,20 +115,16 @@ def ExtractFeatures(im, c1, c2, ncomp, digitBinsToKeep):
     sizeCA = np.shape(coeffArray)
     digitHist = np.zeros((c2-c1+1, 10))
     for index in range(c1, c2+1):
-        coeffFreq = np.zeros((int(np.size(coeffArray)/64), ))
+        coeffFreq = np.zeros((int(np.size(coeffArray)/64)))
         coe = coeff[index-1]
         k = 1
         start = coe % 8
         if start == 0:
             start = 8
-        for j in range(start, sizeCA[1]+1, 8):
-            for i in range(int(np.ceil(coe/8)), sizeCA[0], 8):
-                coeffFreq[k-1] = Y[i-1, j-1]
-                k += 1
+        coeffFreq=np.ndarray.flatten(Y[int(np.ceil(coe/8))-1:sizeCA[0]-1:8, start-1:sizeCA[1]:8], order='F')
         NumOfDigits = (np.floor(np.log10(abs(coeffFreq) + 0.5)) + 1)
         tmp = [10**(i-1) for i in np.array(NumOfDigits)]
         FirstDigit = np.floor(np.divide(abs(coeffFreq), tmp)).astype("uint8")
-
         binHist = list(np.arange(0.5, 9.5, 1))
         binHist.insert(0, -float('Inf'))
         binHist.append(float('Inf'))
