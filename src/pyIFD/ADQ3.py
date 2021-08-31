@@ -115,9 +115,7 @@ def ExtractFeatures(im, c1, c2, ncomp, digitBinsToKeep):
     sizeCA = np.shape(coeffArray)
     digitHist = np.zeros((c2-c1+1, 10))
     for index in range(c1, c2+1):
-        coeffFreq = np.zeros((int(np.size(coeffArray)/64)))
         coe = coeff[index-1]
-        k = 1
         start = coe % 8
         if start == 0:
             start = 8
