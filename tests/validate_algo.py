@@ -43,7 +43,7 @@ def validate_algo(infilename, matfilename, algoname, criteria=0.99):
             retVal = True
 
     elif algoname == 'ADQ2':
-        if infilename[-4:] == ".jpg":
+        if infilename[-4:] != ".jpg":
             print("ADQ2 only takes .jpg inputs")
             return 1
         adq2test = getJmap(infilename)
@@ -63,7 +63,7 @@ def validate_algo(infilename, matfilename, algoname, criteria=0.99):
             retVal = True
 
     elif algoname == 'ADQ3':
-        if infilename[-4:] == ".jpg":
+        if infilename[-4:] != ".jpg":
             print("ADQ3 only takes .jpg inputs")
             return 1
         adq3test = BenfordDQ(infilename)
@@ -222,7 +222,7 @@ def validate_algo(infilename, matfilename, algoname, criteria=0.99):
             retVal = True
 
     elif algoname == 'NADQ':
-        if infilename[-4:] == ".jpg":
+        if infilename[-4:] != ".jpg":
             print("NADQ only takes .jpg inputs")
             return 1
         nadqtest = NADQ(infilename)
