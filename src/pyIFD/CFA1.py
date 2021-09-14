@@ -14,7 +14,7 @@ Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluati
 """
 
 import cv2
-import numpy as np
+import cupy as cp
 from pyIFD.CFA2 import CFATamperDetection_F1
 def CFA1(impath):
     """
@@ -27,8 +27,8 @@ def CFA1(impath):
         OutputMap: CFA1 main output
     """
     bgr = cv2.imread(impath)
-    ImageIn = np.double(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB))
-    toCrop = np.mod(np.shape(ImageIn), 2)
+    ImageIn = cp.double(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB))
+    toCrop = cp.mod(cp.shape(ImageIn), 2)
     if toCrop[0] != 0:
         ImageIn = ImageIn[:-toCrop[0],:,:]
     if toCrop[1] != 0:
@@ -38,15 +38,15 @@ def CFA1(impath):
     return OutputMap
 
 
-from numpy.ma import masked_array as ma
+from cupy.ma import masked_array as ma
 def Feature(sigma, pattern):
-    with np.errstate(divide='ignore', invalid='ignore'):
-        return np.prod(ma(sigma,(1-pattern)))/np.prod(ma(sigma,pattern))
+    with cp.errstate(divide='ignore', invalid='ignore'):
+        return cp.prod(ma(sigma,(1-pattern)))/cp.prod(ma(sigma,pattern))
 
 
 def ApplyFunction(M, pattern, blk_size=(8, 8)):
     """
-    Applies BlockValue function to blocks of input
+    Applies BlockValue function to blocks of icput
 
     Args:
         M: 2d array.
@@ -56,8 +56,8 @@ def ApplyFunction(M, pattern, blk_size=(8, 8)):
         OutputMap:
     """
     Blocks = GetBlockView(M, block=blk_size)
-    OutputMap = np.empty((int(np.ceil(np.shape(M)[0]/blk_size[0])), int(np.ceil(np.shape(M)[1]/blk_size[1]))))
-    OutputMap[:] = np.NaN
+    OutputMap = cp.empty((int(cp.ceil(cp.shape(M)[0]/blk_size[0])), int(cp.ceil(cp.shape(M)[1]/blk_size[1]))))
+    OutputMap[:] = cp.NaN
     for x in range(Blocks.shape[0]):
         for y in range(Blocks.shape[1]):
             OutputMap[x, y] = Feature(Blocks[x, y], pattern)
@@ -66,24 +66,24 @@ def ApplyFunction(M, pattern, blk_size=(8, 8)):
 
 from scipy.ndimage import convolve
 import math
-from numpy.ma import masked_invalid
+from cupy.ma import masked_invalid
 from scipy.ndimage import median_filter
 def prediction(im):
     """
     Predictor with a bilinear kernel.
     """
-    Hpred = np.array([[0, 0.25, 0], [0.25, -1, 0.25], [0, 0.25, 0]], dtype="double")
-    pred_error = convolve(np.double(im), Hpred, mode='nearest')
+    Hpred = cp.array([[0, 0.25, 0], [0.25, -1, 0.25], [0, 0.25, 0]], dtype="double")
+    pred_error = convolve(cp.double(im), Hpred, mode='nearest')
     return pred_error
    
 
 def getVarianceMap(im, Bayer, dim):
 
     # extend pattern over all image
-    pattern = np.kron(np.ones((int(dim[0]/2),int(dim[1]/2))), Bayer)
+    pattern = cp.kron(cp.ones((int(dim[0]/2),int(dim[1]/2))), Bayer)
 
     # separate acquired and interpolate pixels for a 7x7 window
-    mask = np.array([[1, 0, 1, 0, 1, 0, 1],
+    mask = cp.array([[1, 0, 1, 0, 1, 0, 1],
                     [0, 1, 0, 1, 0, 1, 0],
                     [1, 0, 1, 0, 1, 0, 1],
                     [0, 1, 0, 1, 0, 1, 0],
@@ -94,13 +94,13 @@ def getVarianceMap(im, Bayer, dim):
     # gaussian window for mean and variance
     N_window = 7
     sigma = 1   
-    sigrange = np.arange(-np.ceil(sigma*2),np.ceil(sigma*2)+4*sigma/(N_window-1),4*sigma/(N_window-1))
-    x = np.tile(sigrange, (len(sigrange), 1))
-    y = np.tile(sigrange[:, None], (1, len(sigrange)))
-    gaussian_window = (1/(2*math.pi*sigma**2))*np.exp(-0.5*(x**2+y**2)/sigma**2)
+    sigrange = cp.arange(-cp.ceil(sigma*2),cp.ceil(sigma*2)+4*sigma/(N_window-1),4*sigma/(N_window-1))
+    x = cp.tile(sigrange, (len(sigrange), 1))
+    y = cp.tile(sigrange[:, None], (1, len(sigrange)))
+    gaussian_window = (1/(2*math.pi*sigma**2))*cp.exp(-0.5*(x**2+y**2)/sigma**2)
     window = gaussian_window*mask
-    mc = np.sum(window)
-    vc = 1 - (np.sum(window**2))
+    mc = cp.sum(window)
+    vc = 1 - (cp.sum(window**2))
     window_mean = window/mc
     # local variance of acquired pixels
     acquired = im*pattern
@@ -122,10 +122,10 @@ def getFeature(inmap, Bayer, Nb):
 
     # Proposed feature to localize CFA artifacts
 
-    pattern = np.kron(np.ones((int(Nb/2), int(Nb/2))), Bayer)
+    pattern = cp.kron(cp.ones((int(Nb/2), int(Nb/2))), Bayer)
     statistics = ApplyFunction(inmap, pattern, (Nb, Nb))
-    statistics[np.isnan(statistics)] = 1
-    statistics[np.isinf(statistics)] = 0
+    statistics[cp.isnan(statistics)] = 1
+    statistics[cp.isinf(statistics)] = 0
 
     return statistics
 
@@ -137,8 +137,8 @@ def EMGaussianZM(x, tol, max_iter):
 
     # initial guess
     alpha = 0.5
-    mu2 = np.mean(x)
-    v2 = np.var(x)
+    mu2 = cp.mean(x)
+    v2 = cp.var(x)
     v1 = v2/10
 
 
@@ -148,15 +148,15 @@ def EMGaussianZM(x, tol, max_iter):
         alpha_old = alpha
         k += 1
         # expectation
-        f1 = alpha * np.exp(-x**2/2/v1)/math.sqrt(v1)
-        f2 = (1 - alpha) * np.exp(-(x - mu2)**2/2/v2)/math.sqrt(v2)
+        f1 = alpha * cp.exp(-x**2/2/v1)/math.sqrt(v1)
+        f2 = (1 - alpha) * cp.exp(-(x - mu2)**2/2/v2)/math.sqrt(v2)
         alpha1 = f1 / (f1 + f2)
         alpha2 = f2 / (f1 + f2)
         # maximization
-        alpha = np.mean(alpha1)
-        v1 = np.sum(alpha1 * x**2) / np.sum(alpha1)
-        mu2 = np.sum(alpha2 * x) / np.sum(alpha2)
-        v2 = np.sum(alpha2 * (x - mu2)**2) / np.sum(alpha2)
+        alpha = cp.mean(alpha1)
+        v1 = cp.sum(alpha1 * x**2) / cp.sum(alpha1)
+        mu2 = cp.sum(alpha2 * x) / cp.sum(alpha2)
+        v2 = cp.sum(alpha2 * (x - mu2)**2) / cp.sum(alpha2)
 
     # if abs(alpha - alpha_old) > tol:
     #    display('warning: EM algorithm: number of iterations > max_iter');
@@ -175,10 +175,10 @@ def MoGEstimationZM(statistics):
 
     # NaN and Inf management
 
-    statistics[np.isnan(statistics)] = 1
+    statistics[cp.isnan(statistics)] = 1
     statistics[statistics < 0] = 0
-    with np.errstate(divide='ignore'):
-        data = np.log(np.ndarray.flatten(statistics), order='F')
+    with cp.errstate(divide='ignore'):
+        data = cp.log(cp.ndarray.flatten(statistics), order='F')
     data=masked_invalid(data).compressed()
 
     # E/M algorithm
@@ -188,7 +188,7 @@ def MoGEstimationZM(statistics):
     # Estimated model parameters
     mu = [mu2, 0]
 
-    sigma = np.sqrt([v2, v1])
+    sigma = cp.sqrt([v2, v1])
     
     return [mu, sigma]
 
@@ -210,7 +210,7 @@ def loglikelihood(statistics, mu, sigma):
     sigma1=sigma[1]
     sigma2=sigma[0]
     # log likelihood
-    logstat=np.log(statistics)
+    logstat=cp.log(statistics)
     LogLikelihood = math.log(sigma1) - math.log(sigma2) -0.5*((((logstat - mu2)**2)/sigma2**2) - (((logstat - mu1)**2)/sigma1**2))
 
     return LogLikelihood
@@ -224,7 +224,7 @@ def CFAloc(image, Bayer, Nb=8, Ns=1):
     
     im = image[:, :, 1]
     
-    [h, w] = np.shape(im)
+    [h, w] = cp.shape(im)
     dim = [h, w]
     
     # prediction error
@@ -238,22 +238,22 @@ def CFAloc(image, Bayer, Nb=8, Ns=1):
     # GMM parameters estimation
     [mu, sigma] = MoGEstimationZM(stat)
     if sigma[0] == 0 or sigma[1] == 0:
-        return np.zeros(np.shape(stat), dtype='uint8')
+        return cp.zeros(cp.shape(stat), dtype='uint8')
     
     # likelihood map
     loglikelihood_map = loglikelihood(stat, mu, sigma)
     # filtered and cumulated log-likelihood map
     mapLog = median_filter(loglikelihood_map, [Nm, Nm])
-    with np.errstate(over='ignore'):
-        expMap = np.exp(mapLog)
+    with cp.errstate(over='ignore'):
+        expMap = cp.exp(mapLog)
     probMap = 1/(expMap+1)
     
     return probMap
 
 
 
-from numpy.lib.stride_tricks import as_strided as ast
+from cupy.lib.stride_tricks import as_strided as ast
 def GetBlockView(A, block=(8, 8)):
-    shape= (int(np.floor(A.shape[0]/ block[0])), int(np.floor(A.shape[1]/ block[1])))+ block
+    shape= (int(cp.floor(A.shape[0]/ block[0])), int(cp.floor(A.shape[1]/ block[1])))+ block
     strides= (block[0]* A.strides[0], block[1]* A.strides[1])+ A.strides
     return ast(A, shape=shape, strides=strides)

@@ -12,7 +12,7 @@ Based on code from:
 Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluation of splicing localization algorithms for web images. Multimedia Tools and Applications, 76(4), 4801–4834.
 """
 
-import numpy as np
+import cupy as cp
 import cv2
 from PIL import Image
 from scipy.signal import convolve2d
@@ -33,7 +33,7 @@ def conv2(x, y, mode='same'):
     Todos:
         * Sort out return
     """
-    return np.rot90(convolve2d(np.rot90(x, 2), np.rot90(y, 2), mode=mode), 2)
+    return cp.rot90(convolve2d(cp.rot90(x, 2), cp.rot90(y, 2), mode=mode), 2)
 
 
 def GetNoiseMaps_hdd(im, filter_type, filter_size, block_rad):
@@ -53,16 +53,16 @@ def GetNoiseMaps_hdd(im, filter_type, filter_size, block_rad):
     """
     origT = [65.481/255, 128.553/255, 24.966/255]
     Y = origT[0]*im[:, :, 2]+origT[1]*im[:, :, 1]+origT[2]*im[:, :, 0]+16
-    im = np.round(Y)
+    im = cp.round(Y)
 
-    flt = np.ones((filter_size, 1))
-    flt = (flt*np.transpose(flt))/(filter_size**2)
+    flt = cp.ones((filter_size, 1))
+    flt = (flt*cp.transpose(flt))/(filter_size**2)
     noiIm = conv2(im, flt, 'same')
 
     estV_tmp = localNoiVarEstimate_hdd(noiIm, filter_type, filter_size, block_rad)
-    estVSize = tuple(np.round((np.array(np.shape(estV_tmp))+0.1)/4))
-    estV = np.array(Image.fromarray(estV_tmp).resize(np.flip(estVSize).astype(int), resample=Image.BOX))
-    estV[estV <= 0.001] = np.mean(estV)
+    estVSize = tuple(cp.round((cp.array(cp.shape(estV_tmp))+0.1)/4))
+    estV = cp.array(Image.fromarray(estV_tmp).resize(cp.flip(estVSize).astype(int), resample=Image.BOX))
+    estV[estV <= 0.001] = cp.mean(estV)
     return estV
 
 
@@ -81,15 +81,15 @@ def GetNoiseMaps_ram(im, filter_type, filter_size, block_rad):
     """
     origT = [65.481/255, 128.553/255, 24.966/255]
     Y = origT[0]*im[:, :, 2]+origT[1]*im[:, :, 1]+origT[2]*im[:, :, 0]+16
-    im = np.round(Y)
+    im = cp.round(Y)
 
-    flt = np.ones((filter_size, 1))
-    flt = (flt*np.transpose(flt))/(filter_size**2)
+    flt = cp.ones((filter_size, 1))
+    flt = (flt*cp.transpose(flt))/(filter_size**2)
     noiIm = conv2(im, flt, 'same')
 
     estV_tmp = localNoiVarEstimate_hdd(noiIm, filter_type, filter_size, block_rad)
-    estV = np.imresize(estV_tmp, np.round(np.size(estV_tmp)/4), 'method', 'box')
-    estV[estV <= 0.001] = np.mean(estV)
+    estV = cp.imresize(estV_tmp, cp.round(cp.size(estV_tmp)/4), 'method', 'box')
+    estV[estV <= 0.001] = cp.mean(estV)
 
     return estV
 
@@ -106,13 +106,13 @@ def block_avg(X, d, pad='zero'):
     Returns:
         Y: sum of elements for all overlapping dxd windows
     """
-    [nx, ny, ns] = np.shape(X)
-    if d < 0 or d != np.floor(d) or d >= min(nx, ny):
+    [nx, ny, ns] = cp.shape(X)
+    if d < 0 or d != cp.floor(d) or d >= min(nx, ny):
         return
 
     wd = 2*d+1  # size of the sliding window
 
-    Y = np.zeros((nx+wd, ny+wd, ns), 'single')
+    Y = cp.zeros((nx+wd, ny+wd, ns), 'single')
     Y[d+1:nx+d+1, d+1:ny+d+1, :] = X
 
     # padding boundary
@@ -120,18 +120,18 @@ def block_avg(X, d, pad='zero'):
         # padding by mirroring
         if pad[0:2] == 'mi':
             # mirroring top
-            Y[1:d+1, :, :] = np.flip(Y[d+2:wd+1, :, :], axis=0)
+            Y[1:d+1, :, :] = cp.flip(Y[d+2:wd+1, :, :], axis=0)
             # mirroring bottom
-            Y[nx+d+1:, :, :] = np.flip(Y[nx:nx+d, :, :], axis=0)
+            Y[nx+d+1:, :, :] = cp.flip(Y[nx:nx+d, :, :], axis=0)
             # mirroring left
-            Y[:, 1:d+1, :] = np.flip(Y[:, d+2:wd+1, :], axis=1)
+            Y[:, 1:d+1, :] = cp.flip(Y[:, d+2:wd+1, :], axis=1)
             # mirroring right
-            Y[:, ny+d+1:, :] = np.flip(Y[:, ny:ny+d, :], axis=1)
+            Y[:, ny+d+1:, :] = cp.flip(Y[:, ny:ny+d, :], axis=1)
         else:
             return
 
     # forming integral image
-    Y = np.cumsum(np.cumsum(Y, 0), 1)
+    Y = cp.cumsum(cp.cumsum(Y, 0), 1)
 
     # computing block sums
     Y = Y[wd:, wd:, :]+Y[:-wd, :-wd, :] - Y[wd:, :-wd, :]-Y[:-wd, wd:, :]
@@ -150,21 +150,21 @@ def dct2mtx(n, order):
     Returns:
         mtx: 3D matrices of dimension (NxNxN^2)
     """
-    (cc, rr) = np.meshgrid(range(n), range(n))
+    (cc, rr) = cp.meshgrid(range(n), range(n))
 
-    c = np.sqrt(2 / n) * np.cos(np.pi * (2*cc + 1) * rr / (2 * n))
-    c[0, :] = c[0, :] / np.sqrt(2)
+    c = cp.sqrt(2 / n) * cp.cos(cp.pi * (2*cc + 1) * rr / (2 * n))
+    c[0, :] = c[0, :] / cp.sqrt(2)
     if order[:2] == 'gr':
-        order = np.reshape(range(n**2), (n, n), order='F')
+        order = cp.reshape(range(n**2), (n, n), order='F')
     elif order[:2] == 'sn':  # not exactly snake code,but close
         temp = cc+rr
-        idx = np.argsort(np.ndarray.flatten(temp))
-        order = np.reshape(idx, (n, n), order='F')
+        idx = cp.argsort(cp.ndarray.flatten(temp))
+        order = cp.reshape(idx, (n, n), order='F')
 
-    mtx = np.zeros((n, n, n*n))
+    mtx = cp.zeros((n, n, n*n))
     for i in range(n):
         for j in range(n):
-            mtx[:, :, order[i, j]] = np.outer(c[i, :], c[j, :])
+            mtx[:, :, order[i, j]] = cp.outer(c[i, :], c[j, :])
 
     return mtx
 
@@ -179,26 +179,26 @@ def haar2mtx(n):
     Returns:
         mtx: nxn filter array.
     """
-    Level = int(np.log2(n))
+    Level = int(cp.log2(n))
     if 2**Level < n:
-        print("input parameter has to be the power of 2")
+        print("icput parameter has to be the power of 2")
         return
 
     # Initialization
-    c = np.ones((1, 1))
-    NC = 1/np.sqrt(2)  # normalization constant
+    c = cp.ones((1, 1))
+    NC = 1/cp.sqrt(2)  # normalization constant
     LP = [1, 1]
     HP = [1, -1]
 
     # iteration from H=[1]
     for i in range(0, Level):
-        c = NC*np.concatenate((np.kron(c, LP), np.kron(np.eye(np.shape(c)[0], np.shape(c)[1]), HP)))
+        c = NC*cp.concatenate((cp.kron(c, LP), cp.kron(cp.eye(cp.shape(c)[0], cp.shape(c)[1]), HP)))
 
-    mtx = np.zeros((n, n, n*n))
+    mtx = cp.zeros((n, n, n*n))
     k = 0
     for i in range(n):
         for j in range(n):
-            mtx[:, :, k] = np.outer(c[i, :], c[j, :])
+            mtx[:, :, k] = cp.outer(c[i, :], c[j, :])
             k += 1
     return mtx
 
@@ -208,7 +208,7 @@ def localNoiVarEstimate_hdd(noi, ft, fz, br):
     Computes local noise variance estimation using kurtosis.
 
     Args:
-        noisyIm: input noisy image
+        noisyIm: icput noisy image
         filter_type: the type of band-pass filter used supported types, "dct", "haar", "rand"
         filter_size: the size of the support of the filter
         block_rad: the size of the local blocks
@@ -225,7 +225,7 @@ def localNoiVarEstimate_hdd(noi, ft, fz, br):
     else:
         return 0
     # decompose into channels
-    ch = np.zeros([np.shape(noi)[0], np.shape(noi)[1], fz*fz-1], 'single')
+    ch = cp.zeros([cp.shape(noi)[0], cp.shape(noi)[1], fz*fz-1], 'single')
     for k in range(1, fz**2):
         ch[:, :, k-1] = conv2(noi, fltrs[:, :, k], 'same')
     # collect raw moments
@@ -235,19 +235,19 @@ def localNoiVarEstimate_hdd(noi, ft, fz, br):
     mu4 = block_avg(ch**4, br, 'mi')
     Factor34 = mu4 - 4*mu1*mu3
     noiV = mu2 - mu1**2
-    with np.errstate(invalid='ignore', divide='ignore', over='ignore'):
+    with cp.errstate(invalid='ignore', divide='ignore', over='ignore'):
         noiK = (Factor34 + 6*mu1**2*mu2 - 3*mu1**4)/(noiV**2)-3
         noiK[noiK < 0] = 0
-        a = np.mean(np.sqrt(noiK), 2)
-        b = np.mean(1/noiV, 2)
-        c = np.mean(1/noiV**2, 2)
-        d = np.mean(np.sqrt(noiK)/noiV, 2)
+        a = cp.mean(cp.sqrt(noiK), 2)
+        b = cp.mean(1/noiV, 2)
+        c = cp.mean(1/noiV**2, 2)
+        d = cp.mean(cp.sqrt(noiK)/noiV, 2)
 
         sqrtK = (a*c - b*d)/(c-b*b)
         V = (1-a/sqrtK)/b
         V = V.astype("single")
 
-        idx = sqrtK < np.median(sqrtK)
+        idx = sqrtK < cp.median(sqrtK)
         V[idx] = 1/b[idx]
         idx = V < 0
         V[idx] = 1/b[idx]
@@ -264,15 +264,15 @@ def rnd2mtx(n):
      Returns:
         mtx: 3D matrices of dimension (NxNxN^2)
     """
-    X = np.random.randn(n, n)
-    X -= np.tile(np.mean(X, 0), (n, 1))
-    X /= np.tile(np.sqrt(np.sum(X**2, 0)), (n, 1))
+    X = cp.random.randn(n, n)
+    X -= cp.tile(cp.mean(X, 0), (n, 1))
+    X /= cp.tile(cp.sqrt(cp.sum(X**2, 0)), (n, 1))
 
-    mtx = np.zeros((n, n, n*n))
+    mtx = cp.zeros((n, n, n*n))
     k = 0
     for i in range(n):
         for j in range(n):
-            mtx[:, :, k] = np.outer(X[:, i], np.transpose(X[:, j]))
+            mtx[:, :, k] = cp.outer(X[:, i], cp.transpose(X[:, j]))
             k += 1
     return mtx
 
@@ -293,10 +293,10 @@ def GetNoiseMaps(impath, sizeThreshold=55*(2**5), filter_type='rand', filter_siz
 
     """
     im = cv2.imread(impath)
-    size = np.prod(np.shape(im))
+    size = cp.prod(cp.shape(im))
     if size > sizeThreshold:
         estV = GetNoiseMaps_hdd(im, filter_type, filter_size, block_rad)
     else:
         estV = GetNoiseMaps_ram(im, filter_type, filter_size, block_rad)
-    estV = np.nan_to_num(estV, posinf=0, neginf=0)
+    estV = cp.nan_to_num(estV, posinf=0, neginf=0)
     return estV

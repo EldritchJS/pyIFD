@@ -2,7 +2,7 @@
 This file provides utility functions for pyIFD modules.
 """
 
-import numpy as np
+import cupy as cp
 import math
 import cv2
 from scipy import signal
@@ -13,26 +13,26 @@ def vec2im(v, padsize=[0, 0], bsize=None, rows=None, cols=None):
     Converts vector to image.
 
     Args:
-        v: input vector to be converted
+        v: icput vector to be converted
         padsize (optional, default=[0,0]): Must be non-negative integers in a 1x2 array. Padsize dictates the amount of zeros padded for each of the two dimensions.
         bsize (optional, default=None): Block size. It's dimensions must multiply to the number of elements in v.
         rows (optional, default=None): Number of rows for output
         cols (optional, default=None): Number of cols for output
 
     Returns:
-        im: Output image (2d numpy array)
+        im: Output image (2d cupy array)
     """
-    [m, n] = np.shape(v)
+    [m, n] = cp.shape(v)
 
-    padsize = padsize+np.zeros((1, 2), dtype=int)[0]
+    padsize = padsize+cp.zeros((1, 2), dtype=int)[0]
     if(padsize.any() < 0):
         raise Exception("Pad size must not be negative")
     if bsize is None:
         bsize = math.floor(math.sqrt(m))
-    bsize = bsize+np.zeros((1, 2), dtype=int)[0]
+    bsize = bsize+cp.zeros((1, 2), dtype=int)[0]
 
-    if(np.prod(bsize) != m):
-        raise Exception("Block size does not match size of input vectors.")
+    if(cp.prod(bsize) != m):
+        raise Exception("Block size does not match size of icput vectors.")
 
     if rows is None:
         rows = math.floor(math.sqrt(n))
@@ -42,10 +42,10 @@ def vec2im(v, padsize=[0, 0], bsize=None, rows=None, cols=None):
     # make image
     y = bsize[0]+padsize[0]
     x = bsize[1]+padsize[1]
-    t = np.zeros((y, x, rows*cols))
-    t[:bsize[0], :bsize[1], :n] = np.reshape(v, (bsize[0], bsize[1], n), order='F')
-    t = np.reshape(t, (y, x, rows, cols), order='F')
-    t = np.reshape(np.transpose(t, [0, 2, 1, 3]), (y*rows, x*cols), order='F')
+    t = cp.zeros((y, x, rows*cols))
+    t[:bsize[0], :bsize[1], :n] = cp.reshape(v, (bsize[0], bsize[1], n), order='F')
+    t = cp.reshape(t, (y, x, rows, cols), order='F')
+    t = cp.reshape(cp.transpose(t, [0, 2, 1, 3]), (y*rows, x*cols), order='F')
     im = t[:y*rows-padsize[0], :x*cols-padsize[1]]
     return im
 
@@ -55,7 +55,7 @@ def im2vec(im, bsize, padsize=0):
     Converts image to vector.
 
     Args:
-        im: Input image to be converted to a vector.
+        im: Icput image to be converted to a vector.
         bsize: Size of block of im to be converted to vec. Must be 1x2 non-negative int array.
         padsize (optional, default=0): Must be non-negative integers in a 1x2 array. Amount of zeros padded on each
 
@@ -64,23 +64,23 @@ def im2vec(im, bsize, padsize=0):
         rows: Number of rows of im after bsize and padsize are applied (before final flattening to vector).
         cols: Number of cols of im after bsize and padsize are applied (before final flattening to vector).
     """
-    bsize = bsize+np.zeros((1, 2), dtype=int)[0]
-    padsize = padsize+np.zeros((1, 2), dtype=int)[0]
+    bsize = bsize+cp.zeros((1, 2), dtype=int)[0]
+    padsize = padsize+cp.zeros((1, 2), dtype=int)[0]
     if(padsize.any() < 0):
         raise Exception("Pad size must not be negative")
-    imsize = np.shape(im)
+    imsize = cp.shape(im)
     y = bsize[0]+padsize[0]
     x = bsize[1]+padsize[1]
     rows = math.floor((imsize[0]+padsize[0])/y)
     cols = math.floor((imsize[1]+padsize[1])/x)
-    t = np.zeros((y*rows, x*cols))
+    t = cp.zeros((y*rows, x*cols))
     imy = y*rows-padsize[0]
     imx = x*cols-padsize[1]
     t[:imy, :imx] = im[:imy, :imx]
-    t = np.reshape(t, (y, rows, x, cols), order='F')
-    t = np.reshape(np.transpose(t, [0, 2, 1, 3]), (y, x, rows*cols), order='F')
+    t = cp.reshape(t, (y, rows, x, cols), order='F')
+    t = cp.reshape(cp.transpose(t, [0, 2, 1, 3]), (y, x, rows*cols), order='F')
     v = t[:bsize[0], :bsize[1], :rows*cols]
-    v = np.reshape(v, (y*x, rows*cols), order='F')
+    v = cp.reshape(v, (y*x, rows*cols), order='F')
     return [v, rows, cols]
 
 
@@ -94,16 +94,16 @@ def bdctmtx(n):
     Returns:
         m: nxn array to performs dct with.
     """
-    [c, r] = np.meshgrid(range(8), range(8))
-    [c0, r0] = np.meshgrid(r, r)
-    [c1, r1] = np.meshgrid(c, c)
-    x = np.zeros(np.shape(c))
+    [c, r] = cp.meshgrid(range(8), range(8))
+    [c0, r0] = cp.meshgrid(r, r)
+    [c1, r1] = cp.meshgrid(c, c)
+    x = cp.zeros(cp.shape(c))
     for i in range(n):
         for j in range(n):
             x[i, j] = math.sqrt(2/n)*math.cos(math.pi*(2*c[i, j]+1)*r[i, j]/(2*n))
     x[0, :] = x[0, :]/math.sqrt(2)
     x = x.flatten('F')
-    m = np.zeros(np.shape(r0))
+    m = cp.zeros(cp.shape(r0))
     for i in range(n**2):
         for j in range(n**2):
             m[i, j] = x[r0[i, j]+c0[i, j]*n]*x[r1[i, j]+c1[i, j]*n]
@@ -136,11 +136,11 @@ def dequantize(qcoef, qtable):
     Returns:
         coef: Dequantized coef array. Same size as qcoef and qtable.
     """
-    blksz = np.shape(qtable)
+    blksz = cp.shape(qtable)
     [v, r, c] = im2vec(qcoef, blksz)
 
-    flat = np.array(qtable).flatten('F')
-    vec = v*np.tile(flat, (np.shape(v)[1], 1)).T
+    flat = cp.array(qtable).flatten('F')
+    vec = v*cp.tile(flat, (cp.shape(v)[1], 1)).T
 
     coef = vec2im(vec, 0, blksz, r, c)
     return coef
@@ -157,14 +157,14 @@ def extrema(x):
     Returns:
         imin: indices of XMIN
     """
-    x = np.asarray(x)
-    imin = signal.argrelextrema(x, np.less)[0]
+    x = cp.asarray(x)
+    imin = signal.argrelextrema(x, cp.less)[0]
     if(x[-1] < x[-2]):  # Check last point
-        imin = np.append(imin, len(x)-1)
+        imin = cp.append(imin, len(x)-1)
     if(x[0] < x[1]):  # Check first point
-        imin = np.insert(imin, 0, 0)
+        imin = cp.insert(imin, 0, 0)
     xmin = x[imin]
-    minorder = np.argsort(xmin)
+    minorder = cp.argsort(xmin)
     imin = imin[minorder]
     return imin+1
 
@@ -206,35 +206,35 @@ def jpeg_rec(image):
         Cb = ibdct(dequantize(image.coef_arrays[1], image.quant_tables[1]))
         Cr = ibdct(dequantize(image.coef_arrays[2], image.quant_tables[1]))
 
-        [r, c] = np.shape(Y)
-        [rC, cC] = np.shape(Cb)
+        [r, c] = cp.shape(Y)
+        [rC, cC] = cp.shape(Cb)
 
         if(math.ceil(r/rC) == 2) and (math.ceil(c/cC) == 2):  # 4:2:0
-            kronMat = np.ones((2, 2))
+            kronMat = cp.ones((2, 2))
         elif(math.ceil(r/rC) == 1) and (math.ceil(c/cC) == 4):  # 4:1:1
-            kronMat = np.ones((1, 4))
+            kronMat = cp.ones((1, 4))
         elif(math.ceil(r/rC) == 1) and (math.ceil(c/cC) == 2):  # 4:2:2
-            kronMat = np.ones((1, 4))
+            kronMat = cp.ones((1, 4))
         elif(math.ceil(r/rC) == 1) and (math.ceil(c/cC) == 1):  # 4:4:4
-            kronMat = np.ones((1, 1))
+            kronMat = cp.ones((1, 1))
         elif(math.ceil(r/rC) == 2) and (math.ceil(c/cC) == 1):  # 4:4:0
-            kronMat = np.ones((2, 1))
+            kronMat = cp.ones((2, 1))
         else:
-            raise Exception("Subsampling method not recognized: "+str(np.shape(Y))+" "+str(np.shape(Cr)))
+            raise Exception("Subsampling method not recognized: "+str(cp.shape(Y))+" "+str(cp.shape(Cr)))
 
-        Cb = np.kron(Cb, kronMat)+128
-        Cr = np.kron(Cr, kronMat)+128
+        Cb = cp.kron(Cb, kronMat)+128
+        Cr = cp.kron(Cr, kronMat)+128
 
         Cb = Cb[:r, :c]
         Cr = Cr[:r, :c]
 
-        IRecon = np.zeros((r, c, 3))
+        IRecon = cp.zeros((r, c, 3))
         IRecon[:, :, 0] = (Y+1.402*(Cr-128))
         IRecon[:, :, 1] = (Y-0.34414*(Cb-128)-0.71414*(Cr-128))
         IRecon[:, :, 2] = (Y+1.772*(Cb-128))
-        YCbCr = np.concatenate((Y, Cb, Cr), axis=1)
+        YCbCr = cp.concatenate((Y, Cb, Cr), axis=1)
     else:
-        IRecon = np.tile(Y, [1, 1, 3])
+        IRecon = cp.tile(Y, [1, 1, 3])
         YCbCr = cv2.cvtColor(IRecon, cv2.COLOR_BGR2YCR_CB)
 
     return [IRecon, YCbCr]

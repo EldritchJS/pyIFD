@@ -11,7 +11,7 @@ Based on code from:
 Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluation of splicing localization algorithms for web images. Multimedia Tools and Applications, 76(4), 4801–4834.
 """
 
-import numpy as np
+import cupy as cp
 from skimage.color import rgb2ycbcr
 from PIL import Image
 from pywt import dwt2
@@ -30,20 +30,20 @@ def GetNoiseMap(impath, BlockSize=8):
         OutputMap:
     """
     im = cv2.imread(impath)
-    YCbCr = np.double(cv2.cvtColor(im, cv2.COLOR_BGR2YCR_CB))
-    Y = np.round(YCbCr[:, :, 0])
+    YCbCr = cp.double(cv2.cvtColor(im, cv2.COLOR_BGR2YCR_CB))
+    Y = cp.round(YCbCr[:, :, 0])
 
     (cA1, (cH, cV, cD)) = dwt2(Y, 'db8')  # 2d discrete wavelet transform
 
-    cD = cD[:int(np.floor(np.size(cD, 0)/BlockSize)*BlockSize), :int(np.floor(np.size(cD, 1)/BlockSize)*BlockSize)]
+    cD = cD[:int(cp.floor(cp.size(cD, 0)/BlockSize)*BlockSize), :int(cp.floor(cp.size(cD, 1)/BlockSize)*BlockSize)]
 
-    Block = np.zeros((int(np.floor(np.size(cD, 0)/BlockSize)), int(np.floor(np.size(cD, 1)/BlockSize)), BlockSize**2))
+    Block = cp.zeros((int(cp.floor(cp.size(cD, 0)/BlockSize)), int(cp.floor(cp.size(cD, 1)/BlockSize)), BlockSize**2))
 
-    for ii in range(0, np.size(cD, 0)-1, BlockSize):
-        for jj in range(0, np.size(cD, 1)-1, BlockSize):
+    for ii in range(0, cp.size(cD, 0)-1, BlockSize):
+        for jj in range(0, cp.size(cD, 1)-1, BlockSize):
             blockElements = cD[ii:ii+BlockSize, jj:jj+BlockSize]
-            Block[int(ii/BlockSize), int(jj/BlockSize), :] = np.reshape(blockElements, (1, 1, np.size(blockElements)))
+            Block[int(ii/BlockSize), int(jj/BlockSize), :] = cp.reshape(blockElements, (1, 1, cp.size(blockElements)))
 
-    OutputMap = np.median(np.abs(Block), 2)/0.6745
+    OutputMap = cp.median(cp.abs(Block), 2)/0.6745
 
     return OutputMap

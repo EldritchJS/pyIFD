@@ -12,7 +12,7 @@ Based on code from:
 Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluation of splicing localization algorithms for web images. Multimedia Tools and Applications, 76(4), 4801–4834.
 """
 
-import numpy as np
+import cupy as cp
 import jpegio as jio
 from pyIFD.util import dequantize, extrema, bdct
 import cv2
@@ -23,9 +23,9 @@ def matlab_style_gauss2D(shape=(3, 3), sigma=0.5):
     fspecial('gaussian',[shape],[sigma])
     """
     m, n = [(ss-1.)/2. for ss in shape]
-    y, x = np.ogrid[-m:m+1, -n:n+1]
-    h = np.exp(-(x*x + y*y) / (2.*sigma*sigma))
-    h[h < np.finfo(h.dtype).eps*h.max()] = 0
+    y, x = cp.ogrid[-m:m+1, -n:n+1]
+    h = cp.exp(-(x*x + y*y) / (2.*sigma*sigma))
+    h[h < cp.finfo(h.dtype).eps*h.max()] = 0
     sumh = h.sum()
     if sumh != 0:
         h /= sumh
@@ -35,12 +35,12 @@ def matlab_style_gauss2D(shape=(3, 3), sigma=0.5):
 def hist3d(arr, bins):
     """
     """
-    arrs = np.shape(arr)
-    out = np.zeros((arrs[0], arrs[1], len(bins)))
+    arrs = cp.shape(arr)
+    out = cp.zeros((arrs[0], arrs[1], len(bins)))
     for x in range(arrs[0]):
         for y in range(arrs[1]):
-            out[x, y, :-1] = np.histogram(arr[x, y, :], bins)[0]
-            out[x, y, -1] = np.count_nonzero(arr[x, y, :] == bins[-1])
+            out[x, y, :-1] = cp.histogram(arr[x, y, :], bins)[0]
+            out[x, y, -1] = cp.count_nonzero(arr[x, y, :] == bins[-1])
     return out
 
 
@@ -49,7 +49,7 @@ def DCT(impath):
     Main driver for DCT algorithm.
 
     Args:
-        impath: Input image path
+        impath: Icput image path
     Returns:
         OutputMap: OutputMap
     """
@@ -69,7 +69,7 @@ def GetDCTArtifact(im, png=False):
     Determines DCT artifacts.
 
     Args:
-        im: Input image
+        im: Icput image
 
     Returns:
         BMat: OutputMap
@@ -82,27 +82,27 @@ def GetDCTArtifact(im, png=False):
     # or CleanUpImage(/imread), run a different code block for DCT block
     # extraction
     if png:
-        im = np.double(im)
+        im = cp.double(im)
         Y=0.299*im[:, :, 0]+0.587*im[:, :, 1]+0.114*im[:, :, 2]
-        Y = Y[:int(np.floor(np.shape(Y)[0]/8)*8), :int(np.floor(np.shape(Y)[1]/8)*8)]
+        Y = Y[:int(cp.floor(cp.shape(Y)[0]/8)*8), :int(cp.floor(cp.shape(Y)[1]/8)*8)]
         Y -= 128
 
-        YDCT=np.round(bdct(Y,8))
-        imSize=np.shape(Y)
+        YDCT=cp.round(bdct(Y,8))
+        imSize=cp.shape(Y)
     else:
         Q = im.quant_tables[0]
         YDCT = im.coef_arrays[0]
         YDCT = dequantize(YDCT, Q)
-        imSize = np.shape(YDCT)
+        imSize = cp.shape(YDCT)
 
-    YDCT_Block = np.reshape(YDCT, (8, round(imSize[0]/8), 8, round(imSize[1]/8)), order='F')
-    YDCT_Block = np.transpose(YDCT_Block, [0, 2, 1, 3])
-    YDCT_Block = np.reshape(YDCT_Block, (8, 8, round(imSize[0]*imSize[1]/64)), order='F')
+    YDCT_Block = cp.reshape(YDCT, (8, round(imSize[0]/8), 8, round(imSize[1]/8)), order='F')
+    YDCT_Block = cp.transpose(YDCT_Block, [0, 2, 1, 3])
+    YDCT_Block = cp.reshape(YDCT_Block, (8, 8, round(imSize[0]*imSize[1]/64)), order='F')
 
-    DCTHists = hist3d(YDCT_Block, np.arange(-257, 258))
+    DCTHists = hist3d(YDCT_Block, cp.arange(-257, 258))
     DCTHists = DCTHists[:, :, 1:-1]
 
-    QEst = np.zeros((8, 8))
+    QEst = cp.zeros((8, 8))
 
     # skip the DC term
     for coeffIndex in range(1, MaxCoeffs):
@@ -111,13 +111,13 @@ def GetDCTArtifact(im, png=False):
         startY = coe % 8
         if startY == 0:
             startY = 8
-        startX = int(np.ceil(coe/8))
-        DCTHist = np.ndarray.flatten(DCTHists[startY-1, startX-1, :], order='F')
-        HistFFT = np.fft.fft(DCTHist)-1
+        startX = int(cp.ceil(coe/8))
+        DCTHist = cp.ndarray.flatten(DCTHists[startY-1, startX-1, :], order='F')
+        HistFFT = cp.fft.fft(DCTHist)-1
         Power = abs(HistFFT)
         PowerFilterSize = 3
         g = matlab_style_gauss2D([1, 51], PowerFilterSize)
-        PowerFilt = np.convolve(Power, np.ravel(g), 'same')
+        PowerFilt = cp.convolve(Power, cp.ravel(g), 'same')
         Valley = 1
         while (PowerFilt[Valley-1] <= PowerFilt[Valley]):
             Valley += 1
@@ -128,20 +128,20 @@ def GetDCTArtifact(im, png=False):
             Power = Power[Valley-1:-Valley]
         else:
             NoPeaks = True
-        Diff2 = np.diff(Power, 2)
+        Diff2 = cp.diff(Power, 2)
         if len(Diff2) == 0:
             Diff2 = 0
         g = matlab_style_gauss2D([1, 51], 5)
-        yfilt = np.convolve(Diff2, np.ravel(g), 'same')
+        yfilt = cp.convolve(Diff2, cp.ravel(g), 'same')
         yfilt[yfilt > (min(yfilt)/5)] = 0
         imin = extrema(yfilt)
         if NoPeaks is True:
             imin = []
         QEst[startY-1, startX-1] = len(imin)
-    D = np.tile(QEst[:, :, None], [1, 1, np.shape(YDCT_Block)[2]])
-    with np.errstate(invalid='ignore', divide='ignore'):
-        BMat = abs(YDCT_Block-np.round(YDCT_Block/D)*D)
-    BMat[np.isnan(BMat)] = 0
-    BMat = np.sum(np.sum(BMat, 0), 0)
-    BMat = np.reshape(BMat, (int(imSize[0]/8), int(imSize[1]/8)), order='F')
+    D = cp.tile(QEst[:, :, None], [1, 1, cp.shape(YDCT_Block)[2]])
+    with cp.errstate(invalid='ignore', divide='ignore'):
+        BMat = abs(YDCT_Block-cp.round(YDCT_Block/D)*D)
+    BMat[cp.isnan(BMat)] = 0
+    BMat = cp.sum(cp.sum(BMat, 0), 0)
+    BMat = cp.reshape(BMat, (int(imSize[0]/8), int(imSize[1]/8)), order='F')
     return BMat.astype("uint8")

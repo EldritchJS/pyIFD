@@ -16,7 +16,7 @@ from pyIFD.util import ibdct, jpeg_rec, bdct, dequantize, ibdct
 from scipy.signal import convolve2d
 from scipy.ndimage import correlate
 from scipy.fft import idct
-import numpy as np
+import cupy as cp
 import jpegio as jio
 import math
 from scipy.signal import convolve2d
@@ -28,7 +28,7 @@ def NADQ(impath):
     """
     Main driver for NADQ algorithm
     Args:
-        impath: Input image path
+        impath: Icput image path
     Returns:
         OutputMap: OutputMap
     """
@@ -96,8 +96,8 @@ def jpeg_qtable(quality=50, tnum=0, force_baseline=0):
              99, 99, 99, 99, 99, 99, 99, 99,
              99, 99, 99, 99, 99, 99, 99, 99]
 
-    t = np.reshape(t,(8,8),order='F').T
-    t = np.floor((t * quality + 50)/100)
+    t = cp.reshape(t,(8,8),order='F').T
+    t = cp.floor((t * quality + 50)/100)
     t[t < 1] = 1
 
     t[t > 32767] = 32767  # max quantizer needed for 12 bits
@@ -111,24 +111,24 @@ def LLR(x, nz, Q, phase, sig):
     binHist=range(-2**11, 2**11)
     center=2**11
     # Finished review
-    w = int(np.ceil(3*sig))
+    w = int(cp.ceil(3*sig))
     k = list(range(-w,w+1))
-    g = np.array([math.exp(-kk**2/sig**2/2) for kk in k])
-    g = g/np.sum(g)
-    N = np.size(x) / np.size(binHist)
+    g = cp.array([math.exp(-kk**2/sig**2/2) for kk in k])
+    g = g/cp.sum(g)
+    N = cp.size(x) / cp.size(binHist)
 
-    bppm = np.zeros(np.shape(binHist))
+    bppm = cp.zeros(cp.shape(binHist))
     bppm[center + phase::Q] = Q
     bppm[center + phase::-Q] = Q
-    bppm = np.convolve(g, bppm)
+    bppm = cp.convolve(g, bppm)
     bppm = bppm[w:-w]
     bppm = (bppm*N + 1)
-    LLRmap = np.log(bppm / np.mean(bppm))
+    LLRmap = cp.log(bppm / cp.mean(bppm))
     LLRmap[center] = nz * LLRmap[center]
-    x=np.round(x).astype("int")+center
+    x=cp.round(x).astype("int")+center
     def lmap(xx):
         return LLRmap[xx]
-    vlmap=np.vectorize(lmap)
+    vlmap=cp.vectorize(lmap)
     L = vlmap(x)
     return L
 
@@ -136,11 +136,11 @@ def LLR(x, nz, Q, phase, sig):
 def EMperiod(x, Qmin, Qmax, alpha0, h0, dLmin, maxIter, hcal, bias, sig):
     # Finished review
     Qvec = list(range(int(Qmin),int(Qmax)+1))
-    alphavec = alpha0*np.ones(np.shape(Qvec))
-    h1mat = np.zeros((len(Qvec), len(x)))
+    alphavec = alpha0*cp.ones(cp.shape(Qvec))
+    h1mat = cp.zeros((len(Qvec), len(x)))
     for k in range(len(Qvec)):
         h1mat[k,:] = h1period(x, Qvec[k], hcal, bias, sig)
-    Lvec = np.ones(np.shape(Qvec))*float('-inf')
+    Lvec = cp.ones(cp.shape(Qvec))*float('-inf')
     Lmax = float('-inf')
     delta_L = float('inf')
     ii = 0
@@ -155,9 +155,9 @@ def EMperiod(x, Qmin, Qmax, alpha0, h0, dLmin, maxIter, hcal, bias, sig):
             # expectation
             beta0 = h0*alphavec[k] / (h0*alphavec[k] + h1mat[k,:]*(1 - alphavec[k]))
             # maximization
-            alphavec[k] = np.mean(beta0)
+            alphavec[k] = cp.mean(beta0)
             # compute true log-likelihood of mixture
-            L = np.sum(np.log(alphavec[k]*h0 + (1-alphavec[k])*h1mat[k,:]))
+            L = cp.sum(cp.log(alphavec[k]*h0 + (1-alphavec[k])*h1mat[k,:]))
             if (L > Lmax):
                 Lmax = L
                 Q = Qvec[k]
@@ -172,32 +172,32 @@ def h1period(x, Q, hcal, bias, sig):
     binHist=range(-2**11,2**11)
     center=2**11
     #Finished review
-    N = np.sum(hcal)
+    N = cp.sum(hcal)
     # simulate quantization
     if Q % 2 == 0:
-        hs = np.ones(Q-1)
-        hs=np.append(hs,0.5)
-        hs=np.insert(hs,0, 0.5)
+        hs = cp.ones(Q-1)
+        hs=cp.append(hs,0.5)
+        hs=cp.insert(hs,0, 0.5)
         ws = int(Q/2)
     else:
-        hs = np.ones(Q)
+        hs = cp.ones(Q)
         ws = int((Q-1)/2)
-    h2 = np.convolve(hcal,hs)
+    h2 = cp.convolve(hcal,hs)
     # simulate dequantization
-    h1 = np.zeros(np.shape(binHist))
+    h1 = cp.zeros(cp.shape(binHist))
     h1[center::Q] = h2[center + ws:-ws:Q]
     h1[center::-Q] = h2[center + ws:ws-1:-Q]
     # simulate rounding/truncation
-    w = int(np.ceil(3*sig))
+    w = int(cp.ceil(3*sig))
     k = range(-w,w+1)
     g = [math.exp(-(kk+bias)**2/sig**2/2) for kk in k]
-    h1 = np.convolve(h1, g)
+    h1 = cp.convolve(h1, g)
     h1 = h1[w:-w]
     # normalize probability and use Laplace correction to avoid p1 = 0
     h1 /= sum(h1)
-    h1 = (h1*N+1)/(N+np.size(binHist))
-    x=np.array(x)
-    p1=np.take(h1,np.round(np.nextafter(x,x+1)).astype("int")+center)
+    h1 = (h1*N+1)/(N+cp.size(binHist))
+    x=cp.array(x)
+    p1=cp.take(h1,cp.round(cp.nextafter(x,x+1)).astype("int")+center)
     return p1
 
 
@@ -223,15 +223,15 @@ def getJmapNA_EM(image, ncomp=1, c2=6):
     """
     coeffArray = image.coef_arrays[ncomp-1]
     qtable = image.quant_tables[image.comp_info[ncomp-1].quant_tbl_no]
-    q1table = np.ones((8,8))
-    minQ = np.maximum(2,np.floor(qtable/np.sqrt(3)))
-    maxQ = np.maximum(jpeg_qtable(50),qtable)
+    q1table = cp.ones((8,8))
+    minQ = cp.maximum(2,cp.floor(qtable/cp.sqrt(3)))
+    maxQ = cp.maximum(jpeg_qtable(50),qtable)
     # estimate rounding and truncation error
     Im = jpeg_rec(image)[0]
     ImTmp = Im.copy()
-    ImTmp=np.maximum(0,ImTmp)
+    ImTmp=cp.maximum(0,ImTmp)
     ImTmp[ImTmp > 255] = 255
-    E = Im - np.round(ImTmp)
+    E = Im - cp.round(ImTmp)
     Edct = bdct(0.299 * E[:, :, 0] + 0.587 * E[:, :, 1] + 0.114 * E[:, :, 2])
 
     # compute DCT coeffs of decompressed image
@@ -240,20 +240,20 @@ def getJmapNA_EM(image, ncomp=1, c2=6):
              45, 38, 31, 24, 32, 39, 46, 53, 60, 61, 54, 47, 40, 48, 55, 62, 63, 56, 64]
     center = 2**11
 
-    B = np.ones((8,8))/8
-    DC = np.rot90(convolve2d(np.rot90(Im, 2), np.rot90(B, 2)), 2)
+    B = cp.ones((8,8))/8
+    DC = cp.rot90(convolve2d(cp.rot90(Im, 2), cp.rot90(B, 2)), 2)
     DC = DC[7:, 7:]
     EDC = Edct[::8, ::8]
-    varE = np.var(EDC)
-    bias = np.mean(EDC)
-    sig = np.sqrt(qtable[0, 0]**2 / 12 + varE)
-    alphatable = np.ones((8,8))
-    Ims=np.shape(Im)
-    LLRmap = np.zeros((int(Ims[0]/8), int(Ims[1]/8), c2))
-    LLRmap_s = np.zeros((int(Ims[0]/8), int(Ims[1]/8), c2))
+    varE = cp.var(EDC)
+    bias = cp.mean(EDC)
+    sig = cp.sqrt(qtable[0, 0]**2 / 12 + varE)
+    alphatable = cp.ones((8,8))
+    Ims=cp.shape(Im)
+    LLRmap = cp.zeros((int(Ims[0]/8), int(Ims[1]/8), c2))
+    LLRmap_s = cp.zeros((int(Ims[0]/8), int(Ims[1]/8), c2))
     k1e = 1
     k2e = 1
-    Lmax = -np.inf
+    Lmax = -cp.inf
     # estimate shift of first compression
     for k1 in range(8):
         for k2 in range(8):
@@ -271,25 +271,25 @@ def getJmapNA_EM(image, ncomp=1, c2=6):
                 else:
                     k2cal = k2
                 DCcal = DC[k1cal-1::8, k2cal-1::8]
-                binHist = np.arange(-2**11, 2**11-1)+0.5
-                binHist = np.append(binHist, max(2**11, np.max(DCcal)))
-                binHist = np.insert(binHist, 0, min(-2**11, np.min(DCcal)))
-                hcal = np.histogram(DCcal, binHist)[0]
-                hcalnorm = (hcal+1)/(np.size(DCcal)+np.size(binHist)-1)
+                binHist = cp.arange(-2**11, 2**11-1)+0.5
+                binHist = cp.append(binHist, max(2**11, cp.max(DCcal)))
+                binHist = cp.insert(binHist, 0, min(-2**11, cp.min(DCcal)))
+                hcal = cp.histogram(DCcal, binHist)[0]
+                hcalnorm = (hcal+1)/(cp.size(DCcal)+cp.size(binHist)-1)
                 # define mixture components
-                h0=np.array(np.take(hcalnorm,np.round(np.ndarray.flatten(DCpoly,order='F')).astype("int")+center))
+                h0=cp.array(cp.take(hcalnorm,cp.round(cp.ndarray.flatten(DCpoly,order='F')).astype("int")+center))
                 # estimate parameters of first compression
-                [Q, alpha, L] = EMperiod(np.ndarray.flatten(DCpoly,order='F'), minQ[0, 0], maxQ[0, 0], 0.95, h0, 5, 20, hcal, bias, sig)
+                [Q, alpha, L] = EMperiod(cp.ndarray.flatten(DCpoly,order='F'), minQ[0, 0], maxQ[0, 0], 0.95, h0, 5, 20, hcal, bias, sig)
                 if L > Lmax:
                     # simplified model
-                    nz = np.count_nonzero(DCpoly)/np.size(DCpoly)
-                    LLRmap_s[:, :, 0] = LLR(DCpoly, nz, Q, int(np.round(bias)), sig)
+                    nz = cp.count_nonzero(DCpoly)/cp.size(DCpoly)
+                    LLRmap_s[:, :, 0] = LLR(DCpoly, nz, Q, int(cp.round(bias)), sig)
                     # standard model
-                    ppu = np.log(np.divide(h1period(range(-2**11,2**11), Q, hcal, bias, sig),np.take(hcalnorm,range(2**12))))
-                    DCpoly=np.round(DCpoly).astype("int")+center
+                    ppu = cp.log(cp.divide(h1period(range(-2**11,2**11), Q, hcal, bias, sig),cp.take(hcalnorm,range(2**12))))
+                    DCpoly=cp.round(DCpoly).astype("int")+center
                     def pmap(xx):
                         return ppu[xx]
-                    vpmap=np.vectorize(pmap)
+                    vpmap=cp.vectorize(pmap)
                     LLRmap[:, :, 0]=vpmap(DCpoly)
                     q1table[0, 0] = Q
                     alphatable[0, 0] = alpha
@@ -299,15 +299,15 @@ def getJmapNA_EM(image, ncomp=1, c2=6):
     for index in range(1, c2):
         binHist=range(-2**11,2**11)
         coe = coeff[index]
-        ic1 = int(np.ceil(coe/8))
+        ic1 = int(cp.ceil(coe/8))
         ic2 = coe % 8
         if ic2 == 0:
             ic2 = 8
 
-        A = np.zeros((8,8))
+        A = cp.zeros((8,8))
         A[ic1-1, ic2-1] = 1
         B = idct(idct(A.T, norm='ortho').T, norm='ortho')
-        AC = np.rot90(fftconvolve(np.rot90(Im, 2), np.rot90(B, 2)), 2)  # This part is slow. Maybe look into cv2 replacement
+        AC = cp.rot90(fftconvolve(cp.rot90(Im, 2), cp.rot90(B, 2)), 2)  # This part is slow. Maybe look into cv2 replacement
         AC = AC[7:, 7:]
         ACpoly = AC[k1e-1::8, k2e-1::8]
         # choose shift for estimating unquantized distribution through
@@ -321,35 +321,35 @@ def getJmapNA_EM(image, ncomp=1, c2=6):
         else:
             k2cal = k2e - 1
         ACcal = AC[k1cal-1::8, k2cal-1::8]
-        binHist = np.arange(-2**11, 2**11-1)+0.5
-        binHist = np.append(binHist, max(2**11, np.max(ACcal)))
-        binHist = np.insert(binHist, 0, min(-2**11, np.min(ACcal)))
-        hcal = np.histogram(ACcal, binHist)[0]
-        hcalnorm = (hcal+1)/(np.size(ACcal)+np.size(binHist)-1)
+        binHist = cp.arange(-2**11, 2**11-1)+0.5
+        binHist = cp.append(binHist, max(2**11, cp.max(ACcal)))
+        binHist = cp.insert(binHist, 0, min(-2**11, cp.min(ACcal)))
+        hcal = cp.histogram(ACcal, binHist)[0]
+        hcalnorm = (hcal+1)/(cp.size(ACcal)+cp.size(binHist)-1)
         # estimate std dev of quantization error on DCT coeffs (quantization of
         # second compression plus rounding/truncation between first and second
         # compression)
         EAC = Edct[ic1-1::8, ic2-1::8]
-        varE = np.var(EAC)
+        varE = cp.var(EAC)
         if index == 1:
-            bias = np.mean(EAC)
+            bias = cp.mean(EAC)
         else:
             bias = 0
-        sig = np.sqrt(qtable[ic1-1, ic2-1]**2 / 12 + varE)
-        h0=np.array(np.take(hcalnorm,np.round(np.ndarray.flatten(ACpoly,order='F')).astype("int")+center))
+        sig = cp.sqrt(qtable[ic1-1, ic2-1]**2 / 12 + varE)
+        h0=cp.array(cp.take(hcalnorm,cp.round(cp.ndarray.flatten(ACpoly,order='F')).astype("int")+center))
         
         # estimate parameters of first compression
-        [Q, alpha] = EMperiod(np.ndarray.flatten(ACpoly,order='F'), minQ[ic1-1, ic2-1], maxQ[ic1-1, ic2-1], 0.95, h0, 5, 20, hcal, bias, sig)[:2]
+        [Q, alpha] = EMperiod(cp.ndarray.flatten(ACpoly,order='F'), minQ[ic1-1, ic2-1], maxQ[ic1-1, ic2-1], 0.95, h0, 5, 20, hcal, bias, sig)[:2]
         q1table[ic1-1, ic2-1] = Q
         alphatable[ic1-1, ic2-1] = alpha
         # simplified model
-        nz = np.count_nonzero(ACpoly)/np.size(ACpoly)
-        LLRmap_s[:, :, index] = LLR(ACpoly, nz, Q, int(np.round(bias)), sig)
+        nz = cp.count_nonzero(ACpoly)/cp.size(ACpoly)
+        LLRmap_s[:, :, index] = LLR(ACpoly, nz, Q, int(cp.round(bias)), sig)
         # standard model
-        ppu = np.log(np.divide(h1period(range(-2**11,2**11), Q, hcal, bias, sig),np.take(hcalnorm,range(2**12))))
-        ACpoly=np.round(ACpoly).astype("int")+center
+        ppu = cp.log(cp.divide(h1period(range(-2**11,2**11), Q, hcal, bias, sig),cp.take(hcalnorm,range(2**12))))
+        ACpoly=cp.round(ACpoly).astype("int")+center
         LLRmap[:, :, index] = vpmap(ACpoly)
-    OutputMap=correlate(np.sum(LLRmap,2),np.ones((3,3)),mode='reflect')
+    OutputMap=correlate(cp.sum(LLRmap,2),cp.ones((3,3)),mode='reflect')
     return OutputMap
 
 

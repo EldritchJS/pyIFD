@@ -12,8 +12,8 @@ Based on code from:
 Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluation of splicing localization algorithms for web images. Multimedia Tools and Applications, 76(4), 4801–4834.
 """
 
-import numpy as np
-from numpy.linalg import eigh
+import cupy as cp
+from cupy.linalg import eigh
 import cv2
 from scipy.ndimage import median_filter as medfilt
 
@@ -31,38 +31,38 @@ def KMeans(data, N):
         re: If data is a nx1 vector, this will be a nx2 output. The first column will be the point, and the second will be its bin assignment
     """
     m = data.size
-    u = np.zeros((N, 1))
-    Sdata = np.sort(data)
-    u[0] = np.mean(Sdata[-round(m/4)-1:])
-    u[1] = np.mean(Sdata[:round(m/4)])
-    umax = np.median(Sdata[-round(m/10)-1:])
+    u = cp.zeros((N, 1))
+    Sdata = cp.sort(data)
+    u[0] = cp.mean(Sdata[-round(m/4)-1:])
+    u[1] = cp.mean(Sdata[:round(m/4)])
+    umax = cp.median(Sdata[-round(m/10)-1:])
     data[data > umax] = umax
     for iter in range(200):
         pre_u = u.copy()     # center of the last iter
-        tmp = np.zeros((N, m))
+        tmp = cp.zeros((N, m))
         for i in range(N):
             tmp[i, :] = data-u[i]
-        tmp = np.abs(tmp)
-        junk = np.min(tmp, axis=0)
-        index = np.argmin(tmp, axis=0)
-        quan = np.zeros((m, N))
+        tmp = cp.abs(tmp)
+        junk = cp.min(tmp, axis=0)
+        index = cp.argmin(tmp, axis=0)
+        quan = cp.zeros((m, N))
         for i in range(m):
             quan[i, index[i]] = junk[i]
         for i in range(N):
-            if (np.sum(quan[:, i]) > 0.01):
-                u[i] = np.sum(quan[:, i]*data)/np.sum(quan[:, i])
+            if (cp.sum(quan[:, i]) > 0.01):
+                u[i] = cp.sum(quan[:, i]*data)/cp.sum(quan[:, i])
 
-        if (np.linalg.norm(pre_u-u) < 0.02):
+        if (cp.linalg.norm(pre_u-u) < 0.02):
             break
 
-    re = np.zeros((m, 2))
+    re = cp.zeros((m, 2))
     for i in range(m):
-        tmp = np.zeros((N, 1))
+        tmp = cp.zeros((N, 1))
         for j in range(N):
-            tmp[j] = np.linalg.norm(data[i]-u[j])
+            tmp[j] = cp.linalg.norm(data[i]-u[j])
 
-        junk = np.min(tmp, axis=0)
-        index = np.argmin(tmp, axis=0)
+        junk = cp.min(tmp, axis=0)
+        index = cp.argmin(tmp, axis=0)
         re[i, 0] = data[i]
         re[i, 1] = index+1
     # the tampered area is less than half of the whole image
@@ -94,12 +94,12 @@ def PCANoiseLevelEstimator(image, Bsize):
     EigenValueDiffThreshold = 49.0
     LevelStep = 0.05
     MinLevel = 0.06
-    MaxClippedPixelCount = round(np.nextafter(0.1*M, 0.1*M+1))
+    MaxClippedPixelCount = round(cp.nextafter(0.1*M, 0.1*M+1))
 
     # ==========================================================================
     def Clamp(x, a, b):
         """
-        Limit input value to a range.
+        Limit icput value to a range.
 
         Args:
             x: value to clamp
@@ -125,18 +125,18 @@ def PCANoiseLevelEstimator(image, Bsize):
         Returns:
             block_info
         """
-        sums=np.zeros((np.shape(image)[0]-M1,np.shape(image)[1]))
-        block_info = np.zeros((np.shape(image)[0]*np.shape(image)[1],3))
+        sums=cp.zeros((cp.shape(image)[0]-M1,cp.shape(image)[1]))
+        block_info = cp.zeros((cp.shape(image)[0]*cp.shape(image)[1],3))
         image2=image**2
-        sums2=np.zeros(np.shape(sums))
-        clipped=np.zeros(np.shape(sums))
-        for x in range(np.shape(image)[0]-M2):
-            for y in range(np.shape(image)[1]):
+        sums2=cp.zeros(cp.shape(sums))
+        clipped=cp.zeros(cp.shape(sums))
+        for x in range(cp.shape(image)[0]-M2):
+            for y in range(cp.shape(image)[1]):
 
                 if x == 0:
-                    sums[0,y] = np.sum(image[:M2,y])
-                    sums2[0,y] = np.sum(image2[:M2,y])
-                    clipped[0,y]= np.count_nonzero((image[:M2,y]==0) | (image[:M2,y]==255))
+                    sums[0,y] = cp.sum(image[:M2,y])
+                    sums2[0,y] = cp.sum(image2[:M2,y])
+                    clipped[0,y]= cp.count_nonzero((image[:M2,y]==0) | (image[:M2,y]==255))
                 else:
                     sums[x,y] = sums[x-1,y]-image[x-1,y]+image[x+M2-1, y]
                     sums2[x, y] = sums2[x-1, y] - image2[x-1,y]+image2[x+M2-1, y]
@@ -150,12 +150,12 @@ def PCANoiseLevelEstimator(image, Bsize):
         prevsum2=-1
         prevclipped=-1
         block_count=0
-        for y in range(np.shape(image)[1]-M1):
-            for x in range(np.shape(image)[0]-M2):        
+        for y in range(cp.shape(image)[1]-M1):
+            for x in range(cp.shape(image)[0]-M2):        
                 if x == 0:
-                    sum1=np.sum(sums[y,:M2])
-                    sum2=np.sum(sums2[y,:M2])
-                    clipped_pixel_count=np.sum(clipped[y,:M2])
+                    sum1=cp.sum(sums[y,:M2])
+                    sum2=cp.sum(sums2[y,:M2])
+                    clipped_pixel_count=cp.sum(clipped[y,:M2])
                 else:
                     sum1=prevsum1-sums[y,x-1]+sums[y,x+M2-1]
                     sum2=prevsum2-sums2[y,x-1]+sums2[y,x+M2-1]
@@ -168,7 +168,7 @@ def PCANoiseLevelEstimator(image, Bsize):
                     block_info[block_count,1] = x+1
                     block_info[block_count,2] = y+1
                     block_count += 1 
-        block_info=np.delete(block_info,slice(block_count,np.shape(image)[0]*np.shape(image)[1]),0)
+        block_info=cp.delete(block_info,slice(block_count,cp.shape(image)[0]*cp.shape(image)[1]),0)
         return block_info
 
     # ==========================================================================
@@ -185,25 +185,25 @@ def PCANoiseLevelEstimator(image, Bsize):
             sum2:
             subset_size:
         """
-        loop_iters = len(np.arange(1, MinLevel, -0.05))
-        sum1 = np.zeros((M, 1, loop_iters))
-        sum2 = np.zeros((M, M, loop_iters))
-        subset_size = np.zeros((loop_iters, 1))
+        loop_iters = len(cp.arange(1, MinLevel, -0.05))
+        sum1 = cp.zeros((M, 1, loop_iters))
+        sum2 = cp.zeros((M, M, loop_iters))
+        subset_size = cp.zeros((loop_iters, 1))
         subset_count = 0
-        max_index = np.shape(block_info)[0]-1
-        for p in np.arange(1, MinLevel, -LevelStep):
+        max_index = cp.shape(block_info)[0]-1
+        for p in cp.arange(1, MinLevel, -LevelStep):
             q = 0
             if p - LevelStep > MinLevel:
                 q = p - LevelStep
 
             beg_index = Clamp(round(q*max_index+LevelStep/2) + 1, 1, max_index+1)
             end_index = Clamp(round(p*max_index+LevelStep/2) + 1, 1, max_index+1)
-            curr_sum1 = np.zeros((M, 1))
-            curr_sum2 = np.zeros((M, M))
+            curr_sum1 = cp.zeros((M, 1))
+            curr_sum2 = cp.zeros((M, M))
             for k in range(int(beg_index)-1, int(end_index)-1):
                 curr_x = int(block_info[k, 1])
                 curr_y = int(block_info[k, 2])
-                block = np.reshape(image[curr_y-1:curr_y+M2-1, curr_x-1:curr_x+M1-1], (M, 1), order='F').astype("double")
+                block = cp.reshape(image[curr_y-1:curr_y+M2-1, curr_x-1:curr_x+M1-1], (M, 1), order='F').astype("double")
                 curr_sum1 += block
                 curr_sum2 += block * block.T
             subset_count += 1
@@ -227,13 +227,13 @@ def PCANoiseLevelEstimator(image, Bsize):
         Returns:
             upper_bound:
         """
-        max_index = np.shape(block_info)[0] - 1
-        zero_idx = np.where(block_info[:, 0] == 0)[0]
+        max_index = cp.shape(block_info)[0] - 1
+        zero_idx = cp.where(block_info[:, 0] == 0)[0]
         if zero_idx.size == 0:
             nozeroindex = round(UpperBoundLevel*max_index)
         else:
-            nozeroindex = min(np.max(np.where(block_info[:, 0] == 0)[0])+1, np.shape(block_info)[0]-1)
-        index = Clamp(round(UpperBoundLevel*max_index) + 1, nozeroindex, np.shape(block_info)[0]-1)
+            nozeroindex = min(cp.max(cp.where(block_info[:, 0] == 0)[0])+1, cp.shape(block_info)[0]-1)
+        index = Clamp(round(UpperBoundLevel*max_index) + 1, nozeroindex, cp.shape(block_info)[0]-1)
         upper_bound = UpperBoundFactor * block_info[index, 0]
         return upper_bound
 
@@ -251,7 +251,7 @@ def PCANoiseLevelEstimator(image, Bsize):
             eigh: Eigenvalues.
         """
         meanval = sum1 / subset_size
-        cov_matrix = sum2 / subset_size - meanval * np.transpose(meanval)
+        cov_matrix = sum2 / subset_size - meanval * cp.transpose(meanval)
         return eigh(cov_matrix)[0]
 
     # ==========================================================================
@@ -286,29 +286,29 @@ def PCANoiseLevelEstimator(image, Bsize):
 
     label = 0
     block_info = ComputeBlockInfo(image)
-    if np.min(np.shape(block_info)) == 0:
+    if cp.min(cp.shape(block_info)) == 0:
         label = 1
-        variance = np.var(image)
+        variance = cp.var(image)
     else:
-        idx = np.lexsort((block_info[:, 2], block_info[:, 0]))
-        block_info = np.asarray([block_info[i, :] for i in idx])
+        idx = cp.lexsort((block_info[:, 2], block_info[:, 0]))
+        block_info = cp.asarray([block_info[i, :] for i in idx])
         [sum1, sum2, subset_size] = ComputeStatistics(image, block_info)
         if subset_size[-1] == 0:
             label = 1
-            variance = np.var(image)
+            variance = cp.var(image)
         else:
             upper_bound = ComputeUpperBound(block_info)
             prev_variance = 0
             variance = upper_bound
             for iter in range(10):
-                if(np.abs(prev_variance - variance) < 0.00001):
+                if(cp.abs(prev_variance - variance) < 0.00001):
                     break
                 prev_variance = variance
                 variance = GetNextEstimate(sum1, sum2, subset_size, variance, upper_bound)
             if variance < 0:
                 label = 1
-                variance = np.var(image)
-    variance = np.sqrt(variance)
+                variance = cp.var(image)
+    variance = cp.sqrt(variance)
     return [label, variance]
 
 
@@ -317,7 +317,7 @@ def PCANoise(impath):
     Main driver for NOI5 algorithm.
 
     Args:
-        impath: input image path.
+        impath: icput image path.
 
     Returns:
         Noise_mix2: OutputMap
@@ -326,26 +326,26 @@ def PCANoise(impath):
     """
     B = 64
     imin = cv2.cvtColor(cv2.imread(impath), cv2.COLOR_BGR2GRAY).astype("double")
-    [M, N] = np.shape(imin)
-    imin = np.array(imin[:int(np.floor(M/B)*B), :int(np.floor(N/B)*B)])
-    [M, N] = np.shape(imin)
-    irange = int(np.floor(M/B))
-    jrange = int(np.floor(N/B))
-    Ib = np.zeros((irange, jrange))
-    Noise_64 = np.zeros((irange, jrange))
+    [M, N] = cp.shape(imin)
+    imin = cp.array(imin[:int(cp.floor(M/B)*B), :int(cp.floor(N/B)*B)])
+    [M, N] = cp.shape(imin)
+    irange = int(cp.floor(M/B))
+    jrange = int(cp.floor(N/B))
+    Ib = cp.zeros((irange, jrange))
+    Noise_64 = cp.zeros((irange, jrange))
 
     for i in range(irange):
         for j in range(jrange):
             Ib = imin[i*B:(i+1)*B, j*B:(j+1)*B]
             Noise_64[i, j] = PCANoiseLevelEstimator(Ib, 5)[1]
     [u, re] = KMeans(Noise_64.flatten(order='F'), 2)
-    result4 = np.reshape(re[:, 1], np.shape(Noise_64), order='F')
+    result4 = cp.reshape(re[:, 1], cp.shape(Noise_64), order='F')
 
     B = 32
-    irange = int(np.floor(M/B))
-    jrange = int(np.floor(N/B))
-    label32 = np.zeros((irange, jrange))
-    Noise_32 = np.zeros((irange, jrange))
+    irange = int(cp.floor(M/B))
+    jrange = int(cp.floor(N/B))
+    label32 = cp.zeros((irange, jrange))
+    Noise_32 = cp.zeros((irange, jrange))
     for i in range(irange):
         for j in range(jrange):
             Ib = imin[i*B:(i+1)*B, j*B:(j+1)*B]
@@ -355,8 +355,8 @@ def PCANoise(impath):
     [u, re] = KMeans(Noise_32.flatten(order='F'), 2)
     irange = int(M/64)
     jrange = int(N/64)
-    Noise_mix = np.zeros((irange*2, jrange*2))
-    initialdetected = np.zeros((irange*2, jrange*2))
+    Noise_mix = cp.zeros((irange*2, jrange*2))
+    initialdetected = cp.zeros((irange*2, jrange*2))
     for i in range(irange):
         for j in range(jrange):
             Noise_mix[2*i:2*(i+1), 2*j:2*(j+1)] = Noise_64[i, j]
@@ -367,17 +367,17 @@ def PCANoise(impath):
     DR = initialdetected[1:-1, 1:-1] - initialdetected[1:-1, 2:]
     DU = initialdetected[:-2, 1:-1] - initialdetected[1:-1, 1:-1]
     DD = initialdetected[1:-1, 1:-1] - initialdetected[2:, 1:-1]
-    Edge = np.zeros(np.shape(initialdetected))
-    Edge[1:-1, 1:-1] = np.abs(DL)+np.abs(DR)+np.abs(DU)+np.abs(DD)
+    Edge = cp.zeros(cp.shape(initialdetected))
+    Edge[1:-1, 1:-1] = cp.abs(DL)+cp.abs(DR)+cp.abs(DU)+cp.abs(DD)
     g = [Edge > 0]
     Noise_mix2[tuple(g)] = Noise_32[tuple(g)]
     [u, re] = KMeans(Noise_mix2.flatten(order='F'), 2)
-    result4 = np.reshape(re[:, 1], np.shape(Noise_mix2), order='F')
-    labels = cv2.connectedComponentsWithStats(np.uint8(result4-1))
+    result4 = cp.reshape(re[:, 1], cp.shape(Noise_mix2), order='F')
+    labels = cv2.connectedComponentsWithStats(cp.uint8(result4-1))
     bwpp = labels[1]
     area = labels[2][:, 4]
     for num in range(1, len(area)):
         if (area[num] < 4):
             result4[bwpp == num] = 1
-    bwpp = cv2.connectedComponents(np.uint8(result4-1))[1]
+    bwpp = cv2.connectedComponents(cp.uint8(result4-1))[1]
     return [Noise_mix2, bwpp.astype("uint8")]

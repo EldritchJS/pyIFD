@@ -11,7 +11,7 @@ Based on code from:
 Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluation of splicing localization algorithms for web images. Multimedia Tools and Applications, 76(4), 4801–4834.
 """
 
-import numpy as np
+import cupy as cp
 import cv2
 import os
 
@@ -29,15 +29,15 @@ def ELA(impath, Quality=90, Multiplier=15, Flatten=True):
     Returns:
         OutputMap: Output of ELA algorithm.
     """
-    ImIn = np.double(cv2.imread(impath))
+    ImIn = cp.double(cv2.imread(impath))
     cv2.imwrite('tmpResave.jpg', ImIn, [cv2.IMWRITE_JPEG_QUALITY, Quality])
-    ImJPG = np.double(cv2.imread('tmpResave.jpg'))
+    ImJPG = cp.double(cv2.imread('tmpResave.jpg'))
 
-    OutputMap = (np.abs(ImIn-ImJPG))*Multiplier
+    OutputMap = (cp.abs(ImIn-ImJPG))*Multiplier
     OutputMap[:, :, [0, 2]] = OutputMap[:, :, [2, 0]]
 
     if Flatten is True:
-        OutputMap = np.mean(OutputMap, 2)
+        OutputMap = cp.mean(OutputMap, 2)
 
     os.remove('tmpResave.jpg')
     return OutputMap

@@ -12,7 +12,7 @@ Zampoglou, M., Papadopoulos, S., & Kompatsiaris, Y. (2017). Large-scale evaluati
 
 from PIL import Image
 from skimage.color import rgb2gray
-import numpy as np
+import cupy as cp
 from scipy.ndimage import correlate
 import cv2
 import os
@@ -23,13 +23,13 @@ def im2double(im):
     Converts image to type double.
 
     Args:
-        im: Input image
+        im: Icput image
 
     Returns:
         image as double: Converts type of im to double. Scales so elements lie from 0 to 1.
     """
-    info = np.iinfo(im.dtype)
-    return im.astype(np.double) / info.max
+    info = cp.iinfo(im.dtype)
+    return im.astype(cp.double) / info.max
 
 
 def ImageTiling(OImg):
@@ -45,7 +45,7 @@ def ImageTiling(OImg):
     Todos:
         * Fill this in with proper summary
     """
-    Img = np.array(Image.fromarray(OImg.astype(np.uint8)).resize(size=(600, 600), resample=Image.NEAREST))
+    Img = cp.array(Image.fromarray(OImg.astype(cp.uint8)).resize(size=(600, 600), resample=Image.NEAREST))
     R1 = rgb2gray(Img)
     R = R1*255
 
@@ -55,7 +55,7 @@ def ImageTiling(OImg):
     ImgR = R.astype('int')
 
     countx = -1
-    tile = np.zeros((10, 10, blocks))
+    tile = cp.zeros((10, 10, blocks))
     for a in range(stepX):
         for b in range(stepY):
             countx += 1
@@ -99,17 +99,17 @@ def MainTrain(R10, blk_idx, blk_idy):
     # Through here so far
     # /////////////PaintEdges///////////////////////////////// This uses NN PIL using mean
     [e, edge, contours] = PaintimgEdges(smapF_filtrOld, MMasks, 1)
-    Output = np.array(Image.fromarray(e.astype(np.double)).resize(size=(y, x), resample=Image.NEAREST))
-    StrongEdge = np.array(Image.fromarray(contours.astype(np.uint8)).resize(size=(y, x), resample=Image.NEAREST))
+    Output = cp.array(Image.fromarray(e.astype(cp.double)).resize(size=(y, x), resample=Image.NEAREST))
+    StrongEdge = cp.array(Image.fromarray(contours.astype(cp.uint8)).resize(size=(y, x), resample=Image.NEAREST))
 
-    MeanContent = np.zeros((blk_idx, blk_idy))
-    MeanStrongEdge = np.zeros((blk_idx, blk_idy))
+    MeanContent = cp.zeros((blk_idx, blk_idy))
+    MeanStrongEdge = cp.zeros((blk_idx, blk_idy))
     for i in range(blk_idx):
         for j in range(blk_idy):
             a = i*8
             b = j*8
-            MeanContent[i, j] = np.mean(Output[a:a+8, b:b+8])
-            MeanStrongEdge[i, j] = np.mean(StrongEdge[a:a+8, b:b+8])
+            MeanContent[i, j] = cp.mean(Output[a:a+8, b:b+8])
+            MeanStrongEdge[i, j] = cp.mean(StrongEdge[a:a+8, b:b+8])
     MeanStrongEdge[MeanStrongEdge > 0.5] = 1
 
     MeanStrongEdge[MeanStrongEdge <= 0.5] = 0
@@ -136,9 +136,9 @@ def PaintimgEdges(smap, MMasks, scale):
     if (scale == 1):
         stepX = 60
 
-    edgeImg = np.zeros((600, 600))
-    edgeImg2 = np.zeros((600, 600))
-    edgeImg3 = np.zeros((600, 600))
+    edgeImg = cp.zeros((600, 600))
+    edgeImg2 = cp.zeros((600, 600))
+    edgeImg3 = cp.zeros((600, 600))
     countx = -1
     for a in range(stepX):
         for b in range(stepX):
@@ -175,7 +175,7 @@ def RescaleToImageResult(E, sgrid, kx, ky, pixels):
     Todos:
         * Fill this in with proper summary
     """
-    result = np.zeros((kx*sgrid*8, ky*sgrid*8))
+    result = cp.zeros((kx*sgrid*8, ky*sgrid*8))
     for x in range(kx):
         for y in range(ky):
             a = x*sgrid*8
@@ -183,7 +183,7 @@ def RescaleToImageResult(E, sgrid, kx, ky, pixels):
             result[a:a+sgrid*8, b:b+sgrid*8] = E[x, y]
     [xim, yim] = pixels.shape
     [xres, yres] = result.shape
-    Result = np.zeros((xim, yim))
+    Result = cp.zeros((xim, yim))
     Result[:xres, :yres] = result
 
     for k in range(xres, xim):
@@ -211,8 +211,8 @@ def SmapIng(ImgTiles, MaskTiles, WhiteMaskPoints):
     Todos:
         * Fill this in with proper summary
     """
-    blocks = np.shape(ImgTiles)[2]
-    smap = np.zeros((blocks, 2))
+    blocks = cp.shape(ImgTiles)[2]
+    smap = cp.zeros((blocks, 2))
     winMask = 59
     MaskWhite = (MaskTiles > 0).astype(int)
     MaskBlack = (MaskTiles <= 0).astype(int)
@@ -220,11 +220,11 @@ def SmapIng(ImgTiles, MaskTiles, WhiteMaskPoints):
     for a in range(blocks):
         maxR = 0
         for k in range(58):
-            TempW = np.sum(ImgTiles[:, :, a]*MaskWhite[:, :, k])
-            TempB = np.sum(ImgTiles[:, :, a]*MaskBlack[:, :, k])
+            TempW = cp.sum(ImgTiles[:, :, a]*MaskWhite[:, :, k])
+            TempB = cp.sum(ImgTiles[:, :, a]*MaskBlack[:, :, k])
             whiteScore = TempW/WhiteMaskPoints[k]
             blackScore = TempB/(100-WhiteMaskPoints[k])
-            ctR = np.abs(whiteScore-blackScore)
+            ctR = cp.abs(whiteScore-blackScore)
             w = ((ctR*100)/255)
             if (w > maxR):
                 maxR = w
@@ -240,7 +240,7 @@ def mat2gray(A):
     Converts matrix to have values from 0-1.
 
     Args:
-        A: Input matrix.
+        A: Icput matrix.
 
     Returns:
         Gray matrix with values from 0-1.
@@ -279,19 +279,19 @@ def characterizeblocks(MeanContent2, MeanStrongEdge, V_im, blk_idx, blk_idy, Mea
     Todos:
         * Fill this in with proper summary
     """
-    uniform = np.zeros((int(np.floor(blk_idx/sgrid)), int(np.floor(blk_idy/sgrid))))
+    uniform = cp.zeros((int(cp.floor(blk_idx/sgrid)), int(cp.floor(blk_idy/sgrid))))
 
     for a in range(kx):
         for b in range(ky):
             for pp in range(16):
-                if (MeanInSpace[a, b, pp] < (np.mean(MeanInSpace[:, :, pp])*0.2)):
+                if (MeanInSpace[a, b, pp] < (cp.mean(MeanInSpace[:, :, pp])*0.2)):
                     uniform[a, b] += 1
 
-    st = np.std(np.reshape(uniform, (uniform.size, 1), 'F'))
-    H = np.ones((5, 5))*0.04
+    st = cp.std(cp.reshape(uniform, (uniform.size, 1), 'F'))
+    H = cp.ones((5, 5))*0.04
 
     im = correlate(uniform, H, mode='constant')
-    meanv = np.mean(im)
+    meanv = cp.mean(im)
 
     bg = 0
     for f in range(16):
@@ -301,13 +301,13 @@ def characterizeblocks(MeanContent2, MeanStrongEdge, V_im, blk_idx, blk_idy, Mea
     if bg == 16:
         bestgrid = mat2gray(correlate(MeanInSpace[:, :, 15], H, mode='constant'))
     elif bg == 0:
-        bg1 = np.where(PossiblePoints[:, 4] == max(PossiblePoints[:, 4]))
-        bg = np.max(bg1)+1
+        bg1 = cp.where(PossiblePoints[:, 4] == max(PossiblePoints[:, 4]))
+        bg = cp.max(bg1)+1
         bestgrid = mat2gray(correlate(MeanInSpace[:, :, bg-1], H, mode='constant'))
     else:
         bestgrid = mat2gray(correlate(MeanInSpace[:, :, bg], H, mode='constant'))
 # //////////block based homogenous
-    if ((np.mean(PossiblePoints[:, 4]) > 0.4) or (bg != 16)):
+    if ((cp.mean(PossiblePoints[:, 4]) > 0.4) or (bg != 16)):
         homB = 0
     else:
         homB = 1
@@ -323,26 +323,26 @@ def characterizeblocks(MeanContent2, MeanStrongEdge, V_im, blk_idx, blk_idy, Mea
 
     contentsc = MeanContent2.copy()
 
-    hom = np.zeros((kx, ky))
+    hom = cp.zeros((kx, ky))
     for i in range(kx):
         for j in range(ky):
             if (contentsc[i, j] <= 4):  # very soft responses
                 hom[i, j] = 1
 
     c = sgrid
-    MeanStrongEdge2 = np.zeros((kx, ky))
+    MeanStrongEdge2 = cp.zeros((kx, ky))
     for i in range(kx):
         for j in range(ky):
             a = i*sgrid
             b = j*sgrid
-            MeanStrongEdge2[i, j] = np.mean(MeanStrongEdge[a:a+c, b:b+c])
+            MeanStrongEdge2[i, j] = cp.mean(MeanStrongEdge[a:a+c, b:b+c])
     cc = 8*sgrid
-    V_im2 = np.zeros((kx, ky))
+    V_im2 = cp.zeros((kx, ky))
     for i in range(kx):
         for j in range(ky):
             a = i*8*sgrid
             b = j*8*sgrid
-            V_im2[i, j] = np.mean(V_im[a:a+cc, b:b+cc])
+            V_im2[i, j] = cp.mean(V_im[a:a+cc, b:b+cc])
 
     V_imOver = V_im2.copy()
     V_imUndr = V_im2.copy()
@@ -357,7 +357,7 @@ def characterizeblocks(MeanContent2, MeanStrongEdge, V_im, blk_idx, blk_idy, Mea
     # /////////////end overexposed/iunder and contours////////////////////
 
     touse = kx*ky
-    notuse = np.zeros((kx, ky))
+    notuse = cp.zeros((kx, ky))
     for i in range(kx):
         for j in range(ky):
 
@@ -373,7 +373,7 @@ def characterizeblocks(MeanContent2, MeanStrongEdge, V_im, blk_idx, blk_idy, Mea
             if notuse[i, j] == 1:
                 im[i, j] = 1
 
-    notused = np.sum(notuse[:] != 0)
+    notused = cp.sum(notuse[:] != 0)
     touse = kx*ky-notused
 # //////////////excl NaN
 
@@ -385,20 +385,20 @@ def characterizeblocks(MeanContent2, MeanStrongEdge, V_im, blk_idx, blk_idy, Mea
 
     diff_Mean_Best_scaled_temp = diff_Mean_Best_scaled.copy()
     diff_Mean_Best_scaled_tempInv = dmbsi.copy()
-    for a in range(int(np.floor(blk_idx/sgrid))):
-        for b in range(int(np.floor(blk_idy/sgrid))):
+    for a in range(int(cp.floor(blk_idx/sgrid))):
+        for b in range(int(cp.floor(blk_idy/sgrid))):
             if im[a, b] == 1:
                 diff_Mean_Best_scaled_temp[a, b] = 0
                 diff_Mean_Best_scaled_tempInv[a, b] = 1
-            if diff_Mean_Best_scaled_temp[a, b] < np.mean(diff_Mean_Best_scaled) and homB == 1:
+            if diff_Mean_Best_scaled_temp[a, b] < cp.mean(diff_Mean_Best_scaled) and homB == 1:
                 diff_Mean_Best_scaled_temp[a, b] = 0
-            if diff_Mean_Best_scaled_tempInv[a, b] < np.mean(dmbsi) and homB == 1:
+            if diff_Mean_Best_scaled_tempInv[a, b] < cp.mean(dmbsi) and homB == 1:
                 diff_Mean_Best_scaled_tempInv[a, b] = 1
 
     a += 1
     b += 1
-    imageF = np.zeros((a, b))
-    imageFInv = np.zeros((a, b))
+    imageF = cp.zeros((a, b))
+    imageFInv = cp.zeros((a, b))
     for x in range(a):
         for y in range(b):
             if x == 0 or x == a-1 or y == 0 or y == b-1:
@@ -413,8 +413,8 @@ def characterizeblocks(MeanContent2, MeanStrongEdge, V_im, blk_idx, blk_idy, Mea
     E_nofiltInv = imageFInv.copy()
     EInv = correlate(imageFInv, H, mode='constant')
     # /////////////content based filtering//////////
-    uninteresting = np.zeros((touse, 1))
-    uninterestingInv = np.zeros((touse, 1))
+    uninteresting = cp.zeros((touse, 1))
+    uninterestingInv = cp.zeros((touse, 1))
     a = -1
     for i in range(kx):
         for j in range(ky):
@@ -424,8 +424,8 @@ def characterizeblocks(MeanContent2, MeanStrongEdge, V_im, blk_idx, blk_idy, Mea
                 uninterestingInv[a] = EInv[i, j]
     MeanBlocksre = E_nofilt.copy()
     MeanBlocksreInv = E_nofiltInv.copy()
-    meanuninteresting = np.mean(uninteresting)
-    meanuninterestingInv = np.mean(uninterestingInv)
+    meanuninteresting = cp.mean(uninteresting)
+    meanuninterestingInv = cp.mean(uninterestingInv)
     for i in range(kx):
         for j in range(ky):
             if ((im[i, j] == 1) and (notuse[i, j] == 2)):
@@ -461,9 +461,9 @@ def filtering(smap):
     Todos:
         * Fill this in with proper summary
     """
-    blocks = np.shape(smap)[0]
-    step = int(np.sqrt(blocks))
-    smallAreas = np.zeros((blocksize, blocksize))
+    blocks = cp.shape(smap)[0]
+    step = int(cp.sqrt(blocks))
+    smallAreas = cp.zeros((blocksize, blocksize))
     increment = int(step/blocksize)
     for a in range(blocksize):
         Start = int((a+1)*(blocks/blocksize)-(blocks/blocksize)+1)
@@ -490,10 +490,10 @@ def filtering(smap):
                     smallAreas[5, ((a-3)*2)] = smallAreas[5, ((a-3)*2)]+smap[z+4*(increment), 1]
                     smallAreas[5, (a-3)*2+1] = smallAreas[5, (a-3)*2+1]+smap[z+5*(increment), 1]
     meansmallAreas = smallAreas/100
-    meanbigAreas = np.zeros((1, blocksize))
+    meanbigAreas = cp.zeros((1, blocksize))
     for x in range(blocksize):
-        meanbigAreas[0, x] = np.mean(meansmallAreas[x, :])
-    meanImg = np.mean(meanbigAreas)
+        meanbigAreas[0, x] = cp.mean(meansmallAreas[x, :])
+    meanImg = cp.mean(meanbigAreas)
     return [meansmallAreas, meanbigAreas, meanImg]
 
 
@@ -513,10 +513,10 @@ def filteringMethod(smap, ThressSmall, ThressBigV, ThressImg):
     Todos:
         * Fill this in with proper summary
     """
-    blocks = np.size(smap, 0)
-    step = int(np.sqrt(blocks))
+    blocks = cp.size(smap, 0)
+    step = int(cp.sqrt(blocks))
 
-    ThressBig = np.ndarray.flatten(ThressBigV)
+    ThressBig = cp.ndarray.flatten(ThressBigV)
     for x in range(blocksize):
         if ((ThressBig[x] < ThressImg) and (ThressImg < 10)):
             ThressBig[x] = ThressImg
@@ -580,9 +580,9 @@ def hist_adjust(arr, bins):
     Todos:
         * Fill this in with proper summary
     """
-    [A, B] = np.histogram(arr, bins)
+    [A, B] = cp.histogram(arr, bins)
     for i in range(1, bins):
-        count = np.count_nonzero(arr == B[i])
+        count = cp.count_nonzero(arr == B[i])
         A[i] -= count
         A[i-1] += count
     return [A, B]
@@ -608,9 +608,9 @@ def inblockpatterns(image, bins, p, q, blk_idx, blk_idy):
     Todos:
         * Fill this in with proper summary
     """
-    Zmat = np.zeros((int(np.floor(blk_idx*blk_idy)), 2))
+    Zmat = cp.zeros((int(cp.floor(blk_idx*blk_idy)), 2))
     a = -1
-    BlockScoreAll = np.zeros((blk_idx, blk_idy))
+    BlockScoreAll = cp.zeros((blk_idx, blk_idy))
     for i in range(blk_idx):
         Ax = (i*8)+p-1
         Ex = Ax+4
@@ -672,13 +672,13 @@ def predict0(Kscores):
     Todos:
         * Fill this in with proper summary
     """
-    Kpredict = np.zeros((9, 9))
+    Kpredict = cp.zeros((9, 9))
     Kpredict[0:8, 0:8] = Kscores[:, :, 1]
     for i in range(8):
         Kpredict[8, i] = sum(Kpredict[:, i])
         Kpredict[i, 8] = sum(Kpredict[i, :])
 
-    Kpre = np.zeros((8, 8))
+    Kpre = cp.zeros((8, 8))
     for i in range(8):
         for j in range(8):
             Kpre[i, j] = (Kpredict[i, 8]+Kpredict[8, j])/16
@@ -702,7 +702,7 @@ def predict1(Kscores, Kpredict, Kpre):
     Todos:
         * Fill this in with proper summary
     """
-    A = np.zeros((4, 4))
+    A = cp.zeros((4, 4))
     for i in range(4):
         for j in range(4):
             A[i, j] = Kscores[i, j, 0] + Kscores[i+4, j+4, 0]-Kscores[i+4, j, 0]-Kscores[i, j+4, 0]
@@ -710,7 +710,7 @@ def predict1(Kscores, Kpredict, Kpre):
     r1 = [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4]
     c1 = [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4]
 
-    PossiblePoints = np.zeros((len(r1), 8))
+    PossiblePoints = cp.zeros((len(r1), 8))
     A_point = [0, 0]
     E_point = [0, 0]
 
@@ -777,13 +777,13 @@ def scores_pick_variables(BlockScoreALL, sgrid, blk_idx, blk_idy, PossiblePoints
         * Fill this in with proper summary
     """
 
-    BlockScore = np.zeros((blk_idx, blk_idy, 16))
+    BlockScore = cp.zeros((blk_idx, blk_idy, 16))
     for i in range(16):
         p = PossiblePoints[i, 0]
         q = PossiblePoints[i, 1]
         BlockScore[:, :, i] = BlockScoreALL[:, :, int(p-1), int(q-1)]/255
 
-    MeanInSpace = np.zeros((kx, ky, 16))
+    MeanInSpace = cp.zeros((kx, ky, 16))
     for r in range(16):
         for i in range(kx):
             for j in range(ky):
@@ -791,9 +791,9 @@ def scores_pick_variables(BlockScoreALL, sgrid, blk_idx, blk_idy, PossiblePoints
                 a = b-sgrid
                 d = (j+1)*sgrid
                 c = d-sgrid
-                MeanInSpace[i, j, r] = np.mean(BlockScore[a:b, c:d, r])
+                MeanInSpace[i, j, r] = cp.mean(BlockScore[a:b, c:d, r])
 
-    MeanOfAllGrids = np.mean(MeanInSpace, axis=2)
+    MeanOfAllGrids = cp.mean(MeanInSpace, axis=2)
 
     BestGrid = MeanInSpace[:, :, 15]
     diff_Mean_Best = MeanOfAllGrids - BestGrid
@@ -806,10 +806,10 @@ def scores_pick_variables(BlockScoreALL, sgrid, blk_idx, blk_idy, PossiblePoints
 
     for f in range(16):
         if (bg == 0):
-            bg1 = np.where(PossiblePoints[:, 5] == max(PossiblePoints[:, 5]))
-            bg = np.max(bg1)
+            bg1 = cp.where(PossiblePoints[:, 5] == max(PossiblePoints[:, 5]))
+            bg = cp.max(bg1)
 
-    BestGridInv = np.zeros((kx, ky))
+    BestGridInv = cp.zeros((kx, ky))
     BestGridInv = MeanInSpace[:, :, bg]
     diff_Mean_BestInv = MeanOfAllGrids - BestGridInv
     diff_Mean_Best_scaledInv = mat2gray(diff_Mean_BestInv)
@@ -830,10 +830,10 @@ def CAGI(impath):
     """
     # Read image in as double RGB
     BGR = cv2.imread(impath)
-    RGB = np.double(BGR[..., ::-1])
+    RGB = cp.double(BGR[..., ::-1])
 
     (height, width, color) = RGB.shape
-    V_im = cv2.cvtColor(np.uint8(RGB), cv2.COLOR_RGB2HSV)[:, :, 2]
+    V_im = cv2.cvtColor(cp.uint8(RGB), cv2.COLOR_RGB2HSV)[:, :, 2]
 
     # Store the pixels for Y of YCbCr
     pixels = 16 / 255 + (0.256788 * RGB[:, :, 0] + 0.504129 * RGB[:, :, 1] + 0.0979058 * RGB[:, :, 2])
@@ -845,12 +845,12 @@ def CAGI(impath):
     bins = 40
     imageGS = pixels
     (x, y) = imageGS.shape
-    blk_idx = int(np.floor((x/8)-1))
-    blk_idy = int(np.floor((y/8)-1))
-    kx = int(np.floor(blk_idx/sgrid))
-    ky = int(np.floor(blk_idy/sgrid))
-    BlockScoreAll = np.zeros((blk_idx, blk_idy, 8, 8))
-    Kscores = np.zeros((8, 8, 2))
+    blk_idx = int(cp.floor((x/8)-1))
+    blk_idy = int(cp.floor((y/8)-1))
+    kx = int(cp.floor(blk_idx/sgrid))
+    ky = int(cp.floor(blk_idy/sgrid))
+    BlockScoreAll = cp.zeros((blk_idx, blk_idy, 8, 8))
+    Kscores = cp.zeros((8, 8, 2))
     for p in range(8):
         for q in range(8):
             (K, Correct, BlockScoreAll[:, :, p, q]) = inblockpatterns(imageGS, bins, p+1, q+1, blk_idx, blk_idy)
@@ -862,15 +862,15 @@ def CAGI(impath):
 
     [Kpredict, Kpre] = predict0(Kscores)
     PossiblePoints = predict1(Kscores, Kpredict, Kpre)
-    PossiblePoints = PossiblePoints[np.argsort(PossiblePoints[:, 6])]
+    PossiblePoints = PossiblePoints[cp.argsort(PossiblePoints[:, 6])]
     [MeanContent, MeanStrongEdge] = MainTrain(RGB, blk_idx, blk_idy)
-    MeanContent2 = np.zeros((kx, ky))
+    MeanContent2 = cp.zeros((kx, ky))
     for i in range(kx):
         for j in range(ky):
             a = i*sgrid
             b = j*sgrid
             ccc = sgrid
-            MeanContent2[i, j] = np.mean(MeanContent[a:a+ccc, b:b+ccc])
+            MeanContent2[i, j] = cp.mean(MeanContent[a:a+ccc, b:b+ccc])
     [MeanInSpace, PossiblePoints, diff_Mean_Best_scaled, dmbsi] = scores_pick_variables(BlockScoreAll, sgrid, blk_idx, blk_idy, PossiblePoints, kx, ky)
     [E, EInv] = characterizeblocks(MeanContent2, MeanStrongEdge, V_im, blk_idx, blk_idy, MeanInSpace, diff_Mean_Best_scaled, dmbsi, sgrid, PossiblePoints, kx, ky)
     Result_CAGI = RescaleToImageResult(E, sgrid, kx, ky, pixels)
@@ -891,9 +891,9 @@ def getMasks():
         MaskWhite:
     """
 
-    PMasks = np.load(os.path.join(os.path.dirname(__file__), 'PMasks.npy'))
-    MMasks = np.load(os.path.join(os.path.dirname(__file__), 'MMasks.npy'))
-    MaskWhite = np.array([[10],
+    PMasks = cp.load(os.path.join(os.path.dirname(__file__), 'PMasks.cpy'))
+    MMasks = cp.load(os.path.join(os.path.dirname(__file__), 'MMasks.cpy'))
+    MaskWhite = cp.array([[10],
                          [30],
                          [50],
                          [70],
@@ -950,6 +950,6 @@ def getMasks():
                          [20],
                          [40],
                          [60],
-                         [80]], dtype=np.uint8)
+                         [80]], dtype=cp.uint8)
 
     return [PMasks, MMasks, MaskWhite]
