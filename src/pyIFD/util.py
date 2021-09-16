@@ -7,6 +7,31 @@ import math
 import cv2
 from scipy import signal
 
+def minmaxpercent(o, p=0.05):
+    o = o[np.isfinite(o)]
+    a = 0
+    b = 0
+    p=0.01
+    if o.size==0:
+        a=0
+        b=1
+    else:
+        o = np.sort(o)
+        a = o[int(max(np.ceil(np.size(o)*p),1))]
+        b = o[int(max(np.floor(np.size(o)*(1-p)),1))]
+    
+    return [a,b]
+
+def postprocessing(input_map):
+    out_map = input_map
+    [minimum, maximum] = minmaxpercent(input_map, 0.01)
+    out_map[out_map < minimum] = minimum
+    out_map[out_map > maximum] = maximum
+    out_map = out_map - np.min(out_map)
+    out_map = out_map / np.max(out_map)
+    out_map = np.round(out_map*63)+1
+    out_map[np.isnan(out_map)] = 1    
+    return out_map
 
 def vec2im(v, padsize=[0, 0], bsize=None, rows=None, cols=None):
     """
