@@ -31,7 +31,8 @@ def ELA(impath, Quality=90, Multiplier=15, Flatten=True):
     """
     ImIn = cp.double(cv2.imread(impath))
     cv2.imwrite('tmpResave.jpg', ImIn, [cv2.IMWRITE_JPEG_QUALITY, Quality])
-    ImJPG = cp.double(cv2.imread('tmpResave.jpg'))
+    ImIn = cp.array(ImIn)
+    ImJPG = cp.array(cp.double(cv2.imread('tmpResave.jpg')))
 
     OutputMap = (cp.abs(ImIn-ImJPG))*Multiplier
     OutputMap[:, :, [0, 2]] = OutputMap[:, :, [2, 0]]
