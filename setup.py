@@ -16,6 +16,5 @@ setup(
         'scikit-image',
         'pillow',
         'opencv-python',
-        'jpegio @ git+https://github.com/eldritchjs/jpegio',
         'PyWavelets',]
 )
