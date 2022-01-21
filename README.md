@@ -45,7 +45,7 @@ The toolkit consists of a number of different algorithms (click on each to be ta
 
 
 ### Authors
-The University of Notre Dame Computer Vision Research Laboratory ([CVRL](https://cvrl.nd.edu/)) and Red Hat Artificial Intelligence Center of Excellence.
+The University of Notre Dame Computer Vision Research Laboratory ([CVRL](https://cvrl.nd.edu/)) and Red Hat.
 
 ### Installation
 `pip install git+https://github.com/eldritchjs/pyIFD`
